@@ -888,7 +888,9 @@ let chatMessages = [], chatUnread = 0;
 let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
 let allTrips = [], allCanceled = [];
-let declinedRideIds = new Set(); // Local blocklist for declined rides
+
+// Load the local blocklist from device storage so declines are permanent across reloads
+let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]')); 
 
 // ─── NAV STATE ────────────────────────────────────────────────
 let navSteps = [], navCurrentStep = 0, navMode = null;
@@ -1245,8 +1247,9 @@ window.confirmCancelAction = async function() {
     const id = pendingDeclineId;
     window.closeCancelModal();
     
-    // Add to local blocklist so it completely disappears from "Incoming Requests"
+    // Add to local persistent blocklist so it never shows up again on this device
     declinedRideIds.add(id);
+    localStorage.setItem('vynix_declined_rides', JSON.stringify([...declinedRideIds]));
     
     try {
       const snap = await get(ref(db,`ride_requests/${id}`));
@@ -1258,7 +1261,7 @@ window.confirmCancelAction = async function() {
     
     const el = document.getElementById(`req-${id}`);
     if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
-    showToast('Ride declined');
+    showToast('Ride declined and hidden');
   } else if (cancelMode === 'active') {
     window.closeCancelModal();
     await cancelActiveRide(selectedReasonText);
@@ -1287,6 +1290,28 @@ async function cancelActiveRide(reason) {
     showToast('Ride canceled: '+reason);
   } catch(e) { showToast('Error canceling ride'); }
 }
+
+// ─── PERMANENT DELETE FROM DATABASE ───────────────────────────
+// This function gives you the power to completely delete a pending ride request from Firebase.
+window.deleteRideRequest = async function(id) {
+  if (confirm("Are you sure you want to permanently delete this ride request from the database?")) {
+    try {
+      await remove(ref(db, `ride_requests/${id}`));
+      showToast('Ride permanently deleted');
+      
+      // Remove it from the local DOM immediately
+      const el = document.getElementById(`req-${id}`);
+      if (el) { 
+        el.style.transition = '.2s'; 
+        el.style.opacity = '0'; 
+        el.style.transform = 'scale(0.96)'; 
+        setTimeout(() => el.remove(), 200); 
+      }
+    } catch(e) {
+      showToast('Error deleting ride');
+    }
+  }
+};
 
 // ─── NOTIFICATION BANNER ──────────────────────────────────────
 let notifTimer = null;
@@ -1368,8 +1393,8 @@ function listenRideRequests() {
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
     const data = snap.val()||{};
     
-    // Filter pending requests to exclude those that are in the local blocklist
-    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(v.id || arguments[0][0]));
+    // Filter pending requests: ONLY include those that are pending AND not in the persistent blocklist
+    const pending = Object.entries(data).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
     
     pending.forEach(([id,r]) => {
       if (!knownRequestIds.has(id)) {
@@ -1397,9 +1422,12 @@ function renderRideRequests(list) {
           <div class="req-av">${ini2(r.riderName||'R')}</div>
           <div><div class="req-name">${r.riderName||'Rider'}</div><span class="req-type-chip">${r.rideType||'VynixGo'}</span></div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div class="req-fare">R ${parseFloat(r.fare||0).toFixed(2)}</div>
-          <div class="req-fare-lbl">est. fare</div>
+        <div style="text-align:right;flex-shrink:0;display:flex;align-items:flex-start;gap:8px;">
+          <div>
+            <div class="req-fare">R ${parseFloat(r.fare||0).toFixed(2)}</div>
+            <div class="req-fare-lbl">est. fare</div>
+          </div>
+          <button onclick="deleteRideRequest('${id}')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px;opacity:0.7;transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Delete Permanently from Database">🗑️</button>
         </div>
       </div>
       <div class="req-divider"></div>
