@@ -21,8 +21,16 @@
   --panel-peek:72px;
   --panel-full:78vh;
 }
+[data-theme="dark"] {
+  --ink:#F1F5F9; --bg:#0A0F1E; --card:#111827; --card2:#1E2637;
+  --border:#1E293B; --muted:#94A3B8;
+  --blue:#4A6CFF; --blue2:#6B8FFF;
+  --green:#10B981; --green2:#34D399;
+  --red:#F87171; --orange:#FBBF24;
+  --glow:rgba(74,108,255,.25);
+}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
+html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);transition:background .3s,color .3s}
 
 .init-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
 .init-loader.hide{opacity:0;pointer-events:none}
@@ -33,11 +41,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .4s;flex-direction:column}
 .shell.ready{opacity:1}
 
+/* ── TOPBAR ── */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;padding-top:calc(10px + var(--safe-top));
   background:var(--card);border-bottom:1px solid var(--border);
-  flex-shrink:0;z-index:30;
+  flex-shrink:0;z-index:30;transition:background .3s,border-color .3s;
 }
 .tb-logo{display:flex;align-items:center;gap:9px}
 .tb-mark{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
@@ -53,12 +62,38 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .online-toggle.on .ot-lbl{color:var(--green2)}
 @keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
 
+/* ── DARK MODE TOGGLE ── */
+.dm-toggle{
+  display:flex;align-items:center;gap:7px;
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:30px;padding:5px 10px 5px 6px;
+  cursor:pointer;transition:.22s;user-select:none;touch-action:manipulation;
+  flex-shrink:0;
+}
+.dm-toggle:active{transform:scale(.96)}
+.dm-pill{
+  width:42px;height:24px;border-radius:12px;
+  background:var(--border);position:relative;
+  transition:background .28s cubic-bezier(.4,0,.2,1);flex-shrink:0;
+}
+[data-theme="dark"] .dm-pill{background:linear-gradient(135deg,#4A6CFF,#7C3AED)}
+.dm-pill::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:18px;height:18px;border-radius:50%;background:#fff;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+[data-theme="dark"] .dm-pill::after{transform:translateX(18px)}
+.dm-icon{font-size:13px;line-height:1}
+
+/* ── MAP PAGE ── */
 .map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
 .map-page.show{display:block}
 .map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom) + var(--panel-peek));transition:bottom .35s cubic-bezier(.4,0,.2,1)}
 .map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
+/* ── DRIVER PANEL ── */
 .driver-panel{
   position:absolute;left:0;right:0;
   bottom:calc(var(--nav-h) + var(--safe-bottom));
@@ -70,7 +105,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   z-index:50;
   display:flex;flex-direction:column;overflow:hidden;
   transform:translateY(calc(var(--panel-full) - var(--panel-peek)));
-  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  transition:transform .35s cubic-bezier(.4,0,.2,1),background .3s,border-color .3s;
 }
 .driver-panel.expanded{transform:translateY(0)}
 .driver-panel.nav-mode{transform:translateY(calc(var(--panel-full) - 52px))}
@@ -95,7 +130,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .toggle-pill.on::after{transform:translateX(26px)}
 .panel-scroll{
   flex:1;overflow-y:auto;
-  /* Added large bottom padding so the En Route card is fully visible */
   padding:4px 14px 120px;
   display:flex;flex-direction:column;gap:11px;
   -webkit-overflow-scrolling:touch;min-height:0;
@@ -107,23 +141,26 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   display:flex;align-items:center;justify-content:space-between;
   background:var(--card2);border:1px solid var(--border);
   border-radius:14px;padding:14px 16px;flex-shrink:0;
+  transition:background .3s,border-color .3s;
 }
 .sh-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
 .sh-val{font-size:17px;font-weight:900;color:var(--green)}
 .sh-val.off{color:var(--muted)}
 
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex-shrink:0}
-.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;transition:background .3s,border-color .3s;}
 .sc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
 .sc-val{font-size:17px;font-weight:900;color:var(--ink);line-height:1}
 .sc-val span{font-size:11px;font-weight:600;color:var(--muted)}
 
+/* ── ACTIVE RIDE CARD ── */
 .active-ride-card{
-  background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
+  background:linear-gradient(135deg,rgba(26,59,255,.08),rgba(74,108,255,.12));
   border:1.5px solid rgba(26,59,255,.22);
   border-radius:14px;padding:14px;
   display:none;flex-direction:column;gap:10px;flex-shrink:0;
 }
+[data-theme="dark"] .active-ride-card{background:linear-gradient(135deg,rgba(26,59,255,.15),rgba(74,108,255,.2));}
 .active-ride-card.show{display:flex}
 .ar-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
 .ar-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--blue);background:rgba(26,59,255,.1);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;flex-shrink:0;}
@@ -134,15 +171,17 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-name{font-size:15px;font-weight:800;color:var(--ink)}
 .ar-dest-txt{font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
 .ar-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
-.ar-cell{background:rgba(255,255,255,.8);border:1px solid rgba(26,59,255,.1);border-radius:10px;padding:9px 10px}
+.ar-cell{background:rgba(255,255,255,.08);border:1px solid rgba(26,59,255,.12);border-radius:10px;padding:9px 10px;transition:background .3s}
+[data-theme="dark"] .ar-cell{background:rgba(255,255,255,.05);}
 .ar-cell-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .ar-cell-val{font-size:14px;font-weight:900;color:var(--ink);line-height:1}
-.ar-route-box{background:rgba(255,255,255,.7);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px}
+.ar-route-box{background:rgba(255,255,255,.06);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px}
 .ar-rp{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink);font-weight:600}
 .ar-rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .ar-rp-dot.p{background:var(--green)}
 .ar-rp-dot.d{background:var(--blue2)}
 
+/* ── RIDE PHASE BUTTONS ── */
 .ar-actions-grid{display:grid;gap:8px}
 .ride-phase{display:none}
 .ride-phase.active{display:grid;gap:8px}
@@ -160,9 +199,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-nav{padding:13px 10px;border-radius:11px;border:none;background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:.14s;touch-action:manipulation;box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px}
 .btn-nav:active{opacity:.88;transform:scale(.98)}
 .btn-nav.navigating{background:linear-gradient(130deg,#059669,#10B981);box-shadow:0 3px 12px rgba(16,185,129,.3)}
-.btn-chat-ar{padding:13px 10px;border-radius:11px;background:rgba(255,255,255,.9);border:1.5px solid rgba(26,59,255,.2);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:.14s;touch-action:manipulation;position:relative;min-height:48px}
-.btn-chat-ar:active{background:rgba(255,255,255,1)}
-.chat-unread-badge{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid #DBEAFE;font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center}
+.btn-chat-ar{padding:13px 10px;border-radius:11px;background:rgba(255,255,255,.12);border:1.5px solid rgba(26,59,255,.2);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:.14s;touch-action:manipulation;position:relative;min-height:48px}
+.btn-chat-ar:active{background:rgba(255,255,255,.2)}
+.chat-unread-badge{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid var(--card);font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center}
 .chat-unread-badge.show{display:flex}
 .btn-arrived{padding:15px;border-radius:11px;border:none;background:linear-gradient(130deg,#F59E0B,#D97706);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;box-shadow:0 3px 12px rgba(245,158,11,.3);min-height:50px}
 .btn-arrived:active{opacity:.88}
@@ -171,7 +210,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-cancel-active{padding:13px;border-radius:11px;background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;min-height:46px}
 .btn-cancel-active:active{background:rgba(239,68,68,.12)}
 
-.arrived-pin-card{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.arrived-pin-card{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.18));border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .arrived-pin-card.show{display:flex}
 .apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
 .apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
@@ -179,10 +218,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 
 .req-section-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:6px}
 
+/* ── RIDE REQUEST CARDS ── */
 .ride-req-list{display:flex;flex-direction:column;gap:10px}
 .no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
 .no-rides-ico{font-size:26px;margin-bottom:8px;opacity:.6}
-.req-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;animation:slideIn .25s cubic-bezier(.4,0,.2,1)}
+.req-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;animation:slideIn .25s cubic-bezier(.4,0,.2,1);transition:background .3s,border-color .3s}
 @keyframes slideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 .req-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:6px}
 .req-rider{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -209,7 +249,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-decline:active{background:rgba(239,68,68,.13)}
 .btn-accept{padding:13px;border-radius:10px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px}
 .btn-accept:active{opacity:.88;transform:scale(.98)}
+.btn-accept:disabled{opacity:.6;pointer-events:none}
 
+/* ── NAVIGATION HUD ── */
 .nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
 .nav-hud.show{display:block;pointer-events:all}
 .nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10}
@@ -219,15 +261,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:.14s}
 .nav-close-x:hover{background:rgba(255,255,255,.22)}
-
-.nav-steps-panel{position:absolute;left:0;right:0;bottom:0;height:20vh;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all}
+.nav-steps-panel{position:absolute;left:0;right:0;bottom:0;height:20vh;background:var(--card);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all;transition:background .3s}
 .nav-steps-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
-
-/* NEW EXIT NAVIGATION BUTTON CSS */
-.nav-exit-btn {background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.14s;}
-.nav-exit-btn:active {background:rgba(239,68,68,.2);}
-
+.nav-exit-btn{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.14s}
+.nav-exit-btn:active{background:rgba(239,68,68,.2)}
 .nav-eta-chips{display:flex;gap:6px}
 .nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
 .nav-eta-chip.highlight{background:rgba(26,59,255,.1);color:var(--blue)}
@@ -242,25 +280,27 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .nav-step-text{font-size:11px;font-weight:700;color:var(--ink);line-height:1.35}
 .nav-step-d{font-size:10px;color:var(--muted);font-weight:600;margin-top:1px}
 .map-controls{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:5;pointer-events:all}
-.map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation}
+.map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation}
 .map-ctrl-btn:active{background:var(--bg)}
 
+/* ── PIN OVERLAY ── */
 .pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0}
 .pin-overlay.show{display:flex}
-.pin-card{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .32s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.pin-card{background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .32s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
 @keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
 .pin-icon{font-size:36px;margin-bottom:10px}
 .pin-title{font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.4px;margin-bottom:5px}
 .pin-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;font-weight:500}
 .pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
-.pin-digit{width:52px;height:62px;border-radius:14px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:2px solid rgba(26,59,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--blue);font-family:'Outfit',sans-serif}
+.pin-digit{width:52px;height:62px;border-radius:14px;background:linear-gradient(135deg,rgba(26,59,255,.1),rgba(74,108,255,.18));border:2px solid rgba(26,59,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--blue);font-family:'Outfit',sans-serif}
 .pin-input-row{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
 .pin-input-digit{width:56px;height:58px;border-radius:12px;border:2px solid var(--border);background:var(--card2);font-size:24px;font-weight:800;text-align:center;font-family:'Outfit',sans-serif;color:var(--ink);outline:none;transition:.18s}
-.pin-input-digit:focus{border-color:var(--blue);background:#fff}
+.pin-input-digit:focus{border-color:var(--blue);background:var(--card)}
 .pin-verify-btn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);transition:.14s;margin-bottom:10px;touch-action:manipulation}
 .pin-error{font-size:12px;color:var(--red);font-weight:700;display:none;margin-top:4px}
 .pin-arrived-note{font-size:11px;font-weight:500;color:var(--muted);line-height:1.5}
 
+/* ── PAGES ── */
 .page{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px;-webkit-overflow-scrolling:touch}
 .page.show{display:flex}
 .ph{font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.4px}
@@ -276,7 +316,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .eh-stat-val{font-size:17px;font-weight:800;color:#fff}
 .eh-stat-lbl{font-size:9px;color:rgba(255,255,255,.65);margin-top:1px;font-weight:700;text-transform:uppercase}
 
-.trip-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start}
+.trip-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start;transition:background .3s,border-color .3s}
 .tc-type{font-size:14px;font-weight:800;color:var(--ink)}
 .tc-rider{font-size:12px;color:var(--blue);font-weight:700;margin-top:2px}
 .tc-route{font-size:11px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.4}
@@ -287,14 +327,14 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .tc-fare.canceled{color:var(--red)}
 .tc-km{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px}
 
-.prof-card{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
+.prof-card{background:linear-gradient(135deg,rgba(26,59,255,.07),rgba(74,108,255,.12));border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
 .prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(26,59,255,.06)}
 .pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow)}
 .pc-name{font-size:17px;font-weight:900;color:var(--ink)}
 .pc-email{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
 .pc-tag{font-size:9px;font-weight:800;background:rgba(16,185,129,.12);color:var(--green2);padding:3px 8px;border-radius:7px;margin-top:7px;display:inline-block;text-transform:uppercase;letter-spacing:.05em}
 .acc-group-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:2px 0 5px 3px;flex-shrink:0}
-.acc-group{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.acc-group{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;transition:background .3s,border-color .3s}
 .acc-row{display:flex;align-items:center;justify-content:space-between;padding:15px;border-bottom:1px solid var(--border);cursor:pointer;transition:.14s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .acc-row:last-child{border:none}
 .acc-row:active{background:rgba(0,0,0,.05)}
@@ -305,27 +345,29 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-label{font-size:14px;font-weight:700;color:var(--ink)}
 .ar-arrow{color:var(--muted);font-size:16px}
 
+/* ── BOTTOM NAV ── */
 .bnav{
   position:fixed;bottom:0;left:0;right:0;
   height:calc(var(--nav-h) + var(--safe-bottom));
-  background:rgba(255,255,255,.98);backdrop-filter:blur(14px);
+  background:var(--card);backdrop-filter:blur(14px);
   border-top:1px solid var(--border);
   display:flex;justify-content:space-around;align-items:flex-start;
-  padding-top:8px;z-index:100;
+  padding-top:8px;z-index:100;transition:background .3s,border-color .3s;
 }
 .bni{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:.14s;padding:4px 14px;position:relative;touch-action:manipulation;min-width:60px}
 .bni.act{color:var(--blue)}
-.bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid #fff;display:none}
+.bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--card);display:none}
 .bni-dot.show{display:block}
 
+/* ── CANCEL MODAL ── */
 .cancel-modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
 .cancel-modal-bg.show{display:flex}
-.cancel-modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .28s cubic-bezier(.4,0,.2,1)}
+.cancel-modal{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .28s cubic-bezier(.4,0,.2,1);transition:background .3s}
 .cm-pill{width:38px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px}
 .cm-title{font-size:18px;font-weight:900;color:var(--ink);margin-bottom:5px}
 .cm-sub{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:16px}
 .cm-reasons{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
-.cm-reason{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:13px;border:1.5px solid var(--border);cursor:pointer;transition:.14s;touch-action:manipulation}
+.cm-reason{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:13px;border:1.5px solid var(--border);cursor:pointer;transition:.14s;touch-action:manipulation;background:var(--card2)}
 .cm-reason:active{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.03)}
 .cm-reason.selected{border-color:var(--red);background:rgba(239,68,68,.06)}
 .cm-reason-icon{font-size:18px;flex-shrink:0}
@@ -338,9 +380,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .cm-confirm{padding:14px;border:none;background:var(--red);color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation}
 .cm-confirm:disabled{opacity:.5}
 
+/* ── ACCEPT MODAL ── */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .mbg.show{display:flex}
-.modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);border-bottom:none}
+.modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);border-bottom:none;transition:background .3s}
 .mh{font-size:17px;font-weight:900;color:var(--ink);margin-bottom:14px}
 .mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
 .mrow:last-of-type{border:none}
@@ -349,7 +392,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .mbtns{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:18px}
 .mcancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation}
 .mok{padding:14px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);touch-action:manipulation}
+.mok:disabled{opacity:.6;pointer-events:none}
 
+/* ── VEHICLE MODAL ── */
 .vehicle-mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .vehicle-mbg.show{display:flex}
 .t-input{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--ink);outline:none;transition:.18s}
@@ -358,9 +403,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .slabel{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;display:block}
 .input-wrap{margin-bottom:14px}
 
+/* ── CHAT SHEET ── */
 .chat-sheet-bg{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
 .chat-sheet-bg.show{display:flex}
-.chat-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,.15)}
+.chat-sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,.15);transition:background .3s}
 .chat-header{display:flex;align-items:center;gap:11px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .chat-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
 .chat-rider-name{font-size:15px;font-weight:800;color:var(--ink)}
@@ -380,139 +426,51 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .qr-btn:active{background:rgba(26,59,255,.12)}
 .chat-input-row{display:flex;gap:9px;padding:10px 14px calc(14px + var(--safe-bottom));border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end}
 .chat-text-input{flex:1;border:1.5px solid var(--border);border-radius:22px;padding:10px 15px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);background:var(--card2);outline:none;resize:none;max-height:90px;line-height:1.4;transition:.18s}
-.chat-text-input:focus{border-color:var(--blue2);background:#fff}
+.chat-text-input:focus{border-color:var(--blue2);background:var(--card)}
 .chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;box-shadow:0 3px 10px var(--glow);flex-shrink:0;touch-action:manipulation}
 .chat-send-btn:active{transform:scale(.92)}
 
-.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s;z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg);padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s;z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-140px);background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .4s cubic-bezier(.175,.885,.32,1.275)}
+/* ── NOTIF BANNER ── */
+.ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-140px);background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .4s cubic-bezier(.175,.885,.32,1.275)}
 .ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
 .rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
 .rnb-text{flex:1;min-width:0}
 .rnb-title{font-size:13px;font-weight:800}
 .rnb-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-theme="dark"] .rnb-sub{color:rgba(241,245,249,.6)}
 .rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation}
 
+/* ── DRIVER MARKER ── */
 .driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
 .driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
 @keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
 
-/* --- DESKTOP RESPONSIVENESS --- */
+/* ── DESKTOP ── */
 @media (min-width: 800px) {
-  .shell {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-  }
-  .topbar {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-  .bnav {
-    grid-column: 1;
-    grid-row: 2;
-    position: static;
-    height: 100%;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding-top: 30px;
-    gap: 30px;
-    border-top: none;
-    border-right: 1px solid var(--border);
-    background: var(--card);
-  }
-  .bni {
-    width: 100%;
-    min-width: auto;
-  }
-  .map-page, .page {
-    grid-column: 2;
-    grid-row: 2;
-    padding-bottom: 20px;
-  }
-  .page {
-    align-items: center; 
-    padding-top: 40px;
-  }
-  .page > * {
-    width: 100%;
-    max-width: 800px; 
-  }
-  
-  /* Map adjustments */
-  .map-wrap, .map-wrap.nav-active {
-    bottom: 0 !important;
-  }
-  .driver-panel {
-    top: 20px;
-    left: 20px;
-    bottom: 20px;
-    width: 400px;
-    height: auto !important;
-    transform: none !important;
-    border-radius: 22px;
-    border: 1px solid var(--border);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-  }
-  .panel-handle { display: none; }
-  .panel-peek-row { padding-top: 20px; }
-  
-  /* Modals Center */
-  .mbg, .vehicle-mbg, .cancel-modal-bg, .chat-sheet-bg, .pin-overlay {
-    align-items: center;
-    padding: 20px;
-  }
-  .modal, .cancel-modal, .chat-sheet, .pin-card {
-    border-radius: 22px !important;
-    animation: popIn .3s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2) !important;
-    max-height: 85vh;
-  }
-  .pin-card {
-    max-width: 440px;
-  }
-  @keyframes popIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  
-  /* Navigation UI Desktop Restructure */
-  .nav-steps-panel {
-    top: 20px;
-    right: 20px;
-    bottom: auto;
-    left: auto;
-    width: 350px;
-    height: auto;
-    max-height: 60vh;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-  }
-  .nav-instruction-bar {
-    top: 20px;
-    left: 440px; 
-    right: auto;
-    width: 400px;
-  }
-  .map-controls {
-    right: 20px;
-    top: auto;
-    bottom: 40px;
-    transform: none;
-  }
-  .toast { 
-    bottom: 40px !important; 
-  }
-  .ride-notif-banner {
-    max-width: 400px;
-    top: 30px;
-  }
+  .shell{display:grid;grid-template-columns:80px 1fr;grid-template-rows:auto 1fr;height:100vh}
+  .topbar{grid-column:1 / -1;grid-row:1;padding-left:24px;padding-right:24px}
+  .bnav{grid-column:1;grid-row:2;position:static;height:100%;flex-direction:column;justify-content:flex-start;padding-top:30px;gap:30px;border-top:none;border-right:1px solid var(--border);background:var(--card)}
+  .bni{width:100%;min-width:auto}
+  .map-page,.page{grid-column:2;grid-row:2;padding-bottom:20px}
+  .page{align-items:center;padding-top:40px}
+  .page > *{width:100%;max-width:800px}
+  .map-wrap,.map-wrap.nav-active{bottom:0 !important}
+  .driver-panel{top:20px;left:20px;bottom:20px;width:400px;height:auto !important;transform:none !important;border-radius:22px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,.1)}
+  .panel-handle{display:none}
+  .panel-peek-row{padding-top:20px}
+  .mbg,.vehicle-mbg,.cancel-modal-bg,.chat-sheet-bg,.pin-overlay{align-items:center;padding:20px}
+  .modal,.cancel-modal,.chat-sheet,.pin-card{border-radius:22px !important;animation:popIn .3s cubic-bezier(.4,0,.2,1);box-shadow:0 20px 60px rgba(0,0,0,.2) !important;max-height:85vh}
+  .pin-card{max-width:440px}
+  @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .nav-steps-panel{top:20px;right:20px;bottom:auto;left:auto;width:350px;height:auto;max-height:60vh;border-radius:20px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,.15)}
+  .nav-instruction-bar{top:20px;left:440px;right:auto;width:400px}
+  .map-controls{right:20px;top:auto;bottom:40px;transform:none}
+  .toast{bottom:40px !important}
+  .ride-notif-banner{max-width:400px;top:30px}
 }
 </style>
 </head>
@@ -535,27 +493,29 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   <button class="rnb-btn" onclick="switchPage('map');dismissNotifBanner()">View</button>
 </div>
 
+<!-- ── ACCEPT MODAL ── -->
 <div class="mbg" id="acceptModal" onclick="if(event.target===this)closeAcceptModal()">
   <div class="modal">
-    <div class="mh">Confirm Accept</div>
+    <div class="mh">🚗 Confirm Accept Ride</div>
     <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
     <div class="mrow"><span class="mrl">Type</span><b class="mrv" id="am-type">—</b></div>
     <div class="mrow"><span class="mrl">Pickup</span><b class="mrv" id="am-pickup">—</b></div>
     <div class="mrow"><span class="mrl">Destination</span><b class="mrv" id="am-dest">—</b></div>
     <div class="mrow"><span class="mrl">Distance</span><b class="mrv" id="am-dist">—</b></div>
     <div class="mrow"><span class="mrl">Duration</span><b class="mrv" id="am-dur">—</b></div>
-    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare" style="color:var(--green2);font-size:16px">—</b></div>
+    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare" style="color:var(--green2);font-size:17px;font-weight:900">—</b></div>
     <div class="mbtns">
       <button class="mcancel" onclick="closeAcceptModal()">Back</button>
-      <button class="mok" onclick="confirmAccept()">✓ Accept Ride</button>
+      <button class="mok" id="acceptConfirmBtn" onclick="confirmAccept()">✓ Accept Ride</button>
     </div>
   </div>
 </div>
 
+<!-- ── VEHICLE MODAL ── -->
 <div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
-    <div class="input-wrap"><span class="slabel">Vehicle Make & Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
+    <div class="input-wrap"><span class="slabel">Vehicle Make &amp; Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
     <div class="input-wrap"><span class="slabel">Licence Plate</span><input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase"></div>
     <div class="input-wrap"><span class="slabel">Ride Type</span>
       <select id="v-type" class="t-input">
@@ -564,10 +524,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <option value="VynixXL">VynixXL — SUV · 6 seats</option>
       </select>
     </div>
-    <div class="mbtns" style="grid-template-columns:1fr"><button class="mok" onclick="saveVehicle()">Save & Continue</button></div>
+    <div class="mbtns" style="grid-template-columns:1fr"><button class="mok" onclick="saveVehicle()">Save &amp; Continue</button></div>
   </div>
 </div>
 
+<!-- ── CANCEL / DECLINE MODAL ── -->
 <div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this)closeCancelModal()">
   <div class="cancel-modal">
     <div class="cm-pill"></div>
@@ -588,6 +549,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
+<!-- ── CHAT SHEET ── -->
 <div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this)closeChat()">
   <div class="chat-sheet">
     <div class="chat-header">
@@ -616,6 +578,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
+<!-- ── PIN OVERLAY ── -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-card">
     <div class="pin-icon">🔐</div>
@@ -623,12 +586,13 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div class="pin-subtitle">Ask the rider for their 4-digit security PIN to start the trip.</div>
     <div class="pin-display" id="pinDisplay"></div>
     <div class="pin-input-row" id="pinInputRow"></div>
-    <button class="pin-verify-btn" onclick="verifyPin()">Verify & Start Ride</button>
+    <button class="pin-verify-btn" onclick="verifyPin()">Verify &amp; Start Ride</button>
     <div class="pin-error" id="pinError">❌ Wrong PIN — try again</div>
     <div class="pin-arrived-note">The rider received this PIN when they booked.</div>
   </div>
 </div>
 
+<!-- ── SHELL ── -->
 <div class="shell" id="appShell">
 
   <div class="topbar">
@@ -637,6 +601,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
     </div>
     <div class="tb-right">
+      <!-- Dark Mode Toggle -->
+      <div class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <div class="dm-pill"></div>
+        <span class="dm-icon" id="dmIcon">🌙</span>
+      </div>
       <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
         <div class="ot-dot"></div>
         <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
@@ -645,6 +614,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     </div>
   </div>
 
+  <!-- MAP PAGE -->
   <div class="map-page show" id="page-map">
     <div class="map-wrap" id="mapWrap">
       <div id="driverMap"></div>
@@ -662,7 +632,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         </div>
         <div class="nav-steps-panel" id="navStepsPanel">
           <div class="nav-steps-header">
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px">
               <button class="nav-exit-btn" onclick="stopNavigation()">✕ Exit Nav</button>
               <span class="nav-steps-title">Turn-by-Turn</span>
             </div>
@@ -677,8 +647,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
           <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
           </button>
-          <button class="map-ctrl-btn" onclick="if(driverMap) driverMap.zoomIn()">+</button>
-          <button class="map-ctrl-btn" onclick="if(driverMap) driverMap.zoomOut()">−</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomIn()">+</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomOut()">−</button>
         </div>
       </div>
     </div>
@@ -771,6 +741,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     </div>
   </div>
 
+  <!-- EARNINGS PAGE -->
   <div class="page" id="page-earnings">
     <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
     <div class="earn-hero">
@@ -786,6 +757,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div></div>
   </div>
 
+  <!-- HISTORY PAGE -->
   <div class="page" id="page-history">
     <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All your rides</div></div>
     <div style="display:flex;gap:8px;flex-shrink:0">
@@ -796,6 +768,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div id="canceledList" style="display:none"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">No canceled rides.</div></div>
   </div>
 
+  <!-- ACCOUNT PAGE -->
   <div class="page" id="page-account">
     <div><div class="ph">Account</div></div>
     <div class="prof-card">
@@ -825,9 +798,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <div class="ar-arrow" style="color:var(--red)">›</div>
       </div>
     </div>
-    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.3 · South Africa 🇿🇦</div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.4 · South Africa 🇿🇦</div>
   </div>
 
+  <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bni act" id="bn-map" onclick="switchPage('map')">
       <div class="bni-dot" id="bn-map-dot"></div>
@@ -848,7 +822,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, get, push, update, remove, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const FIREBASE_CONFIG = {
   apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -868,20 +842,15 @@ function tryInitFirebase() {
     db = getDatabase(app);
     auth = getAuth(app);
     document.getElementById('loaderSub').textContent = 'Checking auth…';
-
     onAuthStateChanged(auth, user => {
-      if (user) {
-        initApp(user);
-      } else {
-        window.location.href = 'login.html';
-      }
+      if (user) { initApp(user); }
+      else { window.location.href = 'login.html'; }
     });
   } catch(e) {
     console.error('Firebase init error:', e);
     window.location.href = 'login.html';
   }
 }
-
 setTimeout(tryInitFirebase, 100);
 
 // ─── STATE ────────────────────────────────────────────────────
@@ -899,9 +868,40 @@ let chatMessages = [], chatUnread = 0;
 let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
 let allTrips = [], allCanceled = [];
+let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]'));
 
-// Load the local blocklist from device storage so declines are permanent across reloads
-let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]')); 
+// ─── DARK MODE ────────────────────────────────────────────────
+function initDarkMode() {
+  const saved = localStorage.getItem('vynix_dark_mode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (saved === null && prefersDark)) {
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('dmIcon').textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('dmIcon').textContent = '🌙';
+  }
+}
+window.toggleDarkMode = function() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('vynix_dark_mode','light');
+    document.getElementById('dmIcon').textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme','dark');
+    localStorage.setItem('vynix_dark_mode','dark');
+    document.getElementById('dmIcon').textContent = '☀️';
+  }
+  // Refresh map style for dark/light
+  if (driverMap) {
+    const style = isDark
+      ? 'mapbox://styles/mapbox/streets-v12'
+      : 'mapbox://styles/mapbox/dark-v11';
+    driverMap.setStyle(style);
+  }
+};
+initDarkMode();
 
 // ─── NAV STATE ────────────────────────────────────────────────
 let navSteps = [], navCurrentStep = 0, navMode = null;
@@ -948,14 +948,11 @@ function initApp(userData) {
   if (!driverMap) initMap();
   watchLocation();
   loadVehicleInfo();
-  
-  // Start the unified database listener to persist exact state perfectly
   listenToDatabase();
-  
   if (localStorage.getItem('vynix_driver_status') === 'online') {
-      goOnline();
+    goOnline();
   } else {
-      goOffline();
+    goOffline();
   }
 }
 
@@ -966,93 +963,250 @@ window.doSignOut = () => {
 };
 
 // ─── UNIFIED FIREBASE LISTENER ────────────────────────────────
-// Replaces scattered logic to guarantee the UI is identical on page refresh
 function listenToDatabase() {
-    if (!cu || !db) return;
-    if (globalRequestsUnsub) return; // Prevent duplicates
-    
-    globalRequestsUnsub = onValue(ref(db, 'ride_requests'), snap => {
-        const allData = snap.val() || {};
-        processRideData(allData);
-    });
+  if (!cu || !db) return;
+  if (globalRequestsUnsub) return;
+  globalRequestsUnsub = onValue(ref(db, 'ride_requests'), snap => {
+    const allData = snap.val() || {};
+    processRideData(allData);
+  });
 }
 
 function processRideData(allData) {
-    const mine = Object.entries(allData).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
-    
-    if (mine) {
-        // Force online state visually if they possess an active ride but refreshed
-        if (!isOnline) {
-             isOnline = true;
-             setOnlineUI(true);
-             localStorage.setItem('vynix_driver_status', 'online');
-        }
-        
-        const [id, r] = mine;
-        if (activeRideId !== id) {
-            activeRideId = id; 
-            activeRideData = r;
-            showActiveRide(r);
-            expandPanel();
-        } else {
-            activeRideData = r;
-        }
-        
-        // Restore Phase specifically
-        if (r.arrived && ridePhase !== 'riding') {
-            ridePhase = 'riding';
-            document.getElementById('phase-pickup').classList.remove('active');
-            document.getElementById('phase-riding').classList.add('active');
-            document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
-            
-            // Restore PIN Display exactly if arriving was done previously
-            if(document.getElementById('arrivedPinDisplay')) {
-                 document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin || '---';
-                 document.getElementById('ar-pin').textContent = r.arrivedPin || '---';
-            }
-        }
-        
-        document.getElementById('reqLabel').style.display='none';
-        document.getElementById('rideReqList').style.display='none';
-        
-    } else {
-        // No active ride assigned to this driver
-        if (activeRideId) {
-            activeRideId = null; activeRideData = null;
-            document.getElementById('activeRideCard').classList.remove('show');
-            document.getElementById('arrivedPinCard').classList.remove('show');
-            resetPhaseUI();
-            document.getElementById('reqLabel').style.display='';
-            document.getElementById('rideReqList').style.display='';
-            if (isNavigating) stopNavigation();
-            showToast('Active ride was concluded or canceled.');
-        }
-        
-        // Populate the pending requests list if driver is online
-        if (isOnline) {
-            const pending = Object.entries(allData).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
-            pending.forEach(([id,r]) => {
-              if (!knownRequestIds.has(id)) {
-                knownRequestIds.add(id);
-                if (document.getElementById('appShell').classList.contains('ready')) showRideNotif(r);
-              }
-            });
-            [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
-            renderRideRequests(pending);
-            const cnt = pending.length;
-            const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',cnt>0);
-        } else {
-            document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
-            const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',false);
-        }
+  const mine = Object.entries(allData).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
+  if (mine) {
+    if (!isOnline) {
+      isOnline = true;
+      setOnlineUI(true);
+      localStorage.setItem('vynix_driver_status', 'online');
     }
+    const [id, r] = mine;
+    if (activeRideId !== id) {
+      activeRideId = id;
+      activeRideData = r;
+      showActiveRide(r);
+      expandPanel();
+    } else {
+      activeRideData = r;
+    }
+    // Restore phase after refresh
+    if (r.arrived && ridePhase !== 'riding') {
+      ridePhase = 'riding';
+      document.getElementById('phase-pickup').classList.remove('active');
+      document.getElementById('phase-riding').classList.add('active');
+      document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+      if (r.arrivedPin) {
+        document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin;
+        document.getElementById('ar-pin').textContent = r.arrivedPin;
+        document.getElementById('arrivedPinCard').classList.add('show');
+      }
+    }
+    document.getElementById('reqLabel').style.display = 'none';
+    document.getElementById('rideReqList').style.display = 'none';
+  } else {
+    if (activeRideId) {
+      activeRideId = null; activeRideData = null;
+      document.getElementById('activeRideCard').classList.remove('show');
+      document.getElementById('arrivedPinCard').classList.remove('show');
+      resetPhaseUI();
+      document.getElementById('reqLabel').style.display = '';
+      document.getElementById('rideReqList').style.display = '';
+      if (isNavigating) stopNavigation();
+      showToast('Active ride was concluded or canceled.');
+    }
+    if (isOnline) {
+      const pending = Object.entries(allData).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
+      pending.forEach(([id,r]) => {
+        if (!knownRequestIds.has(id)) {
+          knownRequestIds.add(id);
+          if (document.getElementById('appShell').classList.contains('ready')) showRideNotif(r);
+        }
+      });
+      [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
+      renderRideRequests(pending);
+      const cnt = pending.length;
+      const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', cnt>0);
+    } else {
+      document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+      const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', false);
+    }
+  }
 }
+
+// ─── SHOW ACTIVE RIDE ─────────────────────────────────────────
+function showActiveRide(r) {
+  document.getElementById('activeRideCard').classList.add('show');
+  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+  document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
+  document.getElementById('ar-name').textContent = r.riderName || 'Rider';
+  document.getElementById('ar-dest').textContent = (r.destination||'—').substring(0,40);
+  document.getElementById('ar-pin').textContent = r.securityPin || r.arrivedPin || '—';
+  document.getElementById('ar-type').textContent = r.rideType || 'VynixGo';
+  document.getElementById('ar-seats').textContent = r.capacity || 4;
+  document.getElementById('ar-pickup-txt').textContent = r.pickup || '—';
+  document.getElementById('ar-drop-txt').textContent = r.destination || '—';
+  // Set phase
+  if (!r.arrived) {
+    ridePhase = 'pickup';
+    document.getElementById('phase-pickup').classList.add('active');
+    document.getElementById('phase-riding').classList.remove('active');
+    document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
+  } else {
+    ridePhase = 'riding';
+    document.getElementById('phase-pickup').classList.remove('active');
+    document.getElementById('phase-riding').classList.add('active');
+    document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+    document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin || '—';
+    document.getElementById('ar-pin').textContent = r.arrivedPin || '—';
+    document.getElementById('arrivedPinCard').classList.add('show');
+  }
+}
+
+function resetPhaseUI() {
+  ridePhase = 'pickup';
+  document.getElementById('phase-pickup').classList.add('active');
+  document.getElementById('phase-riding').classList.remove('active');
+  document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
+}
+
+// ─── ACCEPT MODAL ─────────────────────────────────────────────
+window.openAcceptModal = function(id) {
+  if (!isOnline) { showToast('Go online first to accept rides'); return; }
+  if (activeRideId) { showToast('You already have an active ride'); return; }
+
+  // Get fresh data from firebase
+  get(ref(db, `ride_requests/${id}`)).then(snap => {
+    const r = snap.val();
+    if (!r) { showToast('Ride no longer available'); return; }
+    if (r.status !== 'pending') { showToast('Ride already taken'); renderRideRequests([]); return; }
+
+    pendingAcceptId = id;
+    pendingAcceptData = r;
+
+    document.getElementById('am-rider').textContent = r.riderName || 'Unknown';
+    document.getElementById('am-type').textContent = r.rideType || 'VynixGo';
+    document.getElementById('am-pickup').textContent = (r.pickup || '—').substring(0, 40);
+    document.getElementById('am-dest').textContent = (r.destination || '—').substring(0, 40);
+    document.getElementById('am-dist').textContent = r.distKm ? parseFloat(r.distKm).toFixed(1) + ' km' : '—';
+    document.getElementById('am-dur').textContent = r.tripMins ? r.tripMins + ' min' : '—';
+    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+
+    const btn = document.getElementById('acceptConfirmBtn');
+    btn.disabled = false;
+    btn.textContent = '✓ Accept Ride';
+
+    document.getElementById('acceptModal').classList.add('show');
+  }).catch(e => { showToast('Error loading ride: ' + e.message); });
+};
+
+window.closeAcceptModal = function() {
+  document.getElementById('acceptModal').classList.remove('show');
+  pendingAcceptId = null;
+  pendingAcceptData = null;
+};
+
+window.confirmAccept = async function() {
+  if (!pendingAcceptId || !cu) { showToast('No ride selected'); return; }
+
+  const btn = document.getElementById('acceptConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Accepting…';
+
+  try {
+    // Re-check the ride is still pending (race condition guard)
+    const snap = await get(ref(db, `ride_requests/${pendingAcceptId}`));
+    const r = snap.val();
+    if (!r) { showToast('Ride no longer exists'); closeAcceptModal(); return; }
+    if (r.status !== 'pending') { showToast('Ride was already taken by another driver'); closeAcceptModal(); return; }
+
+    // Fetch driver vehicle info
+    const vSnap = await get(ref(db, `drivers/${cu.uid}/vehicle`));
+    const vehicle = vSnap.val() || {};
+
+    // Write accepted status atomically
+    await update(ref(db, `ride_requests/${pendingAcceptId}`), {
+      status: 'accepted',
+      driverId: cu.uid,
+      driverName: cu.displayName || 'Driver',
+      driverEmail: cu.email || '',
+      driverVehicle: vehicle.car || '',
+      driverPlate: vehicle.plate || '',
+      acceptedAt: Date.now()
+    });
+
+    activeRideId = pendingAcceptId;
+    activeRideData = { ...r, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver' };
+
+    closeAcceptModal();
+    showActiveRide(activeRideData);
+    expandPanel();
+
+    document.getElementById('reqLabel').style.display = 'none';
+    document.getElementById('rideReqList').style.display = 'none';
+
+    showToast('🎉 Ride accepted! Navigate to pickup.');
+
+    // Stats
+    statsToday.rides++;
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+
+  } catch(e) {
+    console.error('Accept error:', e);
+    showToast('Error accepting ride: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '✓ Accept Ride';
+  }
+};
+
+// ─── COMPLETE RIDE ─────────────────────────────────────────────
+window.completeRide = async function() {
+  if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
+  if (!confirm('Complete this ride?')) return;
+  try {
+    const fare = parseFloat(activeRideData.fare || 0);
+    const tripData = {
+      ...activeRideData,
+      status: 'completed',
+      completedAt: Date.now(),
+      date: Date.now(),
+      driverId: cu.uid
+    };
+    // Save to driver trips
+    await push(ref(db, `drivers/${cu.uid}/trips`), tripData);
+    // Update earnings
+    const earnSnap = await get(ref(db, `drivers/${cu.uid}/earnings`));
+    const current = earnSnap.val() || { total:0, trips:0 };
+    await set(ref(db, `drivers/${cu.uid}/earnings`), {
+      total: (current.total||0) + fare,
+      trips: (current.trips||0) + 1
+    });
+    // Remove from active requests
+    await remove(ref(db, `ride_requests/${activeRideId}`));
+    // Update UI stats
+    statsToday.earned += fare;
+    statsToday.rides++;
+    document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+    activeRideId = null; activeRideData = null; ridePhase = 'pickup';
+    document.getElementById('activeRideCard').classList.remove('show');
+    document.getElementById('arrivedPinCard').classList.remove('show');
+    resetPhaseUI();
+    document.getElementById('reqLabel').style.display = '';
+    document.getElementById('rideReqList').style.display = '';
+    if (isNavigating) stopNavigation();
+    loadTripHistory();
+    loadTodayStats();
+    showToast(`✅ Ride complete! +R${fare.toFixed(2)}`);
+  } catch(e) { showToast('Error completing ride: ' + e.message); }
+};
 
 // ─── MAP INIT ─────────────────────────────────────────────────
 function initMap() {
   try {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     driverMap = new mapboxgl.Map({
-      container:'driverMap', style:'mapbox://styles/mapbox/streets-v12',
+      container:'driverMap',
+      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12',
       center:driverLngLat, zoom:14, pitch:45, bearing:0, attributionControl:false
     });
     driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
@@ -1060,18 +1214,19 @@ function initMap() {
       try {
         const layers = driverMap.getStyle().layers;
         const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
-        driverMap.addLayer({
-          id:'3d-buildings', source:'composite', 'source-layer':'building',
-          filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
-          paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6}
-        }, labelId);
+        if (!isDark) {
+          driverMap.addLayer({
+            id:'3d-buildings', source:'composite', 'source-layer':'building',
+            filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
+            paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6}
+          }, labelId);
+        }
       } catch(e) {}
       if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
     });
     driverMap.on('dragstart', () => { mapInteracting = true; });
     driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
     driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
-
     const el = document.createElement('div');
     el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
     driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
@@ -1088,7 +1243,7 @@ function updateDriverLocation(lat, lng) {
   if (!mapInteracting && !isNavigating) {
     driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
   }
-  if (isOnline && db) {
+  if (isOnline && db && cu) {
     set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now() }).catch(()=>{});
   }
 }
@@ -1166,9 +1321,11 @@ function computeBearing(coords) {
 
 function drawRoute(coords) {
   if (!driverMap) return;
-  if (driverMap.getLayer(ROUTE_LBG)) driverMap.removeLayer(ROUTE_LBG);
-  if (driverMap.getLayer(ROUTE_L)) driverMap.removeLayer(ROUTE_L);
-  if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+  try {
+    if (driverMap.getLayer(ROUTE_LBG)) driverMap.removeLayer(ROUTE_LBG);
+    if (driverMap.getLayer(ROUTE_L)) driverMap.removeLayer(ROUTE_L);
+    if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+  } catch(e) {}
   driverMap.addSource(ROUTE_SRC, { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } } });
   driverMap.addLayer({ id:ROUTE_LBG, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1E40AF','line-width':12,'line-opacity':.25} });
   driverMap.addLayer({ id:ROUTE_L, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1A3BFF','line-width':7,'line-opacity':1} });
@@ -1217,6 +1374,7 @@ window.driverArrived = async function() {
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
   await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
   activeRideData.arrivedPin = newPin;
+  activeRideData.arrived = true;
   document.getElementById('arrivedPinDisplay').textContent = newPin;
   document.getElementById('arrivedPinCard').classList.add('show');
   document.getElementById('ar-pin').textContent = newPin;
@@ -1241,8 +1399,8 @@ window.pinDigitInput = function(e, idx) {
 
 window.verifyPin = function() {
   const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
-  const expected = activeRideData?.arrivedPin || activeRideData?.securityPin || '';
-  if (entered === expected || entered === (activeRideData?.securityPin||'')) {
+  const expected = activeRideData?.arrivedPin || '';
+  if (entered === expected) {
     document.getElementById('pinOverlay').classList.remove('show');
     ridePhase = 'riding';
     document.getElementById('phase-pickup').classList.remove('active');
@@ -1272,7 +1430,6 @@ window.closeChat = function() {
   document.getElementById('chatSheet').classList.remove('show');
   if (chatUnsub) { chatUnsub(); chatUnsub = null; }
 };
-
 function listenChat() {
   if (!activeRideId || !db) return;
   if (chatUnsub) chatUnsub();
@@ -1282,7 +1439,6 @@ function listenChat() {
     renderChatMsgs(); scrollChatBottom();
   });
 }
-
 function renderChatMsgs() {
   const el = document.getElementById('chatMessages');
   if (!chatMessages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>'; return; }
@@ -1346,11 +1502,8 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
-    
-    // Add to local persistent blocklist so it never shows up again on this device
     declinedRideIds.add(id);
     localStorage.setItem('vynix_declined_rides', JSON.stringify([...declinedRideIds]));
-    
     try {
       const snap = await get(ref(db,`ride_requests/${id}`));
       const rData = snap.val()||{};
@@ -1358,7 +1511,6 @@ window.confirmCancelAction = async function() {
         ...rData, canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined'
       });
     } catch(e) {}
-    
     const el = document.getElementById(`req-${id}`);
     if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
     showToast('Ride declined and hidden');
@@ -1391,23 +1543,15 @@ async function cancelActiveRide(reason) {
   } catch(e) { showToast('Error canceling ride'); }
 }
 
-// ─── PERMANENT DELETE FROM DATABASE ───────────────────────────
+// ─── DELETE RIDE ──────────────────────────────────────────────
 window.deleteRideRequest = async function(id) {
-  if (confirm("Are you sure you want to permanently delete this ride request from the database?")) {
+  if (confirm("Permanently delete this ride request from the database?")) {
     try {
       await remove(ref(db, `ride_requests/${id}`));
       showToast('Ride permanently deleted');
-      
       const el = document.getElementById(`req-${id}`);
-      if (el) { 
-        el.style.transition = '.2s'; 
-        el.style.opacity = '0'; 
-        el.style.transform = 'scale(0.96)'; 
-        setTimeout(() => el.remove(), 200); 
-      }
-    } catch(e) {
-      showToast('Error deleting ride');
-    }
+      if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
+    } catch(e) { showToast('Error deleting ride'); }
   }
 };
 
@@ -1434,7 +1578,7 @@ function updateUI(u) {
   const pe=document.getElementById('profEmail'); if(pe) pe.textContent=e;
 }
 
-// ─── PANEL TOGGLE ─────────────────────────────────────────────
+// ─── PANEL ────────────────────────────────────────────────────
 window.togglePanel = function() {
   panelExpanded = !panelExpanded;
   const panel = document.getElementById('driverPanel');
@@ -1456,20 +1600,14 @@ async function goOnline() {
     pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),
     ()=>updateDriverLocation(-24.1991,28.9934)
   );
-  
-  // Re-trigger the UI rendering for pending requests
   get(ref(db, 'ride_requests')).then(s => processRideData(s.val()||{}));
-  
   expandPanel(); showToast('You are now Online 🟢');
 }
 async function goOffline() {
   isOnline=false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status','offline');
-  await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
-  
-  // Re-trigger the UI rendering which will now hide pending requests because isOnline == false
+  if (cu && db) await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
   get(ref(db, 'ride_requests')).then(s => processRideData(s.val()||{}));
-  
   updateHoursOnline(); showToast('You are now Offline ⚫');
 }
 window.toggleOnline = function() {
@@ -1491,7 +1629,7 @@ function updateHoursOnline() {
   const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
 }
 
-// ─── RIDE REQUESTS (Rendered via Listener) ────────────────────
+// ─── RIDE REQUESTS ────────────────────────────────────────────
 function renderRideRequests(list) {
   const el = document.getElementById('rideReqList');
   const lbl = document.getElementById('reqLabel');
@@ -1510,7 +1648,7 @@ function renderRideRequests(list) {
             <div class="req-fare">R ${parseFloat(r.fare||0).toFixed(2)}</div>
             <div class="req-fare-lbl">est. fare</div>
           </div>
-          <button onclick="deleteRideRequest('${id}')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px;opacity:0.7;transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Delete Permanently from Database">🗑️</button>
+          <button onclick="deleteRideRequest('${id}')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px;opacity:0.6;transition:0.2s;" title="Delete Permanently">🗑️</button>
         </div>
       </div>
       <div class="req-divider"></div>
@@ -1537,9 +1675,9 @@ async function loadTodayStats() {
   if (!cu||!db) return;
   try {
     const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
-    document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
-    document.getElementById('totalTrips').textContent=d.trips;
-    document.getElementById('avgFare').textContent=d.trips?'R'+(d.total/d.trips).toFixed(0):'R0';
+    document.getElementById('totalEarnings').textContent=`R ${(d.total||0).toFixed(2)}`;
+    document.getElementById('totalTrips').textContent=d.trips||0;
+    document.getElementById('avgFare').textContent=d.trips?'R'+((d.total||0)/(d.trips||1)).toFixed(0):'R0';
     document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
   } catch(e){}
 }
@@ -1560,7 +1698,6 @@ function loadTripHistory() {
 function renderHistoryLists() {
   const hCount=document.getElementById('historyCount');
   if(hCount) hCount.textContent=`${allTrips.length} completed · ${allCanceled.length} canceled`;
-
   const tripCard = (t, isCanceled=false) => `
     <div class="trip-card">
       <div style="flex:1;min-width:0">
@@ -1577,15 +1714,12 @@ function renderHistoryLists() {
         }
       </div>
     </div>`;
-
   document.getElementById('historyList').innerHTML = allTrips.length
     ? allTrips.map(t=>tripCard(t,false)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">🗂️ No completed trips yet.</div>';
-
   document.getElementById('canceledList').innerHTML = allCanceled.length
     ? allCanceled.map(t=>tripCard(t,true)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">No canceled rides. 👍</div>';
-
   document.getElementById('earningsTripList').innerHTML = allTrips.length
     ? allTrips.slice(0,5).map(t=>tripCard(t,false)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">💰 No completed trips yet.</div>';
