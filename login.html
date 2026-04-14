@@ -10,8 +10,6 @@
   --ink: #0F172A;
   --blue: #1A3BFF;
   --blue-hover: #0d2ee6;
-  
-  /* Dark Mode Variables (Default) */
   --bg: #0A0F1A;
   --text-main: #FFFFFF;
   --text-sub: rgba(255, 255, 255, 0.7);
@@ -25,7 +23,6 @@
 }
 
 body.light-mode {
-  /* Light Mode Variables */
   --bg: #F1F5F9;
   --text-main: #0F172A;
   --text-sub: rgba(15, 23, 42, 0.7);
@@ -41,49 +38,43 @@ body.light-mode {
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text-main); transition: background 0.4s ease; }
 
-/* ── INIT LOADER ── */
 .init-loader { position:fixed; inset:0; background:var(--bg); z-index:10001; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .5s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease; }
 .init-loader.hide { opacity:0; pointer-events:none; }
 .loader-spinner { width:44px; height:44px; border:4px solid var(--glass-border); border-top-color:var(--blue); border-radius:50%; animation:sp .8s linear infinite; margin-bottom:20px; }
 @keyframes sp { to { transform:rotate(360deg); } }
 
-/* ═══ AUTH UI ═══ */
 .auth-wrapper { position:fixed; inset:0; z-index:998; display:flex; flex-direction:column; font-family:'Outfit',sans-serif; overflow:hidden; }
 
-/* Premium Driver POV Background */
-.auth-bg { 
-  position:absolute; inset:0; 
-  background:url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070&auto=format&fit=crop') center center/cover no-repeat; 
-  transform:scale(1.05); 
-  animation:auth-zoom 20s ease-in-out infinite alternate; 
+.auth-bg {
+  position:absolute; inset:0;
+  background:url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2070&auto=format&fit=crop') center center/cover no-repeat;
+  transform:scale(1.05);
+  animation:auth-zoom 20s ease-in-out infinite alternate;
 }
 @keyframes auth-zoom { from{transform:scale(1.05)} to{transform:scale(1.15)} }
 
-/* Deep Gradient Scrim */
-.auth-scrim { 
-  position:absolute; inset:0; 
-  background:var(--scrim-grad); 
+.auth-scrim {
+  position:absolute; inset:0;
+  background:var(--scrim-grad);
   transition: background 0.4s ease;
 }
 
-/* Top Bar Branding */
-.auth-topbar { 
-  position:relative; z-index:2; display:flex; align-items:center; gap:14px; 
-  padding:56px 28px 0; 
+.auth-topbar {
+  position:relative; z-index:2; display:flex; align-items:center; gap:14px;
+  padding:56px 28px 0;
   animation: fadeDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.auth-logo-dot { 
-  width:46px; height:46px; background:var(--logo-bg); border-radius:14px; 
-  display:flex; align-items:center; justify-content:center; 
-  font-weight:900; font-size:16px; color:var(--blue); flex-shrink:0; 
-  box-shadow:0 8px 24px rgba(0,0,0,0.2); 
+.auth-logo-dot {
+  width:46px; height:46px; background:var(--logo-bg); border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:16px; color:var(--blue); flex-shrink:0;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
   transition: background 0.4s ease;
 }
-body.light-mode .auth-logo-dot { color: #fff; } /* Invert logo dot text in light mode */
+body.light-mode .auth-logo-dot { color: #fff; }
 
 .auth-logo-name { font-size:24px; font-weight:900; color:var(--text-main); letter-spacing:-0.5px; transition: color 0.4s ease; }
 
-/* Modern Theme Toggle (No Sun/Moon) */
 .theme-toggle {
   width: 52px; height: 28px;
   border-radius: 100px;
@@ -91,7 +82,7 @@ body.light-mode .auth-logo-dot { color: #fff; } /* Invert logo dot text in light
   border: 1px solid var(--glass-border);
   position: relative;
   cursor: pointer;
-  margin-left: auto; /* Push to right */
+  margin-left: auto;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: background 0.4s ease, border-color 0.4s ease;
@@ -110,15 +101,14 @@ body.light-mode .toggle-thumb { transform: translateX(24px); background: #0F172A
 
 .auth-spacer { flex:1; position:relative; z-index:2; }
 
-/* Modern Glassmorphism Bottom Sheet */
-.auth-bottom { 
+.auth-bottom {
   position:relative; z-index:2; width: 100%;
   background: var(--glass-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-top: 1px solid var(--glass-border);
   border-radius: 36px 36px 0 0;
-  padding: 40px 28px calc(48px + env(safe-area-inset-bottom,0px)); 
+  padding: 40px 28px calc(48px + env(safe-area-inset-bottom,0px));
   box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
   transform: translateY(100%);
   opacity: 0;
@@ -126,68 +116,58 @@ body.light-mode .toggle-thumb { transform: translateX(24px); background: #0F172A
   transition: background 0.4s ease, border-color 0.4s ease;
 }
 
-@keyframes slideUp { 
-  to { transform: translateY(0); opacity: 1; } 
+@keyframes slideUp {
+  to { transform: translateY(0); opacity: 1; }
 }
-@keyframes fadeDown { 
+@keyframes fadeDown {
   from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; } 
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.auth-headline { 
-  font-size:clamp(36px, 9vw, 52px); font-weight:900; color:var(--text-main); 
-  line-height:1.05; letter-spacing:-1.5px; margin-bottom:14px; 
+.auth-headline {
+  font-size:clamp(36px, 9vw, 52px); font-weight:900; color:var(--text-main);
+  line-height:1.05; letter-spacing:-1.5px; margin-bottom:14px;
   transition: color 0.4s ease;
 }
-.auth-subline { 
-  font-size:16px; color:var(--text-sub); font-weight:400; 
-  margin-bottom:36px; line-height:1.6; max-width:340px; 
+.auth-subline {
+  font-size:16px; color:var(--text-sub); font-weight:400;
+  margin-bottom:36px; line-height:1.6; max-width:340px;
   transition: color 0.4s ease;
 }
 
 .auth-feats { display:flex; gap:16px; margin-bottom:32px; flex-wrap: wrap; }
-.auth-feat-chip { 
-  display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; 
-  color:var(--text-main); background:var(--chip-bg); 
-  border:1px solid var(--glass-border); padding:8px 16px; border-radius:100px; 
+.auth-feat-chip {
+  display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700;
+  color:var(--text-main); background:var(--chip-bg);
+  border:1px solid var(--glass-border); padding:8px 16px; border-radius:100px;
   transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
 }
 .auth-feat-dot { width:6px; height:6px; border-radius:50%; background:#10B981; flex-shrink:0; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
 
 .auth-pills { display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
 
-/* Primary Action Button */
-.pill-login { 
-  width:100%; padding:18px 28px; border-radius:100px; border:none; 
-  background:var(--btn-bg); color:var(--btn-text); font-family:'Outfit',sans-serif; 
-  font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-.2px; 
-  box-shadow:0 8px 32px rgba(0,0,0,.15); 
-  transition:transform .2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s, background 0.4s ease, color 0.4s ease; 
-  display:flex; align-items:center; justify-content:center; gap:12px; 
+.pill-login {
+  width:100%; padding:18px 28px; border-radius:100px; border:none;
+  background:var(--btn-bg); color:var(--btn-text); font-family:'Outfit',sans-serif;
+  font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-.2px;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);
+  transition:transform .2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s, background 0.4s ease, color 0.4s ease;
+  display:flex; align-items:center; justify-content:center; gap:12px;
 }
 .pill-login:active { transform:scale(.96); box-shadow:0 4px 16px rgba(0,0,0,.1); }
 .pill-g-icon { width:22px; height:22px; flex-shrink:0; }
 
-/* Secondary Action */
-.auth-demo-link { 
-  display:block; width:100%; text-align:center; background:none; border:none; 
-  padding:12px; font-family:'Outfit',sans-serif; font-size:14px; 
-  color:var(--text-sub); font-weight:600; cursor:pointer; transition:color .2s; 
-}
-.auth-demo-link:hover { color:var(--text-main); }
-
-.auth-trust-bar { 
-  display:flex; align-items:center; justify-content:center; gap:8px; 
-  margin-top:16px; font-size:12px; font-weight:600; color:var(--text-sub); 
+.auth-trust-bar {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-top:16px; font-size:12px; font-weight:600; color:var(--text-sub);
   transition: color 0.4s ease;
 }
 
-/* ── TOAST ── */
 .toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%) translateY(15px); background:var(--btn-bg); color:var(--btn-text); padding:14px 28px; border-radius:100px; font-size:14px; font-weight:800; opacity:0; pointer-events:none; transition:.3s cubic-bezier(0.16, 1, 0.3, 1); z-index:1000; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis; box-shadow:0 10px 40px rgba(0,0,0,.3); }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-@media(min-width:900px){ 
-  .auth-bottom { max-width:480px; margin:0 auto 40px auto; border-radius: 36px; border: 1px solid var(--glass-border); } 
+@media(min-width:900px){
+  .auth-bottom { max-width:480px; margin:0 auto 40px auto; border-radius: 36px; border: 1px solid var(--glass-border); }
 }
 </style>
 </head>
@@ -201,27 +181,27 @@ body.light-mode .toggle-thumb { transform: translateX(24px); background: #0F172A
 <div class="auth-wrapper" id="authWrapper" style="opacity:0; transition: opacity 0.5s;">
   <div class="auth-bg"></div>
   <div class="auth-scrim"></div>
-  
+
   <div class="auth-topbar">
     <div class="auth-logo-dot">VX</div>
     <div class="auth-logo-name">VynixRide <span style="font-size:15px;font-weight:600;opacity:.7;margin-left:6px;">Driver</span></div>
-    
+
     <div class="theme-toggle" id="themeToggle" role="button" aria-label="Toggle light/dark mode" tabindex="0">
       <div class="toggle-thumb"></div>
     </div>
   </div>
-  
+
   <div class="auth-spacer"></div>
-  
+
   <div class="auth-bottom">
     <div class="auth-feats">
       <div class="auth-feat-chip"><div class="auth-feat-dot"></div>Earn Daily</div>
       <div class="auth-feat-chip"><div class="auth-feat-dot"></div>Flexible Hours</div>
     </div>
-    
+
     <div class="auth-headline">Drive & earn,<br>on your terms.</div>
     <div class="auth-subline">Sign in to access your driver dashboard, manage live requests, and track your earnings.</div>
-    
+
     <div class="auth-pills">
       <button class="pill-login" id="btnGoogleSignIn">
         <svg class="pill-g-icon" viewBox="0 0 48 48">
@@ -233,9 +213,7 @@ body.light-mode .toggle-thumb { transform: translateX(24px); background: #0F172A
         Continue with Google
       </button>
     </div>
-    
-    <button class="auth-demo-link" id="skipAuth">Skip to Demo Dashboard →</button>
-    
+
     <div class="auth-trust-bar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Secure Driver Portal
@@ -264,35 +242,21 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// --- Theme Toggle Logic ---
+// --- Theme Toggle ---
 const themeToggle = document.getElementById('themeToggle');
-const currentTheme = localStorage.getItem('vynix_theme');
-
-// Apply stored theme on load
-if (currentTheme === 'light') {
-  document.body.classList.add('light-mode');
-}
-
+if (localStorage.getItem('vynix_theme') === 'light') document.body.classList.add('light-mode');
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('light-mode');
-  const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
-  localStorage.setItem('vynix_theme', theme);
+  localStorage.setItem('vynix_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
 });
 
-// --- Auth Logic ---
-// Redirect immediately if already in demo mode
-if (localStorage.getItem('vynix_demo') === 'true') {
-    window.location.href = 'index.html';
-}
-
+// --- Auth ---
 getRedirectResult(auth).catch(e => showToast('Login failed: ' + e.message));
 
 onAuthStateChanged(auth, user => {
   if (user) {
-    // Real user is logged in -> Go to main app
     window.location.href = 'index.html';
   } else {
-    // Show login UI
     document.getElementById('initLoader').classList.add('hide');
     document.getElementById('authWrapper').style.opacity = '1';
   }
@@ -306,17 +270,14 @@ document.getElementById('btnGoogleSignIn').addEventListener('click', async () =>
   } catch(e) {
     if (e.code === 'auth/popup-blocked' || e.message.toLowerCase().includes('cross-origin')) {
       showToast('Using redirect login…'); signInWithRedirect(auth, provider);
-    } else { 
-      showToast('Login failed: ' + e.message); 
-      btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; 
-      btn.innerHTML = '<svg class="pill-g-icon" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.9C34.5 33.1 30 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.2-2.7-.2-4z"/></svg> Continue with Google'; 
+    } else {
+      showToast('Login failed: ' + e.message);
+      btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+      btn.innerHTML = `<svg class="pill-g-icon" viewBox="0 0 48 48">
+        <path fill="#4285F4" d="M44.5 20H24v8.5h11.9C34.5 33.1 30 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.2-2.7-.2-4z"/>
+      </svg> Continue with Google`;
     }
   }
-});
-
-document.getElementById('skipAuth').addEventListener('click', () => {
-  localStorage.setItem('vynix_demo', 'true');
-  window.location.href = 'index.html';
 });
 </script>
 </body>
