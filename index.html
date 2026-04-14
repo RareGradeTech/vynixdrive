@@ -133,7 +133,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--panel-collapsed)); 
   overflow:hidden; min-height:0; min-width:0; 
 }
-#driverMap { position:absolute; inset:0; width:100%; height:100%; }
+#driverMap { position:absolute; inset:0; width:100%; height:100%; cursor: pointer; }
 
 /* CUSTOM DRIVER MARKER HALO */
 .driver-marker-halo {
@@ -694,7 +694,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 <div class="toast" id="toast"></div>
 
-<div class="mbg" id="acceptModal">
+<div class="mbg" id="acceptModal" onclick="if(event.target===this) closeAcceptModal()">
   <div class="modal">
     <div class="mh">Confirm Ride Accept</div>
     <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
@@ -711,7 +711,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
-<div class="vehicle-mbg" id="vehicleModal">
+<div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this) this.classList.remove('show')">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
     <div class="input-wrap"><span class="slabel">Vehicle Make & Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
@@ -727,7 +727,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
-<div class="cancel-modal-bg" id="cancelReasonModal">
+<div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this) closeCancelModal()">
   <div class="cancel-modal">
     <div class="cm-pill"></div>
     <div class="cm-title" id="cm-title">Why are you declining?</div>
@@ -747,7 +747,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
-<div class="chat-sheet-bg" id="chatSheet">
+<div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this) closeChat()">
   <div class="chat-sheet">
     <div class="chat-header">
       <div class="chat-av" id="chatAv">?</div>
@@ -1153,7 +1153,6 @@ let routeLayerId = 'route-layer';
 let destMarker = null;
 
 function initMap() {
-  // Use light-v11 for the premium elegant look (similar to Uber app)
   driverMap = new mapboxgl.Map({
     container:'driverMap', style:'mapbox://styles/mapbox/light-v11',
     center:driverLngLat, zoom:14.5, pitch: 45, attributionControl:false
@@ -1178,6 +1177,13 @@ function initMap() {
              'fill-extrusion-opacity': 0.7
          }
      }, labelLayerId);
+  });
+
+  // Collapse bottom sheet when map is clicked
+  driverMap.on('click', () => {
+    if (panelExpanded && window.innerWidth < 900) {
+      togglePanel();
+    }
   });
 
   // Premium Driver Halo Marker
