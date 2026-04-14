@@ -542,7 +542,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   <button class="rnb-btn" onclick="switchPage('map');dismissNotifBanner()">View</button>
 </div>
 
-<!-- Accept Modal -->
 <div class="mbg" id="acceptModal" onclick="if(event.target===this)closeAcceptModal()">
   <div class="modal">
     <div class="mh">Confirm Accept</div>
@@ -560,7 +559,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
-<!-- Vehicle Modal -->
 <div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
@@ -577,7 +575,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
-<!-- Cancel Reason Modal -->
 <div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this)closeCancelModal()">
   <div class="cancel-modal">
     <div class="cm-pill"></div>
@@ -598,7 +595,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
-<!-- Chat Sheet -->
 <div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this)closeChat()">
   <div class="chat-sheet">
     <div class="chat-header">
@@ -627,7 +623,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
-<!-- PIN Overlay -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-card">
     <div class="pin-icon">🔐</div>
@@ -641,10 +636,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   </div>
 </div>
 
-<!-- SHELL -->
 <div class="shell" id="appShell">
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="tb-logo">
       <div class="tb-mark">VX</div>
@@ -659,12 +652,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     </div>
   </div>
 
-  <!-- MAP PAGE -->
   <div class="map-page show" id="page-map">
     <div class="map-wrap" id="mapWrap">
       <div id="driverMap"></div>
 
-      <!-- Navigation HUD -->
       <div class="nav-hud" id="navHud">
         <div class="nav-instruction-bar" id="navInstructionBar">
           <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
@@ -696,14 +687,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       </div>
     </div>
 
-    <!-- DRIVER PANEL -->
     <div class="driver-panel" id="driverPanel">
-      <!-- Handle -->
       <div class="panel-handle" onclick="togglePanel()">
         <div class="panel-drag-bar"></div>
       </div>
 
-      <!-- Peek row — always visible when collapsed -->
       <div class="panel-peek-row">
         <div class="ppr-info">
           <div class="ppr-dot" id="pcrDot"></div>
@@ -715,23 +703,19 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation();toggleOnline()"></button>
       </div>
 
-      <!-- Scrollable content -->
       <div class="panel-scroll">
 
-        <!-- Status hero -->
         <div class="status-hero">
           <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
           <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
         </div>
 
-        <!-- Today stats -->
         <div class="stat-row">
           <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
           <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
           <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
         </div>
 
-        <!-- Active ride card -->
         <div class="active-ride-card" id="activeRideCard">
           <div class="ar-header">
             <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
@@ -756,7 +740,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
             <div class="apc-note">Rider confirms this in their app before trip starts.</div>
           </div>
 
-          <!-- Phase 1: En route to pickup -->
           <div class="ride-phase active" id="phase-pickup">
             <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
@@ -770,7 +753,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
             <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
           </div>
 
-          <!-- Phase 2: Riding -->
           <div class="ride-phase" id="phase-riding">
             <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
@@ -793,7 +775,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     </div>
   </div>
 
-  <!-- EARNINGS PAGE -->
   <div class="page" id="page-earnings">
     <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
     <div class="earn-hero">
@@ -809,10 +790,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div></div>
   </div>
 
-  <!-- HISTORY PAGE -->
   <div class="page" id="page-history">
     <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All your rides</div></div>
-    <!-- Tabs -->
     <div style="display:flex;gap:8px;flex-shrink:0">
       <button id="tab-all" onclick="showHistoryTab('all')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--blue);background:rgba(26,59,255,.08);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">All Trips</button>
       <button id="tab-canceled" onclick="showHistoryTab('canceled')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">Canceled</button>
@@ -821,7 +800,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div id="canceledList" style="display:none"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">No canceled rides.</div></div>
   </div>
 
-  <!-- ACCOUNT PAGE -->
   <div class="page" id="page-account">
     <div><div class="ph">Account</div></div>
     <div class="prof-card">
@@ -854,7 +832,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.2 · South Africa 🇿🇦</div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bni act" id="bn-map" onclick="switchPage('map')">
       <div class="bni-dot" id="bn-map-dot"></div>
@@ -917,22 +894,39 @@ mapboxgl.accessToken = TK;
 let driverMap, driverMarker, destMarker = null;
 const ROUTE_SRC = 'nav-route', ROUTE_L = 'nav-route-l', ROUTE_LBG = 'nav-route-lbg';
 
-// ─── AUDIO ───────────────────────────────────────────────────
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// ─── AUDIO (Safely lazy-loaded to prevent blocking) ──────────
+let audioCtx = null;
 function playNotif() {
-  [0, .18, .36].forEach((t, i) => {
-    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = 'sine'; osc.frequency.setValueAtTime([880,1100,1320][i], audioCtx.currentTime + t);
-    gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
-    gain.gain.linearRampToValueAtTime(.35, audioCtx.currentTime + t + .05);
-    gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .28);
-    osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + .3);
-  });
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    [0, .18, .36].forEach((t, i) => {
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime([880,1100,1320][i], audioCtx.currentTime + t);
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
+      gain.gain.linearRampToValueAtTime(.35, audioCtx.currentTime + t + .05);
+      gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .28);
+      osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + .3);
+    });
+  } catch(e) { console.error("Audio Context Error", e); }
 }
-function resumeAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+function resumeAudio() { 
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); 
+}
 document.addEventListener('click', resumeAudio, { once:true });
 document.addEventListener('touchstart', resumeAudio, { once:true });
+
+// ─── SAFETY FALLBACK ──────────────────────────────────────────
+setTimeout(() => {
+  const loader = document.getElementById('initLoader');
+  if (!loader.classList.contains('hide')) {
+    loader.classList.add('hide');
+    document.getElementById('appShell').classList.add('ready');
+    showToast('Offline Mode / Initialization Delayed');
+  }
+}, 5000);
 
 // ─── AUTH ─────────────────────────────────────────────────────
 onAuthStateChanged(auth, user => {
@@ -1250,7 +1244,6 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
-    // Store declined ride in canceled_rides node
     if (cu?.uid !== 'demo_driver') {
       try {
         const snap = await get(ref(db,`ride_requests/${id}`));
@@ -1274,7 +1267,6 @@ async function cancelActiveRide(reason) {
   try {
     const snap = await get(ref(db,`ride_requests/${activeRideId}`));
     const rData = snap.val()||{};
-    // Store in canceled_rides with full ride details
     if (cu?.uid !== 'demo_driver') {
       await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
         ...rData,
@@ -1295,7 +1287,7 @@ async function cancelActiveRide(reason) {
     document.getElementById('reqLabel').style.display='';
     document.getElementById('rideReqList').style.display='';
     if (isNavigating) stopNavigation();
-    loadTripHistory(); // refresh history to show canceled ride
+    loadTripHistory();
     showToast('Ride canceled: '+reason);
   } catch(e) { showToast('Error canceling ride'); }
 }
@@ -1318,9 +1310,9 @@ window.dismissNotifBanner = function() {
 function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
 function updateUI(u) {
   const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'', i=ini2(n);
-  ['tbAv','profAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
-  ['profName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
-  ['profEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
+  ['tbAv','profAv','sbAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
+  ['profName','sbName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
+  ['profEmail','sbEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
 }
 
 // ─── PANEL TOGGLE ─────────────────────────────────────────────
@@ -1379,7 +1371,6 @@ function listenRideRequests() {
   if (!cu || cu.uid==='demo_driver') return;
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
     const data = snap.val()||{};
-    // Only show rides that are PENDING (not canceled, not accepted by someone else)
     const pending = Object.entries(data).filter(([,v]) =>
       v.status === 'pending' && !v.canceledAt
     );
@@ -1518,7 +1509,6 @@ window.completeRide = async function() {
     document.getElementById('reqLabel').style.display='';
     document.getElementById('rideReqList').style.display='';
     if (isNavigating) stopNavigation();
-    // Clean up route from map
     [ROUTE_LBG,ROUTE_L].forEach(l => { if(driverMap.getLayer(l))driverMap.removeLayer(l); });
     if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
     if (destMarker){destMarker.remove();destMarker=null;}
@@ -1549,10 +1539,8 @@ function updateHoursOnline() {
 let allTrips = [], allCanceled = [];
 function loadTripHistory() {
   if (!cu||cu.uid==='demo_driver') return;
-  // Load completed trips
   onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
     allTrips = Object.values(snap.val()||{}).reverse();
-    // Load canceled rides too
     get(ref(db,`drivers/${cu.uid}/canceled_rides`)).then(csnap => {
       allCanceled = Object.values(csnap.val()||{}).reverse();
       renderHistoryLists();
@@ -1582,17 +1570,14 @@ function renderHistoryLists() {
       </div>
     </div>`;
 
-  // All trips tab: completed only (no canceled mixed in)
   document.getElementById('historyList').innerHTML = allTrips.length
     ? allTrips.map(t=>tripCard(t,false)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">🗂️ No completed trips yet.</div>';
 
-  // Canceled tab
   document.getElementById('canceledList').innerHTML = allCanceled.length
     ? allCanceled.map(t=>tripCard(t,true)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">No canceled rides. 👍</div>';
 
-  // Earnings page: recent 5 completed
   document.getElementById('earningsTripList').innerHTML = allTrips.length
     ? allTrips.slice(0,5).map(t=>tripCard(t,false)).join('')
     : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">💰 No completed trips yet.</div>';
