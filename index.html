@@ -123,8 +123,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   display:none;flex-direction:column;gap:10px;flex-shrink:0;
 }
 .active-ride-card.show{display:flex}
-.ar-header{display:flex;justify-content:space-between;align-items:center}
-.ar-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--blue);background:rgba(26,59,255,.1);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.ar-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.ar-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--blue);background:rgba(26,59,255,.1);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;flex-shrink:0;}
 .ar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pdot 1.5s ease-in-out infinite}
 .ar-fare-big{font-size:20px;font-weight:900;color:var(--ink)}
 .ar-rider-row{display:flex;align-items:center;gap:10px}
@@ -862,7 +862,6 @@ function tryInitFirebase() {
       if (user) {
         initApp(user);
       } else {
-        // Not signed in — send to login
         window.location.href = 'login.html';
       }
     });
@@ -889,6 +888,7 @@ let chatMessages = [], chatUnread = 0;
 let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
 let allTrips = [], allCanceled = [];
+let declinedRideIds = new Set(); // Local blocklist for declined rides
 
 // ─── NAV STATE ────────────────────────────────────────────────
 let navSteps = [], navCurrentStep = 0, navMode = null;
@@ -1244,6 +1244,10 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
+    
+    // Add to local blocklist so it completely disappears from "Incoming Requests"
+    declinedRideIds.add(id);
+    
     try {
       const snap = await get(ref(db,`ride_requests/${id}`));
       const rData = snap.val()||{};
@@ -1251,6 +1255,7 @@ window.confirmCancelAction = async function() {
         ...rData, canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined'
       });
     } catch(e) {}
+    
     const el = document.getElementById(`req-${id}`);
     if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
     showToast('Ride declined');
@@ -1362,7 +1367,10 @@ function listenRideRequests() {
   if (!cu || !db) return;
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
     const data = snap.val()||{};
-    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending' && !v.canceledAt);
+    
+    // Filter pending requests to exclude those that are in the local blocklist
+    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(v.id || arguments[0][0]));
+    
     pending.forEach(([id,r]) => {
       if (!knownRequestIds.has(id)) {
         knownRequestIds.add(id);
