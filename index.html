@@ -24,18 +24,15 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
 
-/* ── LOADER ── */
 .init-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
 .init-loader.hide{opacity:0;pointer-events:none}
 .loader-spinner{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loader-sub{font-size:12px;color:var(--muted);margin-top:8px;font-weight:500}
 
-/* ── SHELL ── */
 .shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .4s;flex-direction:column}
 .shell.ready{opacity:1}
 
-/* ── MOBILE TOP BAR ── */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;padding-top:calc(10px + var(--safe-top));
@@ -56,14 +53,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .online-toggle.on .ot-lbl{color:var(--green2)}
 @keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
 
-/* ── MAP PAGE ── */
 .map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
 .map-page.show{display:block}
 .map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom) + var(--panel-peek));transition:bottom .35s cubic-bezier(.4,0,.2,1)}
 .map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
-/* ── DRIVER PANEL ── */
 .driver-panel{
   position:absolute;left:0;right:0;
   bottom:calc(var(--nav-h) + var(--safe-bottom));
@@ -106,7 +101,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .panel-scroll::-webkit-scrollbar{width:3px}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-/* ── STATUS HERO ── */
 .status-hero{
   display:flex;align-items:center;justify-content:space-between;
   background:var(--card2);border:1px solid var(--border);
@@ -116,14 +110,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .sh-val{font-size:17px;font-weight:900;color:var(--green)}
 .sh-val.off{color:var(--muted)}
 
-/* ── STAT GRID ── */
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex-shrink:0}
 .stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
 .sc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
 .sc-val{font-size:17px;font-weight:900;color:var(--ink);line-height:1}
 .sc-val span{font-size:11px;font-weight:600;color:var(--muted)}
 
-/* ── ACTIVE RIDE CARD ── */
 .active-ride-card{
   background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
   border:1.5px solid rgba(26,59,255,.22);
@@ -149,7 +141,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-rp-dot.p{background:var(--green)}
 .ar-rp-dot.d{background:var(--blue2)}
 
-/* ── RIDE ACTION BUTTONS ── */
 .ar-actions-grid{display:grid;gap:8px}
 .ride-phase{display:none}
 .ride-phase.active{display:grid;gap:8px}
@@ -178,17 +169,14 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-cancel-active{padding:13px;border-radius:11px;background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;min-height:46px}
 .btn-cancel-active:active{background:rgba(239,68,68,.12)}
 
-/* Arrived PIN card */
 .arrived-pin-card{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .arrived-pin-card.show{display:flex}
 .apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
 .apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
 .apc-note{font-size:11px;font-weight:500;color:var(--muted)}
 
-/* ── SECTION LABELS ── */
 .req-section-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:6px}
 
-/* ── RIDE REQUEST CARDS ── */
 .ride-req-list{display:flex;flex-direction:column;gap:10px}
 .no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
 .no-rides-ico{font-size:26px;margin-bottom:8px;opacity:.6}
@@ -220,7 +208,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-accept{padding:13px;border-radius:10px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px}
 .btn-accept:active{opacity:.88;transform:scale(.98)}
 
-/* ── NAVIGATION HUD ── */
 .nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
 .nav-hud.show{display:block;pointer-events:all}
 .nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10}
@@ -250,7 +237,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation}
 .map-ctrl-btn:active{background:var(--bg)}
 
-/* ── PIN OVERLAY ── */
 .pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0}
 .pin-overlay.show{display:flex}
 .pin-card{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .32s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
@@ -267,14 +253,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .pin-error{font-size:12px;color:var(--red);font-weight:700;display:none;margin-top:4px}
 .pin-arrived-note{font-size:11px;font-weight:500;color:var(--muted);line-height:1.5}
 
-/* ── PAGES ── */
 .page{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px;-webkit-overflow-scrolling:touch}
 .page.show{display:flex}
 .ph{font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.4px}
 .ph-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
 .section-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;flex-shrink:0}
 
-/* Earnings */
 .earn-hero{background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6);border-radius:18px;padding:20px;position:relative;overflow:hidden;flex-shrink:0}
 .earn-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07)}
 .eh-lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:3px}
@@ -284,7 +268,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .eh-stat-val{font-size:17px;font-weight:800;color:#fff}
 .eh-stat-lbl{font-size:9px;color:rgba(255,255,255,.65);margin-top:1px;font-weight:700;text-transform:uppercase}
 
-/* Trip cards */
 .trip-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start}
 .tc-type{font-size:14px;font-weight:800;color:var(--ink)}
 .tc-rider{font-size:12px;color:var(--blue);font-weight:700;margin-top:2px}
@@ -296,7 +279,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .tc-fare.canceled{color:var(--red)}
 .tc-km{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px}
 
-/* Account */
 .prof-card{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
 .prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(26,59,255,.06)}
 .pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow)}
@@ -315,7 +297,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-label{font-size:14px;font-weight:700;color:var(--ink)}
 .ar-arrow{color:var(--muted);font-size:16px}
 
-/* ── BOTTOM NAV ── */
 .bnav{
   position:fixed;bottom:0;left:0;right:0;
   height:calc(var(--nav-h) + var(--safe-bottom));
@@ -329,7 +310,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid #fff;display:none}
 .bni-dot.show{display:block}
 
-/* ── CANCEL MODAL ── */
 .cancel-modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
 .cancel-modal-bg.show{display:flex}
 .cancel-modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .28s cubic-bezier(.4,0,.2,1)}
@@ -350,7 +330,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .cm-confirm{padding:14px;border:none;background:var(--red);color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation}
 .cm-confirm:disabled{opacity:.5}
 
-/* ── ACCEPT MODAL ── */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .mbg.show{display:flex}
 .modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);border-bottom:none}
@@ -363,7 +342,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .mcancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation}
 .mok{padding:14px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);touch-action:manipulation}
 
-/* ── VEHICLE MODAL ── */
 .vehicle-mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .vehicle-mbg.show{display:flex}
 .t-input{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--ink);outline:none;transition:.18s}
@@ -372,7 +350,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .slabel{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;display:block}
 .input-wrap{margin-bottom:14px}
 
-/* ── CHAT SHEET ── */
 .chat-sheet-bg{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
 .chat-sheet-bg.show{display:flex}
 .chat-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,.15)}
@@ -399,11 +376,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;box-shadow:0 3px 10px var(--glow);flex-shrink:0;touch-action:manipulation}
 .chat-send-btn:active{transform:scale(.92)}
 
-/* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s;z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── RIDE NOTIF BANNER ── */
 .ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-140px);background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .4s cubic-bezier(.175,.885,.32,1.275)}
 .ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
 .rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
@@ -412,13 +387,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .rnb-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation}
 
-/* ── DEMO BANNER ── */
-.demo-banner{background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.demo-banner-ico{font-size:18px}
-.demo-banner-txt{font-size:12px;font-weight:700;color:#92400E;flex:1}
-.demo-banner-txt span{font-weight:500;opacity:.8}
-
-/* ── DRIVER MARKER ── */
 .driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
 .driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
 @keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
@@ -430,7 +398,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   <div class="loader-spinner"></div>
   <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:18px">VynixRide Driver</div>
   <div class="loader-sub" id="loaderSub">Connecting…</div>
-  <button id="demoFallbackBtn" onclick="startDemoMode()" style="display:none;margin-top:18px;padding:12px 28px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">Continue as Demo Driver</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -708,7 +675,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <div class="pc-av" id="profAv">?</div>
       <div><div class="pc-name" id="profName">Driver</div><div class="pc-email" id="profEmail">—</div><div class="pc-tag">🚗 VynixRide Driver</div></div>
     </div>
-    <div id="demoBannerSlot"></div>
     <div class="acc-group-title">Vehicle</div>
     <div class="acc-group">
       <div class="acc-row" onclick="openVehicleModal()">
@@ -768,62 +734,31 @@ const FIREBASE_CONFIG = {
 };
 
 let app, db, auth;
-let firebaseReady = false;
-
-// ─── EXPOSE startDemoMode globally IMMEDIATELY ────────────────
-window.startDemoMode = function() {
-  document.getElementById('demoFallbackBtn').style.display = 'none';
-  localStorage.setItem('vynix_demo', 'true');
-  localStorage.removeItem('vynix_driver_status');
-  initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
-};
-
-// ─── INIT FIREBASE WITH TIMEOUT ───────────────────────────────
-let authResolved = false;
 
 function tryInitFirebase() {
   try {
     app = initializeApp(FIREBASE_CONFIG);
     db = getDatabase(app);
     auth = getAuth(app);
-    firebaseReady = true;
-
     document.getElementById('loaderSub').textContent = 'Checking auth…';
 
-    // Hard timeout — if auth doesn't resolve in 6s, offer demo
-    const authTimeout = setTimeout(() => {
-      if (!authResolved) {
-        document.getElementById('loaderSub').textContent = 'Taking longer than expected…';
-        document.getElementById('demoFallbackBtn').style.display = 'block';
-      }
-    }, 6000);
-
     onAuthStateChanged(auth, user => {
-      authResolved = true;
-      clearTimeout(authTimeout);
-      const isDemo = localStorage.getItem('vynix_demo') === 'true';
       if (user) {
-        localStorage.removeItem('vynix_demo');
         initApp(user);
-      } else if (isDemo) {
-        initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
       } else {
-        // No auth, no demo — show demo button instead of redirecting
-        document.getElementById('loaderSub').textContent = 'Not signed in';
-        document.getElementById('demoFallbackBtn').style.display = 'block';
+        // Not signed in — send to login
+        window.location.href = 'login.html';
       }
     });
   } catch(e) {
     console.error('Firebase init error:', e);
-    document.getElementById('loaderSub').textContent = 'Connection failed';
-    document.getElementById('demoFallbackBtn').style.display = 'block';
+    window.location.href = 'login.html';
   }
 }
 
-// Small delay to let DOM fully paint first
 setTimeout(tryInitFirebase, 100);
 
-// ─── STATE ───────────────────────────────────────────────────
+// ─── STATE ────────────────────────────────────────────────────
 let cu = null, isOnline = false;
 let activeRideId = null, activeRideData = null;
 let pendingAcceptId = null, pendingAcceptData = null;
@@ -839,14 +774,14 @@ let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
 let allTrips = [], allCanceled = [];
 
-// ─── NAV STATE ───────────────────────────────────────────────
+// ─── NAV STATE ────────────────────────────────────────────────
 let navSteps = [], navCurrentStep = 0, navMode = null;
 let navRouteCoords = [];
-let driverLngLat = [28.9934, -24.1991]; // Pretoria default
+let driverLngLat = [28.9934, -24.1991];
 let isNavigating = false;
 let mapInteracting = false;
 
-// ─── MAP ─────────────────────────────────────────────────────
+// ─── MAP ──────────────────────────────────────────────────────
 const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 mapboxgl.accessToken = TK;
 let driverMap, driverMarker, destMarker = null;
@@ -879,22 +814,12 @@ function initApp(userData) {
   document.getElementById('appShell').classList.add('ready');
   cu = userData;
   updateUI(cu);
-
-  // Show demo banner if in demo mode
-  if (cu.uid === 'demo_driver') {
-    const slot = document.getElementById('demoBannerSlot');
-    if (slot) slot.innerHTML = `<div class="demo-banner"><div class="demo-banner-ico">🧪</div><div class="demo-banner-txt">Demo Mode <span>— Firebase features disabled. Sign in for full functionality.</span></div></div>`;
-    document.getElementById('vehicleSummary').textContent = 'Demo Toyota Corolla · ABC 123 GP · VynixGo';
-  }
-
   loadTodayStats();
   loadTripHistory();
   if (!driverMap) initMap();
   watchLocation();
   listenActiveRide();
-  if (cu.uid !== 'demo_driver') loadVehicleInfo();
-
-  // Restore status
+  loadVehicleInfo();
   if (localStorage.getItem('vynix_driver_status') === 'online') goOnline();
   else goOffline();
 }
@@ -902,12 +827,7 @@ function initApp(userData) {
 window.doSignOut = () => {
   if (isOnline) goOffline();
   localStorage.removeItem('vynix_driver_status');
-  localStorage.removeItem('vynix_demo');
-  if (!auth || cu?.uid === 'demo_driver') {
-    window.location.reload();
-  } else {
-    signOut(auth).catch(()=>{}).finally(() => window.location.reload());
-  }
+  signOut(auth).catch(()=>{}).finally(() => { window.location.href = 'login.html'; });
 };
 
 // ─── MAP INIT ─────────────────────────────────────────────────
@@ -950,7 +870,7 @@ function updateDriverLocation(lat, lng) {
   if (!mapInteracting && !isNavigating) {
     driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
   }
-  if (cu?.uid !== 'demo_driver' && isOnline && db) {
+  if (isOnline && db) {
     set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now() }).catch(()=>{});
   }
 }
@@ -1073,13 +993,11 @@ window.stopNavigation = function() {
 
 window.recenterMap = function() { mapInteracting = false; driverMap?.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 }); };
 
-// ─── PIN VERIFICATION ──────────────────────────────────────────
+// ─── PIN VERIFICATION ─────────────────────────────────────────
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
-  if (cu?.uid !== 'demo_driver' && db) {
-    await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
-  }
+  await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
   activeRideData.arrivedPin = newPin;
   document.getElementById('arrivedPinDisplay').textContent = newPin;
   document.getElementById('arrivedPinCard').classList.add('show');
@@ -1138,7 +1056,7 @@ window.closeChat = function() {
 };
 
 function listenChat() {
-  if (!activeRideId || cu?.uid === 'demo_driver' || !db) return;
+  if (!activeRideId || !db) return;
   if (chatUnsub) chatUnsub();
   chatUnsub = onValue(ref(db, `ride_requests/${activeRideId}/chat`), snap => {
     const msgs = snap.val()||{};
@@ -1175,8 +1093,7 @@ window.sendChatMsg = async function() {
 window.sendQuickReply = async function(text) { if(!activeRideId){showToast('No active ride');return;} await _pushChat(text); };
 async function _pushChat(text) {
   const msg = { text, sender:'driver', ts:Date.now(), readByRider:false };
-  if (cu?.uid !== 'demo_driver' && db) await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
-  else { chatMessages.push(msg); renderChatMsgs(); scrollChatBottom(); }
+  await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
 }
 window.chatKeydown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendChatMsg();} };
 
@@ -1211,15 +1128,13 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
-    if (cu?.uid !== 'demo_driver' && db) {
-      try {
-        const snap = await get(ref(db,`ride_requests/${id}`));
-        const rData = snap.val()||{};
-        await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
-          ...rData, canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined'
-        });
-      } catch(e) {}
-    }
+    try {
+      const snap = await get(ref(db,`ride_requests/${id}`));
+      const rData = snap.val()||{};
+      await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
+        ...rData, canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined'
+      });
+    } catch(e) {}
     const el = document.getElementById(`req-${id}`);
     if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
     showToast('Ride declined');
@@ -1232,16 +1147,14 @@ window.confirmCancelAction = async function() {
 async function cancelActiveRide(reason) {
   if (!activeRideId || !cu) return;
   try {
-    if (cu?.uid !== 'demo_driver' && db) {
-      const snap = await get(ref(db,`ride_requests/${activeRideId}`));
-      const rData = snap.val()||{};
-      await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
-        ...rData, canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId
-      });
-      await update(ref(db,`ride_requests/${activeRideId}`), {
-        status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
-      });
-    }
+    const snap = await get(ref(db,`ride_requests/${activeRideId}`));
+    const rData = snap.val()||{};
+    await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
+      ...rData, canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId
+    });
+    await update(ref(db,`ride_requests/${activeRideId}`), {
+      status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
+    });
     activeRideId=null; activeRideData=null; ridePhase='pickup';
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
@@ -1268,7 +1181,7 @@ window.dismissNotifBanner = function() {
   if (notifTimer) clearTimeout(notifTimer);
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────
 function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
 function updateUI(u) {
   const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'', i=ini2(n);
@@ -1305,7 +1218,7 @@ async function goOffline() {
   isOnline=false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status','offline');
   if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub=null; }
-  if (cu?.uid !== 'demo_driver' && db) await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
+  await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
   document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
   updateHoursOnline(); showToast('You are now Offline ⚫');
 }
@@ -1330,17 +1243,7 @@ function updateHoursOnline() {
 
 // ─── RIDE REQUESTS ────────────────────────────────────────────
 function listenRideRequests() {
-  if (!cu || cu.uid==='demo_driver' || !db) {
-    // Demo mode: show a sample ride request
-    if (cu?.uid === 'demo_driver') {
-      renderRideRequests([['demo-ride-1', {
-        riderName:'Thabo Nkosi', rideType:'VynixGo', fare:85.50,
-        pickup:'123 Paul Kruger St, Pretoria CBD', destination:'Menlyn Mall, Pretoria',
-        distKm:12.4, tripMins:22, capacity:4, securityPin:'7391'
-      }]]);
-    }
-    return;
-  }
+  if (!cu || !db) return;
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
     const data = snap.val()||{};
     const pending = Object.entries(data).filter(([,v]) => v.status === 'pending' && !v.canceledAt);
@@ -1397,22 +1300,6 @@ function renderRideRequests(list) {
 // ─── ACCEPT MODAL ─────────────────────────────────────────────
 window.openAcceptModal = function(id) {
   if (!isOnline){showToast('Go online first');return;}
-
-  // Demo mode
-  if (cu?.uid === 'demo_driver') {
-    const demoRide = { riderName:'Thabo Nkosi', rideType:'VynixGo', fare:85.50, pickup:'123 Paul Kruger St, Pretoria CBD', destination:'Menlyn Mall, Pretoria', distKm:12.4, tripMins:22, capacity:4, securityPin:'7391' };
-    pendingAcceptId = id; pendingAcceptData = demoRide;
-    document.getElementById('am-rider').textContent=demoRide.riderName;
-    document.getElementById('am-type').textContent=demoRide.rideType;
-    document.getElementById('am-pickup').textContent=demoRide.pickup.substring(0,48);
-    document.getElementById('am-dest').textContent=demoRide.destination.substring(0,48);
-    document.getElementById('am-dist').textContent=demoRide.distKm.toFixed(1)+' km';
-    document.getElementById('am-dur').textContent=demoRide.tripMins+' min';
-    document.getElementById('am-fare').textContent='R 85.50';
-    document.getElementById('acceptModal').classList.add('show');
-    return;
-  }
-
   if (!db) return;
   get(ref(db,`ride_requests/${id}`)).then(snap => {
     if (!snap.exists()||snap.val().status!=='pending'){showToast('Ride already taken');return;}
@@ -1429,17 +1316,7 @@ window.openAcceptModal = function(id) {
 };
 window.closeAcceptModal = function() { document.getElementById('acceptModal').classList.remove('show'); pendingAcceptId=null; pendingAcceptData=null; };
 window.confirmAccept = function() {
-  if (!pendingAcceptId||!cu) return;
-
-  // Demo mode
-  if (cu.uid === 'demo_driver') {
-    const r = pendingAcceptData;
-    activeRideId = pendingAcceptId; activeRideData = r;
-    window.closeAcceptModal(); showActiveRide(r); expandPanel(); showToast('Ride accepted! 🎉');
-    return;
-  }
-
-  if (!db) return;
+  if (!pendingAcceptId||!cu||!db) return;
   const id=pendingAcceptId, r=pendingAcceptData;
   runTransaction(ref(db,`ride_requests/${id}`), cur => {
     if (!cur||cur.status!=='pending') return;
@@ -1474,7 +1351,7 @@ function showActiveRide(r) {
   resetPhaseUI();
 }
 function listenActiveRide() {
-  if (!cu||cu.uid==='demo_driver'||!db) return;
+  if (!cu||!db) return;
   get(ref(db,'ride_requests')).then(snap => {
     const all=snap.val()||{};
     const mine=Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
@@ -1485,20 +1362,17 @@ window.completeRide = async function() {
   if (!activeRideId||!cu) return;
   try {
     const fare = parseFloat(activeRideData?.fare||0);
-
-    if (cu.uid !== 'demo_driver' && db) {
-      const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
-      await push(ref(db,`drivers/${cu.uid}/trips`),{
-        rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
-        pickup:r.pickup||'—',destination:r.destination||'—',
-        distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
-        fare,status:'Completed',date:Date.now()
-      });
-      await remove(ref(db,`ride_requests/${activeRideId}`));
-      const eRef=ref(db,`drivers/${cu.uid}/earnings`);
-      const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
-      await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
-    }
+    const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
+    await push(ref(db,`drivers/${cu.uid}/trips`),{
+      rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
+      pickup:r.pickup||'—',destination:r.destination||'—',
+      distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
+      fare,status:'Completed',date:Date.now()
+    });
+    await remove(ref(db,`ride_requests/${activeRideId}`));
+    const eRef=ref(db,`drivers/${cu.uid}/earnings`);
+    const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
+    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
 
     statsToday.rides++; statsToday.earned+=fare;
     document.getElementById('stat-rides').textContent=statsToday.rides;
@@ -1516,19 +1390,14 @@ window.completeRide = async function() {
     }
     if (destMarker){destMarker.remove();destMarker=null;}
     navRouteCoords=[];
-    if (cu.uid==='demo_driver') {
-      // In demo mode, show a fake request again after completing
-      setTimeout(()=>listenRideRequests(), 1000);
-    } else {
-      loadTripHistory(); loadTodayStats();
-    }
+    loadTripHistory(); loadTodayStats();
     showToast('✓ Ride completed! +R'+fare.toFixed(2));
   } catch(e){ console.error(e); showToast('Error completing ride'); }
 };
 
 // ─── STATS ────────────────────────────────────────────────────
 async function loadTodayStats() {
-  if (!cu||cu.uid==='demo_driver'||!db) return;
+  if (!cu||!db) return;
   try {
     const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
     document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
@@ -1540,7 +1409,7 @@ async function loadTodayStats() {
 
 // ─── TRIP HISTORY ─────────────────────────────────────────────
 function loadTripHistory() {
-  if (!cu||cu.uid==='demo_driver'||!db) return;
+  if (!cu||!db) return;
   onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
     allTrips = Object.values(snap.val()||{}).reverse();
     get(ref(db,`drivers/${cu.uid}/canceled_rides`)).then(csnap => {
@@ -1599,9 +1468,9 @@ window.showHistoryTab = function(tab) {
   }
 };
 
-// ─── VEHICLE ──────────────────────────────────────────────────
+// ─── VEHICLE ─────────────────────────────────────────────────
 function loadVehicleInfo() {
-  if (!cu||cu.uid==='demo_driver'||!db) return;
+  if (!cu||!db) return;
   get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap => {
     const v=snap.val();
     if (v) {
@@ -1619,7 +1488,7 @@ window.saveVehicle = async function() {
   const plate=document.getElementById('v-plate').value.trim().toUpperCase();
   const type=document.getElementById('v-type').value;
   if (!car||!plate){showToast('Please fill in all vehicle details');return;}
-  if (cu.uid!=='demo_driver'&&db) await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type}).catch(()=>{});
+  await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type}).catch(()=>{});
   document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
   document.getElementById('vehicleModal').classList.remove('show');
   showToast('Vehicle details saved');
