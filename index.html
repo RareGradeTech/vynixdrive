@@ -94,7 +94,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .toggle-pill::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .toggle-pill.on::after{transform:translateX(26px)}
 .panel-scroll{
-  flex:1;overflow-y:auto;padding:4px 14px 20px;
+  flex:1;overflow-y:auto;
+  /* Added large bottom padding so the En Route card is fully visible */
+  padding:4px 14px 120px;
   display:flex;flex-direction:column;gap:11px;
   -webkit-overflow-scrolling:touch;min-height:0;
 }
@@ -217,9 +219,15 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:.14s}
 .nav-close-x:hover{background:rgba(255,255,255,.22)}
+
 .nav-steps-panel{position:absolute;left:0;right:0;bottom:0;height:20vh;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all}
 .nav-steps-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
+
+/* NEW EXIT NAVIGATION BUTTON CSS */
+.nav-exit-btn {background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.14s;}
+.nav-exit-btn:active {background:rgba(239,68,68,.2);}
+
 .nav-eta-chips{display:flex;gap:6px}
 .nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
 .nav-eta-chip.highlight{background:rgba(26,59,255,.1);color:var(--blue)}
@@ -654,7 +662,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         </div>
         <div class="nav-steps-panel" id="navStepsPanel">
           <div class="nav-steps-header">
-            <span class="nav-steps-title">Turn-by-Turn</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="nav-exit-btn" onclick="stopNavigation()">✕ Exit Nav</button>
+              <span class="nav-steps-title">Turn-by-Turn</span>
+            </div>
             <div class="nav-eta-chips">
               <span class="nav-eta-chip highlight" id="navETA">—</span>
               <span class="nav-eta-chip" id="navDistTotal">—</span>
@@ -666,8 +677,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
           <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
           </button>
-          <button class="map-ctrl-btn" onclick="driverMap&&driverMap.zoomIn()">+</button>
-          <button class="map-ctrl-btn" onclick="driverMap&&driverMap.zoomOut()">−</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap) driverMap.zoomIn()">+</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap) driverMap.zoomOut()">−</button>
         </div>
       </div>
     </div>
@@ -879,7 +890,7 @@ let activeRideId = null, activeRideData = null;
 let pendingAcceptId = null, pendingAcceptData = null;
 let onlineStartTime = null;
 let statsToday = { rides:0, earned:0 };
-let rideRequestsUnsub = null, chatUnsub = null;
+let globalRequestsUnsub = null, chatUnsub = null;
 let panelExpanded = false;
 let ridePhase = 'pickup';
 let cancelMode = null, pendingDeclineId = null;
@@ -936,10 +947,16 @@ function initApp(userData) {
   loadTripHistory();
   if (!driverMap) initMap();
   watchLocation();
-  listenActiveRide();
   loadVehicleInfo();
-  if (localStorage.getItem('vynix_driver_status') === 'online') goOnline();
-  else goOffline();
+  
+  // Start the unified database listener to persist exact state perfectly
+  listenToDatabase();
+  
+  if (localStorage.getItem('vynix_driver_status') === 'online') {
+      goOnline();
+  } else {
+      goOffline();
+  }
 }
 
 window.doSignOut = () => {
@@ -947,6 +964,89 @@ window.doSignOut = () => {
   localStorage.removeItem('vynix_driver_status');
   signOut(auth).catch(()=>{}).finally(() => { window.location.href = 'login.html'; });
 };
+
+// ─── UNIFIED FIREBASE LISTENER ────────────────────────────────
+// Replaces scattered logic to guarantee the UI is identical on page refresh
+function listenToDatabase() {
+    if (!cu || !db) return;
+    if (globalRequestsUnsub) return; // Prevent duplicates
+    
+    globalRequestsUnsub = onValue(ref(db, 'ride_requests'), snap => {
+        const allData = snap.val() || {};
+        processRideData(allData);
+    });
+}
+
+function processRideData(allData) {
+    const mine = Object.entries(allData).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
+    
+    if (mine) {
+        // Force online state visually if they possess an active ride but refreshed
+        if (!isOnline) {
+             isOnline = true;
+             setOnlineUI(true);
+             localStorage.setItem('vynix_driver_status', 'online');
+        }
+        
+        const [id, r] = mine;
+        if (activeRideId !== id) {
+            activeRideId = id; 
+            activeRideData = r;
+            showActiveRide(r);
+            expandPanel();
+        } else {
+            activeRideData = r;
+        }
+        
+        // Restore Phase specifically
+        if (r.arrived && ridePhase !== 'riding') {
+            ridePhase = 'riding';
+            document.getElementById('phase-pickup').classList.remove('active');
+            document.getElementById('phase-riding').classList.add('active');
+            document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+            
+            // Restore PIN Display exactly if arriving was done previously
+            if(document.getElementById('arrivedPinDisplay')) {
+                 document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin || '---';
+                 document.getElementById('ar-pin').textContent = r.arrivedPin || '---';
+            }
+        }
+        
+        document.getElementById('reqLabel').style.display='none';
+        document.getElementById('rideReqList').style.display='none';
+        
+    } else {
+        // No active ride assigned to this driver
+        if (activeRideId) {
+            activeRideId = null; activeRideData = null;
+            document.getElementById('activeRideCard').classList.remove('show');
+            document.getElementById('arrivedPinCard').classList.remove('show');
+            resetPhaseUI();
+            document.getElementById('reqLabel').style.display='';
+            document.getElementById('rideReqList').style.display='';
+            if (isNavigating) stopNavigation();
+            showToast('Active ride was concluded or canceled.');
+        }
+        
+        // Populate the pending requests list if driver is online
+        if (isOnline) {
+            const pending = Object.entries(allData).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
+            pending.forEach(([id,r]) => {
+              if (!knownRequestIds.has(id)) {
+                knownRequestIds.add(id);
+                if (document.getElementById('appShell').classList.contains('ready')) showRideNotif(r);
+              }
+            });
+            [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
+            renderRideRequests(pending);
+            const cnt = pending.length;
+            const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',cnt>0);
+        } else {
+            document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+            const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',false);
+        }
+    }
+}
 
 // ─── MAP INIT ─────────────────────────────────────────────────
 function initMap() {
@@ -1292,14 +1392,12 @@ async function cancelActiveRide(reason) {
 }
 
 // ─── PERMANENT DELETE FROM DATABASE ───────────────────────────
-// This function gives you the power to completely delete a pending ride request from Firebase.
 window.deleteRideRequest = async function(id) {
   if (confirm("Are you sure you want to permanently delete this ride request from the database?")) {
     try {
       await remove(ref(db, `ride_requests/${id}`));
       showToast('Ride permanently deleted');
       
-      // Remove it from the local DOM immediately
       const el = document.getElementById(`req-${id}`);
       if (el) { 
         el.style.transition = '.2s'; 
@@ -1358,14 +1456,20 @@ async function goOnline() {
     pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),
     ()=>updateDriverLocation(-24.1991,28.9934)
   );
-  listenRideRequests(); expandPanel(); showToast('You are now Online 🟢');
+  
+  // Re-trigger the UI rendering for pending requests
+  get(ref(db, 'ride_requests')).then(s => processRideData(s.val()||{}));
+  
+  expandPanel(); showToast('You are now Online 🟢');
 }
 async function goOffline() {
   isOnline=false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status','offline');
-  if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub=null; }
   await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
-  document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+  
+  // Re-trigger the UI rendering which will now hide pending requests because isOnline == false
+  get(ref(db, 'ride_requests')).then(s => processRideData(s.val()||{}));
+  
   updateHoursOnline(); showToast('You are now Offline ⚫');
 }
 window.toggleOnline = function() {
@@ -1387,28 +1491,7 @@ function updateHoursOnline() {
   const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
 }
 
-// ─── RIDE REQUESTS ────────────────────────────────────────────
-function listenRideRequests() {
-  if (!cu || !db) return;
-  rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
-    const data = snap.val()||{};
-    
-    // Filter pending requests: ONLY include those that are pending AND not in the persistent blocklist
-    const pending = Object.entries(data).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
-    
-    pending.forEach(([id,r]) => {
-      if (!knownRequestIds.has(id)) {
-        knownRequestIds.add(id);
-        if (document.getElementById('appShell').classList.contains('ready')) showRideNotif(r);
-      }
-    });
-    [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
-    renderRideRequests(pending);
-    const cnt = pending.length;
-    const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',cnt>0);
-  });
-}
-
+// ─── RIDE REQUESTS (Rendered via Listener) ────────────────────
 function renderRideRequests(list) {
   const el = document.getElementById('rideReqList');
   const lbl = document.getElementById('reqLabel');
@@ -1448,104 +1531,6 @@ function renderRideRequests(list) {
     </div>
   `).join('');
 }
-
-// ─── ACCEPT MODAL ─────────────────────────────────────────────
-window.openAcceptModal = function(id) {
-  if (!isOnline){showToast('Go online first');return;}
-  if (!db) return;
-  get(ref(db,`ride_requests/${id}`)).then(snap => {
-    if (!snap.exists()||snap.val().status!=='pending'){showToast('Ride already taken');return;}
-    const r=snap.val(); pendingAcceptId=id; pendingAcceptData=r;
-    document.getElementById('am-rider').textContent=r.riderName||'Rider';
-    document.getElementById('am-type').textContent=r.rideType||'VynixGo';
-    document.getElementById('am-pickup').textContent=(r.pickup||'Current Location').substring(0,48);
-    document.getElementById('am-dest').textContent=(r.destination||'—').substring(0,48);
-    document.getElementById('am-dist').textContent=r.distKm?r.distKm.toFixed(1)+' km':'—';
-    document.getElementById('am-dur').textContent=r.tripMins?r.tripMins+' min':'—';
-    document.getElementById('am-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
-    document.getElementById('acceptModal').classList.add('show');
-  });
-};
-window.closeAcceptModal = function() { document.getElementById('acceptModal').classList.remove('show'); pendingAcceptId=null; pendingAcceptData=null; };
-window.confirmAccept = function() {
-  if (!pendingAcceptId||!cu||!db) return;
-  const id=pendingAcceptId, r=pendingAcceptData;
-  runTransaction(ref(db,`ride_requests/${id}`), cur => {
-    if (!cur||cur.status!=='pending') return;
-    return {...cur,status:'accepted',driverId:cu.uid,driverName:cu.displayName||'Driver',acceptedAt:Date.now()};
-  }).then(result => {
-    if (!result.committed){showToast('Ride taken by another driver');window.closeAcceptModal();return;}
-    activeRideId=id; activeRideData=r;
-    window.closeAcceptModal(); showActiveRide(r); expandPanel(); showToast('Ride accepted! 🎉');
-  }).catch(()=>showToast('Error accepting ride'));
-};
-
-// ─── ACTIVE RIDE ──────────────────────────────────────────────
-function resetPhaseUI() {
-  ridePhase='pickup';
-  document.getElementById('phase-pickup').classList.add('active');
-  document.getElementById('phase-riding').classList.remove('active');
-  document.getElementById('ar-phase-label').textContent='En Route to Pickup';
-}
-function showActiveRide(r) {
-  const card=document.getElementById('activeRideCard'); card.classList.add('show');
-  document.getElementById('ar-av').textContent=ini2(r.riderName||'R');
-  document.getElementById('ar-name').textContent=r.riderName||'Rider';
-  document.getElementById('ar-dest').textContent='→ '+(r.destination||'—').substring(0,36);
-  document.getElementById('ar-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
-  document.getElementById('ar-pin').textContent=r.securityPin||'—';
-  document.getElementById('ar-type').textContent=r.rideType||'VynixGo';
-  document.getElementById('ar-seats').textContent=r.capacity||4;
-  document.getElementById('ar-pickup-txt').textContent=(r.pickup||'Current Location').substring(0,50);
-  document.getElementById('ar-drop-txt').textContent=(r.destination||'—').substring(0,50);
-  document.getElementById('reqLabel').style.display='none';
-  document.getElementById('rideReqList').style.display='none';
-  resetPhaseUI();
-}
-function listenActiveRide() {
-  if (!cu||!db) return;
-  get(ref(db,'ride_requests')).then(snap => {
-    const all=snap.val()||{};
-    const mine=Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
-    if (mine){const[id,r]=mine;activeRideId=id;activeRideData=r;showActiveRide(r);expandPanel();}
-  });
-}
-window.completeRide = async function() {
-  if (!activeRideId||!cu) return;
-  try {
-    const fare = parseFloat(activeRideData?.fare||0);
-    const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
-    await push(ref(db,`drivers/${cu.uid}/trips`),{
-      rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
-      pickup:r.pickup||'—',destination:r.destination||'—',
-      distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
-      fare,status:'Completed',date:Date.now()
-    });
-    await remove(ref(db,`ride_requests/${activeRideId}`));
-    const eRef=ref(db,`drivers/${cu.uid}/earnings`);
-    const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
-    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
-
-    statsToday.rides++; statsToday.earned+=fare;
-    document.getElementById('stat-rides').textContent=statsToday.rides;
-    document.getElementById('stat-earn').textContent='R'+statsToday.earned.toFixed(0);
-    activeRideId=null; activeRideData=null;
-    document.getElementById('activeRideCard').classList.remove('show');
-    document.getElementById('arrivedPinCard').classList.remove('show');
-    resetPhaseUI();
-    document.getElementById('reqLabel').style.display='';
-    document.getElementById('rideReqList').style.display='';
-    if (isNavigating) stopNavigation();
-    if (driverMap) {
-      [ROUTE_LBG,ROUTE_L].forEach(l => { try{if(driverMap.getLayer(l))driverMap.removeLayer(l);}catch(e){} });
-      try{if(driverMap.getSource(ROUTE_SRC))driverMap.removeSource(ROUTE_SRC);}catch(e){}
-    }
-    if (destMarker){destMarker.remove();destMarker=null;}
-    navRouteCoords=[];
-    loadTripHistory(); loadTodayStats();
-    showToast('✓ Ride completed! +R'+fare.toFixed(2));
-  } catch(e){ console.error(e); showToast('Error completing ride'); }
-};
 
 // ─── STATS ────────────────────────────────────────────────────
 async function loadTodayStats() {
