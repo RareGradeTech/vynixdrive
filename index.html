@@ -3,569 +3,536 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>VynixRide — Driver Dashboard</title>
+<title>VynixRide — Driver</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-
 <style>
 :root {
-  --ink: #0F172A;
-  --bg: #F1F5F9;
-  --card: #FFFFFF;
-  --card2: #F8FAFC;
-  --border: #E2E8F0;
-  --muted: #64748B;
-  --blue: #1A3BFF;
-  --blue2: #4A6CFF;
-  --green: #10B981;
-  --green2: #059669;
-  --red: #EF4444;
-  --orange: #F59E0B;
-  --glow: rgba(26,59,255,.2);
-  --nav-h: 64px;
-  --panel-w: 340px; /* Desktop panel width */
-  --panel-collapsed-mobile: 74px;
-  --panel-expanded-mobile: 420px;
+  --ink:#0F172A; --bg:#F1F5F9; --card:#FFFFFF; --card2:#F8FAFC;
+  --border:#E2E8F0; --muted:#64748B;
+  --blue:#1A3BFF; --blue2:#4A6CFF;
+  --green:#10B981; --green2:#059669;
+  --red:#EF4444; --orange:#F59E0B;
+  --glow:rgba(26,59,255,.2);
+  --nav-h:60px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+  /* Mobile panel heights */
+  --panel-peek:72px;   /* collapsed — just the handle + status row */
+  --panel-full:78vh;   /* expanded */
 }
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:var(--ink); }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
 
-/* ── INIT LOADER ── */
-.init-loader { position:fixed; inset:0; background:var(--bg); z-index:10001; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
-.init-loader.hide { opacity:0; pointer-events:none; }
-.loader-spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:sp .8s linear infinite; margin-bottom:16px; }
-@keyframes sp { to { transform:rotate(360deg); } }
+/* ── LOADER ── */
+.init-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
+.init-loader.hide{opacity:0;pointer-events:none}
+.loader-spinner{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── SHELL ── */
-.shell { display:flex; height:100dvh; width:100vw; overflow:hidden; opacity:0; transition:opacity .4s; }
-.shell.ready { opacity:1; }
-
-/* ── SIDEBAR (desktop only) ── */
-.sidebar { display:none; width:74px; background:var(--card); border-right:1px solid var(--border); flex-direction:column; padding:22px 11px; z-index:60; flex-shrink:0; transition:width .28s cubic-bezier(.4,0,.2,1),padding .28s; overflow:hidden; white-space:nowrap; }
-@media(min-width:900px){ .sidebar { display:flex; } }
-.sidebar:hover { width:252px; padding:22px 17px; box-shadow:4px 0 24px rgba(0,0,0,.08); }
-.s-logo { display:flex; align-items:center; gap:11px; margin-bottom:28px; padding-left:3px; min-width:214px; }
-.s-logo-mark { width:36px; height:36px; background:var(--blue); border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:#fff; box-shadow:0 3px 12px var(--glow); }
-.s-logo-txt { opacity:0; transition:opacity .14s .06s; font-size:15px; font-weight:900; color:var(--ink); letter-spacing:-.3px; }
-.sidebar:hover .s-logo-txt { opacity:1; }
-.s-logo-badge { opacity:0; transition:opacity .14s .08s; font-size:10px; font-weight:700; background:rgba(16,185,129,.12); color:var(--green2); padding:2px 7px; border-radius:8px; margin-left:2px; }
-.sidebar:hover .s-logo-badge { opacity:1; }
-.snl { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:10px; color:var(--muted); cursor:pointer; transition:.14s; margin-bottom:2px; min-width:218px; }
-.snl svg { flex-shrink:0; width:19px; height:19px; }
-.snl:hover { background:rgba(0,0,0,.04); color:var(--ink); }
-.snl.act { background:rgba(26,59,255,.1); color:var(--blue); }
-.s-ntxt { opacity:0; transition:opacity .14s .06s; font-size:13px; font-weight:600; }
-.sidebar:hover .s-ntxt { opacity:1; }
-.s-badge { opacity:0; transition:opacity .14s .08s; margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:20px; min-width:18px; text-align:center; }
-.sidebar:hover .s-badge { opacity:1; }
-.s-spacer { flex:1; }
-.s-status-row { display:flex; align-items:center; gap:11px; padding:10px; background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.2); border-radius:10px; margin-bottom:10px; cursor:pointer; min-width:218px; transition:.18s; }
-.s-status-row:hover { background:rgba(16,185,129,.13); }
-.s-status-row.off { background:rgba(0,0,0,.04); border-color:var(--border); }
-.s-status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 2s ease-in-out infinite; }
-.s-status-dot.off { background:var(--muted); animation:none; }
-@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)} 50%{box-shadow:0 0 0 5px rgba(16,185,129,0)} }
-.s-status-txt { opacity:0; transition:opacity .14s .06s; font-size:12px; font-weight:700; color:var(--green2); }
-.s-status-row.off .s-status-txt { color:var(--muted); }
-.sidebar:hover .s-status-txt { opacity:1; }
-.s-user { display:flex; align-items:center; gap:11px; padding:9px; background:rgba(0,0,0,.03); border-radius:10px; min-width:218px; cursor:pointer; transition:.14s; }
-.s-user:hover { background:rgba(0,0,0,.06); }
-.s-av { width:32px; height:32px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0; }
-.s-user-info { opacity:0; transition:opacity .14s .06s; overflow:hidden; }
-.sidebar:hover .s-user-info { opacity:1; }
-.s-uname { font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:146px; }
-.s-uemail { font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:146px; margin-top:1px; }
-
-/* ── MAIN ── */
-.main { flex:1; height:100dvh; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+.shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .4s;flex-direction:column}
+.shell.ready{opacity:1}
 
 /* ── MOBILE TOP BAR ── */
-.topbar { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; background:var(--card); border-bottom:1px solid var(--border); flex-shrink:0; z-index:30; }
-@media(min-width:900px){ .topbar { display:none; } }
-.tb-logo { display:flex; align-items:center; gap:9px; }
-.tb-mark { width:32px; height:32px; background:var(--blue); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; }
-.tb-name { font-size:14px; font-weight:800; color:var(--ink); }
-.tb-badge { font-size:8px; font-weight:700; background:rgba(16,185,129,.12); color:var(--green2); padding:2px 6px; border-radius:7px; margin-left:3px; }
-.tb-right { display:flex; align-items:center; gap:8px; }
-.tb-av { width:32px; height:32px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; cursor:pointer; }
-.online-toggle { display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:20px; cursor:pointer; transition:.18s; background:var(--bg); border:1.5px solid var(--border); touch-action:manipulation; }
-.online-toggle.on { background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.35); }
-.ot-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; transition:background .2s; }
-.online-toggle.on .ot-dot { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
-.ot-lbl { font-size:11px; font-weight:700; color:var(--muted); }
-.online-toggle.on .ot-lbl { color:var(--green2); }
-
-/* ══════════════════════════════════════════════
-   MAP PAGE LAYOUT — KEY FIX: Navigation Mode
-══════════════════════════════════════════════ */
-.map-page { flex:1; display:none; position:relative; overflow:hidden; min-height:0; }
-.map-page.show { display:flex; }
-
-/* ── DEFAULT layout: panel on the left (desktop), map takes remaining space ── */
-@media(min-width:900px){
-  .map-page { flex-direction:row; }
-  /* Map fills everything EXCEPT the panel */
-  .map-wrap { position:relative !important; width:auto !important; height:auto !important; flex:1; }
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;padding-top:calc(10px + var(--safe-top));
+  background:var(--card);border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:30;
 }
+.tb-logo{display:flex;align-items:center;gap:9px}
+.tb-mark{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+.tb-name{font-size:14px;font-weight:800;color:var(--ink)}
+.tb-badge{font-size:8px;font-weight:700;background:rgba(16,185,129,.12);color:var(--green2);padding:2px 6px;border-radius:6px;margin-left:3px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;cursor:pointer}
+.online-toggle{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:20px;cursor:pointer;transition:.18s;background:var(--bg);border:1.5px solid var(--border);touch-action:manipulation;user-select:none}
+.online-toggle.on{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.35)}
+.ot-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .2s}
+.online-toggle.on .ot-dot{background:var(--green);animation:pdot 2s ease-in-out infinite}
+.ot-lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.online-toggle.on .ot-lbl{color:var(--green2)}
+@keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
 
-/* ── Mobile: absolute map behind sheet ── */
-@media(max-width:899px){
-  .map-wrap {
-    position:absolute; inset:0;
-    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--panel-collapsed-mobile));
-    transition:bottom .38s cubic-bezier(.175,.885,.32,1);
-  }
-  /* When navigating on mobile: map takes 80%, hide the bottom sheet partially */
-  .map-wrap.nav-active {
-    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  }
+/* ── MAP PAGE ── */
+.map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
+.map-page.show{display:block}
+.map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom) + var(--panel-peek));transition:bottom .35s cubic-bezier(.4,0,.2,1)}
+.map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
+#driverMap{position:absolute;inset:0;width:100%;height:100%}
+
+/* ── DRIVER PANEL — Mobile Bottom Sheet ── */
+.driver-panel{
+  position:absolute;left:0;right:0;
+  bottom:calc(var(--nav-h) + var(--safe-bottom));
+  height:var(--panel-full);
+  background:var(--card);
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,.1);
+  border-top:1px solid var(--border);
+  z-index:50;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(calc(var(--panel-full) - var(--panel-peek)));
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
 }
+.driver-panel.expanded{transform:translateY(0)}
+.driver-panel.nav-mode{transform:translateY(calc(var(--panel-full) - 52px))}
 
-#driverMap { position:absolute; inset:0; width:100%; height:100%; }
-
-/* Driver marker */
-.driver-marker-halo { width:50px; height:50px; background:rgba(26,59,255,.15); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse-halo 2.5s infinite; }
-.driver-marker-core { width:18px; height:18px; background:#1A3BFF; border:3px solid #fff; border-radius:50%; box-shadow:0 3px 10px rgba(0,0,0,.3); }
-@keyframes pulse-halo { 0%{transform:scale(.8);opacity:1} 100%{transform:scale(1.6);opacity:0} }
-
-/* ══════════════════════════════════════════════
-   DRIVER PANEL
-══════════════════════════════════════════════ */
-.driver-panel {
-  background:var(--card); flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;
-  border-top:1px solid var(--border); border-radius:24px 24px 0 0;
-  box-shadow:0 -6px 24px rgba(0,0,0,.08);
+/* Handle */
+.panel-handle{
+  display:flex;align-items:center;justify-content:center;
+  padding:10px 16px 8px;flex-shrink:0;cursor:pointer;
+  position:relative;touch-action:manipulation;
 }
-@media(max-width:899px){
-  .driver-panel {
-    position:absolute; left:0; right:0;
-    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-    height:var(--panel-expanded-mobile);
-    z-index:50;
-    transition:transform .38s cubic-bezier(.175,.885,.32,1);
-  }
-  .driver-panel.collapsed { transform:translateY(calc(var(--panel-expanded-mobile) - var(--panel-collapsed-mobile))); }
-  /* When nav is active on mobile, collapse the panel to a minimal strip */
-  .driver-panel.nav-mode { transform:translateY(calc(var(--panel-expanded-mobile) - 54px)); }
+.panel-drag-bar{width:38px;height:4px;background:var(--border);border-radius:4px}
+.panel-peek-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px 10px;flex-shrink:0;gap:10px;
 }
-@media(min-width:900px){
-  .driver-panel {
-    position:relative; width:var(--panel-w); height:100%;
-    border-top:none; border-right:1px solid var(--border);
-    border-radius:0; box-shadow:none; order:-1;
-    transform:none !important;
-    flex-shrink:0;
-  }
+.ppr-info{display:flex;align-items:center;gap:8px}
+.ppr-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.ppr-dot.on{background:var(--green);animation:pdot 2s ease-in-out infinite}
+.ppr-label{font-size:14px;font-weight:800;color:var(--ink)}
+.ppr-sub{font-size:11px;color:var(--muted);font-weight:600}
+.toggle-pill{position:relative;width:56px;height:30px;cursor:pointer;background:var(--border);border-radius:15px;transition:background .26s;flex-shrink:0;border:none;outline:none;touch-action:manipulation}
+.toggle-pill.on{background:var(--green)}
+.toggle-pill::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.toggle-pill.on::after{transform:translateX(26px)}
+
+/* Panel scroll area */
+.panel-scroll{
+  flex:1;overflow-y:auto;padding:4px 14px 20px;
+  display:flex;flex-direction:column;gap:11px;
+  -webkit-overflow-scrolling:touch;min-height:0;
 }
-
-.panel-handle { display:flex; align-items:center; justify-content:center; padding:10px 16px 8px; flex-shrink:0; cursor:pointer; position:relative; touch-action:manipulation; }
-@media(min-width:900px){ .panel-handle { display:none; } }
-.panel-drag-bar { width:42px; height:5px; background:var(--border); border-radius:5px; }
-.panel-toggle-btn { position:absolute; right:16px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:4px; font-size:10px; font-weight:700; color:var(--muted); background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:3px 9px; cursor:pointer; touch-action:manipulation; }
-
-.panel-collapsed-row { display:none; align-items:center; justify-content:space-between; padding:0 18px 12px; flex-shrink:0; }
-.driver-panel.collapsed .panel-collapsed-row { display:flex; }
-.driver-panel.nav-mode .panel-collapsed-row { display:flex; }
-@media(min-width:900px){ .panel-collapsed-row { display:none !important; } }
-
-.pcr-info { display:flex; align-items:center; gap:8px; }
-.pcr-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
-.pcr-dot.on { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
-.pcr-label { font-size:14px; font-weight:800; color:var(--ink); }
-
-.driver-panel.collapsed .panel-scroll { opacity:0; pointer-events:none; }
-.driver-panel.nav-mode .panel-scroll { opacity:0; pointer-events:none; }
-@media(min-width:900px){ .driver-panel.collapsed .panel-scroll, .driver-panel.nav-mode .panel-scroll { opacity:1; pointer-events:all; } }
-
-.panel-scroll { flex:1; overflow-y:auto; padding:10px 18px 18px; display:flex; flex-direction:column; gap:13px; -webkit-overflow-scrolling:touch; min-height:0; transition:opacity .2s; }
-.panel-scroll::-webkit-scrollbar { width:3px; }
-.panel-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.panel-scroll::-webkit-scrollbar{width:3px}
+.panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 /* ── STATUS HERO ── */
-.status-hero { display:flex; align-items:center; justify-content:space-between; background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:16px 18px; flex-shrink:0; }
-.sh-lbl { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:2px; }
-.sh-val { font-size:18px; font-weight:900; color:var(--green); }
-.sh-val.off { color:var(--muted); }
-.toggle-pill { position:relative; width:64px; height:34px; cursor:pointer; background:var(--border); border-radius:18px; transition:background .26s; flex-shrink:0; border:none; outline:none; touch-action:manipulation; }
-.toggle-pill.on { background:var(--green); }
-.toggle-pill::after { content:''; position:absolute; top:3px; left:3px; width:28px; height:28px; border-radius:50%; background:#fff; transition:transform .26s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 7px rgba(0,0,0,.2); }
-.toggle-pill.on::after { transform:translateX(30px); }
+.status-hero{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:14px;padding:14px 16px;flex-shrink:0;
+}
+.sh-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.sh-val{font-size:17px;font-weight:900;color:var(--green)}
+.sh-val.off{color:var(--muted)}
 
 /* ── STAT GRID ── */
-.stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0; }
-.stat-card { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:12px; }
-.sc-lbl { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:3px; }
-.sc-val { font-size:18px; font-weight:900; color:var(--ink); line-height:1; }
-.sc-val span { font-size:11px; font-weight:600; color:var(--muted); }
-
-/* ── RIDE REQUEST CARDS ── */
-.req-section-lbl { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; flex-shrink:0; margin-top:8px; }
-.ride-req-list { display:flex; flex-direction:column; gap:10px; padding-bottom:20px; }
-.no-rides { text-align:center; padding:24px 12px; color:var(--muted); font-size:13px; font-weight:600; background:var(--card2); border-radius:12px; border:1px dashed var(--border); }
-.no-rides-ico { font-size:28px; margin-bottom:8px; opacity:.6; }
-.req-card { background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:14px; transition:border-color .18s; animation:slideIn .25s cubic-bezier(.4,0,.2,1); }
-@keyframes slideIn { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
-.req-card:hover { border-color:rgba(26,59,255,.25); }
-.req-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; gap:6px; }
-.req-rider { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
-.req-av { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
-.req-name { font-size:14px; font-weight:800; color:var(--ink); }
-.req-type-chip { font-size:9px; font-weight:700; background:rgba(26,59,255,.08); color:var(--blue); padding:3px 8px; border-radius:8px; margin-top:2px; display:inline-block; }
-.req-fare { font-size:18px; font-weight:900; color:var(--green2); flex-shrink:0; }
-.req-fare-lbl { font-size:10px; color:var(--muted); font-weight:600; text-align:right; }
-.req-divider { height:1px; background:var(--border); margin:10px 0; }
-.req-route { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
-.req-point { display:flex; align-items:flex-start; gap:10px; }
-.rp-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-.rp-icon.pickup { background:rgba(16,185,129,.15); }
-.rp-icon.drop { background:rgba(26,59,255,.1); }
-.rp-dot { width:8px; height:8px; border-radius:50%; }
-.rp-dot.pickup { background:var(--green); }
-.rp-dot.drop { background:var(--blue2); }
-.rp-lbl { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
-.rp-addr { font-size:12px; font-weight:600; color:var(--ink); line-height:1.3; margin-top:2px; }
-.req-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-.req-chip { font-size:10px; font-weight:600; color:var(--muted); background:var(--card2); border:1px solid var(--border); padding:3px 8px; border-radius:8px; }
-.req-btns { display:flex; gap:8px; }
-.btn-decline { flex:1; padding:12px; border-radius:10px; background:rgba(239,68,68,.07); border:1.5px solid rgba(239,68,68,.2); color:var(--red); font-size:13px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; touch-action:manipulation; }
-.btn-decline:active { background:rgba(239,68,68,.13); }
-.btn-accept { flex:2; padding:12px; border-radius:10px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; box-shadow:0 3px 12px var(--glow); touch-action:manipulation; }
-.btn-accept:active { opacity:.88; transform:scale(0.98); }
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex-shrink:0}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.sc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.sc-val{font-size:17px;font-weight:900;color:var(--ink);line-height:1}
+.sc-val span{font-size:11px;font-weight:600;color:var(--muted)}
 
 /* ── ACTIVE RIDE CARD ── */
-.active-ride-card { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1.5px solid rgba(26,59,255,.22); border-radius:14px; padding:16px; display:none; flex-direction:column; gap:12px; flex-shrink:0; }
-.active-ride-card.show { display:flex; }
-.ar-header { display:flex; justify-content:space-between; align-items:center; }
-.ar-badge { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:800; color:var(--blue); background:rgba(26,59,255,.1); padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:.06em; }
-.ar-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--blue); animation:pulse-dot 1.5s ease-in-out infinite; }
-.ar-fare-big { font-size:22px; font-weight:900; color:var(--ink); }
-.ar-rider-row { display:flex; align-items:center; gap:12px; }
-.ar-av { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0; }
-.ar-name { font-size:15px; font-weight:800; color:var(--ink); }
-.ar-dest-txt { font-size:12px; font-weight:500; color:var(--muted); margin-top:2px; }
-.ar-cells { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-.ar-cell { background:rgba(255,255,255,.8); border:1px solid rgba(26,59,255,.1); border-radius:10px; padding:10px; }
-.ar-cell-lbl { font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
-.ar-cell-val { font-size:15px; font-weight:900; color:var(--ink); line-height:1; }
-.ar-route-box { background:rgba(255,255,255,.7); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:10px; }
-.ar-rp { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--ink); font-weight:600; }
-.ar-rp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.ar-rp-dot.p { background:var(--green); }
-.ar-rp-dot.d { background:var(--blue2); }
-
-/* ── Active Ride Action Buttons ── */
-.ar-actions { display:flex; gap:8px; flex-wrap:wrap; }
-.btn-nav { flex:1; min-width:130px; padding:12px; border-radius:10px; border:none; background:linear-gradient(130deg,#7C3AED,#4F46E5); color:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; transition:.14s; touch-action:manipulation; box-shadow:0 3px 12px rgba(79,70,229,.3); }
-.btn-nav:active { opacity:.88; }
-.btn-nav.navigating { background:linear-gradient(130deg,#059669,#10B981); box-shadow:0 3px 12px rgba(16,185,129,.3); }
-.btn-chat-ar { padding:12px 14px; border-radius:10px; background:rgba(255,255,255,.9); border:1.5px solid rgba(26,59,255,.2); color:var(--blue); font-size:13px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; display:flex; align-items:center; gap:6px; transition:.14s; touch-action:manipulation; position:relative; }
-.btn-chat-ar:active { background:rgba(255,255,255,1); }
-.chat-unread-badge { position:absolute; top:-5px; right:-5px; width:16px; height:16px; background:var(--red); border-radius:50%; border:2px solid #DBEAFE; font-size:9px; font-weight:800; color:#fff; display:none; align-items:center; justify-content:center; }
-.chat-unread-badge.show { display:flex; }
-.btn-arrived { flex:1; padding:13px; border-radius:10px; border:none; background:linear-gradient(130deg,#F59E0B,#D97706); color:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; touch-action:manipulation; box-shadow:0 3px 12px rgba(245,158,11,.3); }
-.btn-arrived:active { opacity:.88; }
-.btn-complete { flex:1; padding:14px; border-radius:10px; border:none; background:linear-gradient(130deg,var(--green),var(--green2)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 3px 12px rgba(16,185,129,.28); touch-action:manipulation; transition:.14s; }
-.btn-complete:active { opacity:.88; }
-.btn-cancel-active { padding:13px 15px; border-radius:10px; background:rgba(239,68,68,.07); border:1.5px solid rgba(239,68,68,.2); color:var(--red); font-size:12px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; touch-action:manipulation; transition:.14s; }
-.btn-cancel-active:active { background:rgba(239,68,68,.13); }
-.ride-phase { display:none; }
-.ride-phase.active { display:flex; gap:8px; flex-wrap:wrap; }
-
-/* ══════════════════════════════════════════════
-   NAVIGATION HUD — Uber-style overlay
-   On desktop: floating panel top-right of map
-   On mobile: compact bar at top, map = 80% height
-══════════════════════════════════════════════ */
-
-/* The nav HUD sits INSIDE .map-wrap */
-.nav-hud {
-  position:absolute; top:0; left:0; right:0; bottom:0;
-  z-index:100; pointer-events:none;
-  display:none;
+.active-ride-card{
+  background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
+  border:1.5px solid rgba(26,59,255,.22);
+  border-radius:14px;padding:14px;
+  display:none;flex-direction:column;gap:10px;flex-shrink:0;
 }
-.nav-hud.show { display:block; pointer-events:all; }
+.active-ride-card.show{display:flex}
+.ar-header{display:flex;justify-content:space-between;align-items:center}
+.ar-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--blue);background:rgba(26,59,255,.1);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.ar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pdot 1.5s ease-in-out infinite}
+.ar-fare-big{font-size:20px;font-weight:900;color:var(--ink)}
+.ar-rider-row{display:flex;align-items:center;gap:10px}
+.ar-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.ar-name{font-size:15px;font-weight:800;color:var(--ink)}
+.ar-dest-txt{font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+.ar-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.ar-cell{background:rgba(255,255,255,.8);border:1px solid rgba(26,59,255,.1);border-radius:10px;padding:9px 10px}
+.ar-cell-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.ar-cell-val{font-size:14px;font-weight:900;color:var(--ink);line-height:1}
+.ar-route-box{background:rgba(255,255,255,.7);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px}
+.ar-rp{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink);font-weight:600}
+.ar-rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ar-rp-dot.p{background:var(--green)}
+.ar-rp-dot.d{background:var(--blue2)}
 
-/* ── Top instruction strip (always visible when navigating) ── */
-.nav-instruction-bar {
-  position:absolute; top:12px; left:12px; right:12px;
-  background:rgba(15,23,42,.92); backdrop-filter:blur(12px);
-  border-radius:16px; padding:14px 16px;
-  display:flex; align-items:center; gap:14px;
-  box-shadow:0 8px 32px rgba(0,0,0,.35);
-  pointer-events:all;
-  z-index:10;
+/* ── RIDE ACTION BUTTONS — MOBILE OPTIMIZED ── */
+.ar-actions-grid{display:grid;gap:8px}
+.ride-phase{display:none}
+.ride-phase.active{display:grid;gap:8px}
+
+/* Phase 1 (en route to pickup) */
+#phase-pickup.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""arrived arrived""cancel cancel"}
+#phase-pickup .btn-nav{grid-area:nav}
+#phase-pickup .btn-chat-ar{grid-area:chat}
+#phase-pickup .btn-arrived{grid-area:arrived}
+#phase-pickup .btn-cancel-active{grid-area:cancel}
+
+/* Phase 2 (trip in progress) */
+#phase-riding.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""complete complete""cancel cancel"}
+#phase-riding .btn-nav{grid-area:nav}
+#phase-riding .btn-chat-ar{grid-area:chat}
+#phase-riding .btn-complete{grid-area:complete}
+#phase-riding .btn-cancel-active{grid-area:cancel}
+
+/* Button styles — larger touch targets */
+.btn-nav{
+  padding:13px 10px;border-radius:11px;border:none;
+  background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;
+  font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:.14s;touch-action:manipulation;
+  box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px;
 }
-.nav-maneuver-box {
-  width:48px; height:48px; border-radius:13px;
+.btn-nav:active{opacity:.88;transform:scale(.98)}
+.btn-nav.navigating{background:linear-gradient(130deg,#059669,#10B981);box-shadow:0 3px 12px rgba(16,185,129,.3)}
+.btn-chat-ar{
+  padding:13px 10px;border-radius:11px;
+  background:rgba(255,255,255,.9);border:1.5px solid rgba(26,59,255,.2);
+  color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;
+  font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:.14s;touch-action:manipulation;position:relative;min-height:48px;
+}
+.btn-chat-ar:active{background:rgba(255,255,255,1)}
+.chat-unread-badge{
+  position:absolute;top:-5px;right:-5px;width:16px;height:16px;
+  background:var(--red);border-radius:50%;border:2px solid #DBEAFE;
+  font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;
+}
+.chat-unread-badge.show{display:flex}
+.btn-arrived{
+  padding:15px;border-radius:11px;border:none;
+  background:linear-gradient(130deg,#F59E0B,#D97706);color:#fff;
+  font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
+  touch-action:manipulation;transition:.14s;
+  box-shadow:0 3px 12px rgba(245,158,11,.3);min-height:50px;
+}
+.btn-arrived:active{opacity:.88}
+.btn-complete{
+  padding:15px;border-radius:11px;border:none;
+  background:linear-gradient(130deg,var(--green),var(--green2));color:#fff;
+  font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
+  box-shadow:0 3px 12px rgba(16,185,129,.28);touch-action:manipulation;
+  transition:.14s;min-height:50px;
+}
+.btn-complete:active{opacity:.88}
+.btn-cancel-active{
+  padding:13px;border-radius:11px;
+  background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);
+  color:var(--red);font-size:13px;font-weight:800;cursor:pointer;
+  font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;
+  min-height:46px;
+}
+.btn-cancel-active:active{background:rgba(239,68,68,.12)}
+
+/* Arrived PIN card */
+.arrived-pin-card{
+  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
+  border:1.5px solid rgba(245,158,11,.3);border-radius:12px;
+  padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center;
+}
+.arrived-pin-card.show{display:flex}
+.apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
+.apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
+.apc-note{font-size:11px;font-weight:500;color:var(--muted)}
+
+/* ── SECTION LABELS ── */
+.req-section-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:6px}
+
+/* ── RIDE REQUEST CARDS ── */
+.ride-req-list{display:flex;flex-direction:column;gap:10px}
+.no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
+.no-rides-ico{font-size:26px;margin-bottom:8px;opacity:.6}
+.req-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;padding:13px;
+  animation:slideIn .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.req-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:6px}
+.req-rider{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.req-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.req-name{font-size:14px;font-weight:800;color:var(--ink)}
+.req-type-chip{font-size:9px;font-weight:700;background:rgba(26,59,255,.08);color:var(--blue);padding:3px 8px;border-radius:7px;margin-top:2px;display:inline-block}
+.req-fare{font-size:18px;font-weight:900;color:var(--green2);flex-shrink:0}
+.req-fare-lbl{font-size:9px;color:var(--muted);font-weight:600;text-align:right}
+.req-divider{height:1px;background:var(--border);margin:8px 0}
+.req-route{display:flex;flex-direction:column;gap:9px;margin-bottom:11px}
+.req-point{display:flex;align-items:flex-start;gap:9px}
+.rp-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rp-icon.pickup{background:rgba(16,185,129,.15)}
+.rp-icon.drop{background:rgba(26,59,255,.1)}
+.rp-dot{width:8px;height:8px;border-radius:50%}
+.rp-dot.pickup{background:var(--green)}
+.rp-dot.drop{background:var(--blue2)}
+.rp-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rp-addr{font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;margin-top:1px}
+.req-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.req-chip{font-size:10px;font-weight:600;color:var(--muted);background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:7px}
+.req-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.btn-decline{
+  padding:13px;border-radius:10px;
+  background:rgba(239,68,68,.07);border:1.5px solid rgba(239,68,68,.2);
+  color:var(--red);font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:.14s;touch-action:manipulation;min-height:48px;
+}
+.btn-decline:active{background:rgba(239,68,68,.13)}
+.btn-accept{
+  padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(130deg,var(--blue2),var(--blue));
+  color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:.14s;
+  box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px;
+}
+.btn-accept:active{opacity:.88;transform:scale(.98)}
+
+/* ── NAVIGATION HUD ── */
+.nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
+.nav-hud.show{display:block;pointer-events:all}
+.nav-instruction-bar{
+  position:absolute;top:10px;left:10px;right:10px;
+  background:rgba(15,23,42,.92);backdrop-filter:blur(12px);
+  border-radius:16px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10;
+}
+.nav-maneuver-box{
+  width:44px;height:44px;border-radius:12px;
   background:linear-gradient(135deg,#4F46E5,#7C3AED);
-  display:flex; align-items:center; justify-content:center;
-  font-size:24px; flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
 }
-.nav-inst-text { flex:1; min-width:0; }
-.nav-dist-lbl { font-size:11px; font-weight:800; color:#94A3B8; letter-spacing:.06em; text-transform:uppercase; }
-.nav-inst-main { font-size:16px; font-weight:900; color:#fff; margin-top:3px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nav-close-x {
-  width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.12);
-  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  color:#fff; flex-shrink:0; transition:.14s;
+.nav-inst-text{flex:1;min-width:0}
+.nav-dist-lbl{font-size:10px;font-weight:800;color:#94A3B8;letter-spacing:.06em;text-transform:uppercase}
+.nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-close-x{
+  width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#fff;flex-shrink:0;transition:.14s;
 }
-.nav-close-x:hover { background:rgba(255,255,255,.22); }
+.nav-close-x:hover{background:rgba(255,255,255,.22)}
 
-/* ── Side steps panel (desktop: anchored right; mobile: bottom drawer) ── */
-.nav-steps-panel {
-  position:absolute; pointer-events:all;
-}
-/* Desktop layout: right side bar */
-@media(min-width:900px){
-  .nav-steps-panel {
-    top:80px; right:12px; bottom:12px; width:300px;
-    background:rgba(255,255,255,.97); backdrop-filter:blur(14px);
-    border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,.18);
-    border:1px solid var(--border);
-    display:flex; flex-direction:column; overflow:hidden;
-  }
-}
-/* Mobile layout: bottom sheet sitting at 20% from bottom */
-@media(max-width:899px){
-  .nav-steps-panel {
-    left:0; right:0; bottom:0;
-    height:22vh; /* ~20% of viewport */
-    background:rgba(255,255,255,.97); backdrop-filter:blur(14px);
-    border-radius:20px 20px 0 0;
-    box-shadow:0 -6px 24px rgba(0,0,0,.18);
-    display:flex; flex-direction:column; overflow:hidden;
-  }
-}
-
-.nav-steps-header {
-  padding:14px 16px 10px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
-}
-.nav-steps-title { font-size:13px; font-weight:800; color:var(--ink); }
-.nav-eta-chips { display:flex; gap:8px; }
-.nav-eta-chip { font-size:11px; font-weight:700; color:var(--muted); background:var(--bg); padding:3px 10px; border-radius:10px; }
-.nav-eta-chip.highlight { background:rgba(26,59,255,.1); color:var(--blue); }
-
-.nav-steps-scroll { flex:1; overflow-y:auto; }
-.nav-steps-scroll::-webkit-scrollbar { width:3px; }
-.nav-steps-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-.nav-step-row { display:flex; align-items:flex-start; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(0,0,0,.04); }
-.nav-step-row:last-child { border:none; }
-.nav-step-row.current-step { background:rgba(79,70,229,.07); }
-.nav-step-num { width:22px; height:22px; border-radius:50%; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--muted); flex-shrink:0; margin-top:1px; }
-.nav-step-num.done { background:var(--green); color:#fff; }
-.nav-step-num.cur { background:var(--blue); color:#fff; }
-.nav-step-body { flex:1; min-width:0; }
-.nav-step-text { font-size:12px; font-weight:700; color:var(--ink); line-height:1.35; }
-.nav-step-d { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
-
-/* Map controls */
-.map-controls {
-  position:absolute; right:12px; top:50%; transform:translateY(-50%);
-  display:flex; flex-direction:column; gap:8px; z-index:5;
+/* Mobile nav steps panel — bottom strip */
+.nav-steps-panel{
+  position:absolute;left:0;right:0;bottom:0;
+  height:20vh;background:rgba(255,255,255,.97);
+  backdrop-filter:blur(14px);border-radius:20px 20px 0 0;
+  box-shadow:0 -6px 24px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;overflow:hidden;
   pointer-events:all;
 }
-.map-ctrl-btn {
-  width:42px; height:42px; border-radius:50%; background:#fff;
-  border:1px solid var(--border); box-shadow:0 3px 12px rgba(0,0,0,.12);
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  color:var(--ink); font-size:18px; transition:.14s;
+.nav-steps-header{
+  padding:12px 14px 8px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
 }
-.map-ctrl-btn:hover { background:var(--bg); transform:scale(1.05); }
+.nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
+.nav-eta-chips{display:flex;gap:6px}
+.nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
+.nav-eta-chip.highlight{background:rgba(26,59,255,.1);color:var(--blue)}
+.nav-steps-scroll{flex:1;overflow-y:auto}
+.nav-step-row{display:flex;align-items:flex-start;gap:9px;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,.04)}
+.nav-step-row:last-child{border:none}
+.nav-step-row.current-step{background:rgba(79,70,229,.07)}
+.nav-step-num{width:20px;height:20px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--muted);flex-shrink:0;margin-top:1px}
+.nav-step-num.done{background:var(--green);color:#fff}
+.nav-step-num.cur{background:var(--blue);color:#fff}
+.nav-step-body{flex:1;min-width:0}
+.nav-step-text{font-size:11px;font-weight:700;color:var(--ink);line-height:1.35}
+.nav-step-d{font-size:10px;color:var(--muted);font-weight:600;margin-top:1px}
+.map-controls{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:5;pointer-events:all}
+.map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation}
+.map-ctrl-btn:active{background:var(--bg)}
 
-/* ── PIN Overlay ── */
-.pin-overlay { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.65); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
-.pin-overlay.show { display:flex; }
-.pin-card { background:#fff; border-radius:24px; padding:28px 24px 24px; width:100%; max-width:340px; text-align:center; animation:pinPop .32s cubic-bezier(.175,.885,.32,1.275); box-shadow:0 20px 60px rgba(0,0,0,.25); }
-@keyframes pinPop { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
-.pin-icon { font-size:40px; margin-bottom:12px; }
-.pin-title { font-size:20px; font-weight:900; color:var(--ink); letter-spacing:-.4px; margin-bottom:6px; }
-.pin-subtitle { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; font-weight:500; }
-.pin-display { display:flex; gap:10px; justify-content:center; margin-bottom:22px; }
-.pin-digit { width:52px; height:64px; border-radius:14px; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:2px solid rgba(26,59,255,.2); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; color:var(--blue); font-family:'Outfit',sans-serif; }
-.pin-input-row { display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
-.pin-input-digit { width:52px; height:56px; border-radius:12px; border:2px solid var(--border); background:var(--card2); font-size:24px; font-weight:800; text-align:center; font-family:'Outfit',sans-serif; color:var(--ink); outline:none; transition:.18s; }
-.pin-input-digit:focus { border-color:var(--blue); background:#fff; }
-.pin-verify-btn { width:100%; padding:14px; border-radius:13px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; font-size:15px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 16px var(--glow); transition:.14s; margin-bottom:10px; }
-.pin-verify-btn:active { opacity:.88; }
-.pin-error { font-size:12px; color:var(--red); font-weight:700; display:none; margin-top:4px; }
-.pin-arrived-note { font-size:11px; font-weight:500; color:var(--muted); line-height:1.5; }
-.arrived-pin-card { background:linear-gradient(135deg,#FFF7ED,#FFEDD5); border:1.5px solid rgba(245,158,11,.3); border-radius:12px; padding:14px; display:none; flex-direction:column; align-items:center; gap:8px; text-align:center; }
-.arrived-pin-card.show { display:flex; }
-.apc-label { font-size:11px; font-weight:800; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; }
-.apc-pin { font-size:36px; font-weight:900; color:var(--ink); letter-spacing:8px; font-family:'Outfit',sans-serif; line-height:1; }
-.apc-note { font-size:12px; font-weight:500; color:var(--muted); }
-
-/* ── CHAT ── */
-.chat-sheet-bg { position:fixed; inset:0; z-index:700; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); display:none; align-items:flex-end; justify-content:center; }
-.chat-sheet-bg.show { display:flex; }
-.chat-sheet { background:#fff; border-radius:22px 22px 0 0; width:100%; max-width:520px; max-height:80vh; display:flex; flex-direction:column; animation:sheetUp .3s cubic-bezier(.4,0,.2,1); box-shadow:0 -4px 30px rgba(0,0,0,.15); }
-@media(min-width:900px){ .chat-sheet-bg { align-items:center; } .chat-sheet { border-radius:18px; max-height:68vh; } }
-@keyframes sheetUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
-.chat-header { display:flex; align-items:center; gap:12px; padding:16px 18px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.chat-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; }
-.chat-rider-name { font-size:15px; font-weight:800; color:var(--ink); }
-.chat-status { font-size:12px; color:var(--green2); font-weight:700; margin-top:2px; }
-.chat-close { margin-left:auto; width:34px; height:34px; border-radius:50%; background:var(--bg); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted); }
-.chat-messages { flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:10px; -webkit-overflow-scrolling:touch; }
-.chat-messages::-webkit-scrollbar { width:4px; }
-.chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-.chat-msg { display:flex; flex-direction:column; gap:3px; max-width:80%; }
-.chat-msg.mine { align-self:flex-end; align-items:flex-end; }
-.chat-msg.theirs { align-self:flex-start; align-items:flex-start; }
-.chat-bubble { padding:10px 14px; border-radius:18px; font-size:14px; font-weight:500; line-height:1.4; word-break:break-word; }
-.chat-msg.mine .chat-bubble { background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; border-bottom-right-radius:4px; }
-.chat-msg.theirs .chat-bubble { background:var(--card2); border:1px solid var(--border); color:var(--ink); border-bottom-left-radius:4px; }
-.chat-meta { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--muted); font-weight:600; }
-.chat-read { color:var(--blue2); }
-.quick-replies { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:8px; overflow-x:auto; flex-shrink:0; -webkit-overflow-scrolling:touch; }
-.quick-replies::-webkit-scrollbar { display:none; }
-.qr-btn { white-space:nowrap; padding:8px 14px; border-radius:20px; background:rgba(26,59,255,.06); border:1px solid rgba(26,59,255,.18); color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; flex-shrink:0; }
-.qr-btn:hover { background:rgba(26,59,255,.12); }
-.qr-btn:active { transform:scale(.96); }
-.chat-input-row { display:flex; gap:10px; padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--border); flex-shrink:0; align-items:flex-end; }
-.chat-text-input { flex:1; border:1.5px solid var(--border); border-radius:24px; padding:10px 16px; font-family:'Outfit',sans-serif; font-size:14px; color:var(--ink); background:var(--card2); outline:none; resize:none; max-height:100px; line-height:1.4; transition:.18s; }
-.chat-text-input:focus { border-color:var(--blue2); background:#fff; }
-.chat-send-btn { width:42px; height:42px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.14s; box-shadow:0 3px 10px var(--glow); flex-shrink:0; }
-.chat-send-btn:active { transform:scale(.92); }
-
-/* ── CANCEL MODAL ── */
-.cancel-modal-bg { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); display:none; align-items:flex-end; justify-content:center; }
-.cancel-modal-bg.show { display:flex; }
-.cancel-modal { background:#fff; border-radius:24px 24px 0 0; width:100%; max-width:480px; padding:20px 20px calc(28px + env(safe-area-inset-bottom,0px)); animation:sheetUp .28s cubic-bezier(.4,0,.2,1); }
-@media(min-width:900px){ .cancel-modal-bg { align-items:center; } .cancel-modal { border-radius:20px; padding-bottom:28px; } }
-.cm-pill { width:40px; height:5px; background:var(--border); border-radius:5px; margin:0 auto 20px; }
-.cm-title { font-size:18px; font-weight:900; color:var(--ink); margin-bottom:6px; }
-.cm-sub { font-size:13px; font-weight:500; color:var(--muted); margin-bottom:18px; }
-.cm-reasons { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
-.cm-reason { display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:.14s; touch-action:manipulation; }
-.cm-reason:hover { border-color:rgba(239,68,68,.3); background:rgba(239,68,68,.03); }
-.cm-reason.selected { border-color:var(--red); background:rgba(239,68,68,.06); }
-.cm-reason-icon { font-size:20px; flex-shrink:0; }
-.cm-reason-text { font-size:14px; font-weight:700; color:var(--ink); }
-.cm-reason-check { margin-left:auto; width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:.14s; }
-.cm-reason.selected .cm-reason-check { border-color:var(--red); background:var(--red); }
-.cm-reason.selected .cm-reason-check::after { content:'✓'; font-size:11px; color:#fff; font-weight:800; }
-.cm-btns { display:flex; gap:10px; }
-.cm-cancel { flex:1; padding:14px; border:1.5px solid var(--border); background:transparent; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; color:var(--ink); }
-.cm-confirm-decline { flex:2; padding:14px; border:none; background:rgba(239,68,68,.9); color:#fff; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; }
-.cm-confirm-cancel { flex:2; padding:14px; border:none; background:var(--red); color:#fff; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; }
+/* ── PIN OVERLAY ── */
+.pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0}
+.pin-overlay.show{display:flex}
+.pin-card{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .32s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.pin-icon{font-size:36px;margin-bottom:10px}
+.pin-title{font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.4px;margin-bottom:5px}
+.pin-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;font-weight:500}
+.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.pin-digit{width:52px;height:62px;border-radius:14px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:2px solid rgba(26,59,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--blue);font-family:'Outfit',sans-serif}
+.pin-input-row{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.pin-input-digit{width:56px;height:58px;border-radius:12px;border:2px solid var(--border);background:var(--card2);font-size:24px;font-weight:800;text-align:center;font-family:'Outfit',sans-serif;color:var(--ink);outline:none;transition:.18s}
+.pin-input-digit:focus{border-color:var(--blue);background:#fff}
+.pin-verify-btn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);transition:.14s;margin-bottom:10px;touch-action:manipulation}
+.pin-error{font-size:12px;color:var(--red);font-weight:700;display:none;margin-top:4px}
+.pin-arrived-note{font-size:11px;font-weight:500;color:var(--muted);line-height:1.5}
 
 /* ── PAGES ── */
-.page { flex:1; display:none; flex-direction:column; overflow-y:auto; padding:16px 18px calc(var(--nav-h) + env(safe-area-inset-bottom,16px)); gap:16px; -webkit-overflow-scrolling:touch; }
-.page.show { display:flex; }
-@media(min-width:900px){ .page { padding:24px 32px 24px; } }
-.page::-webkit-scrollbar { width:4px; }
-.page::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-.ph { font-size:24px; font-weight:900; color:var(--ink); letter-spacing:-.4px; flex-shrink:0; }
-.ph-sub { font-size:13px; color:var(--muted); margin-top:4px; font-weight:500; }
-.section-title { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; flex-shrink:0; }
+.page{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px;-webkit-overflow-scrolling:touch}
+.page.show{display:flex}
+.ph{font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.4px}
+.ph-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+.section-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;flex-shrink:0}
 
 /* Earnings */
-.earn-hero { background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6); border-radius:20px; padding:24px 20px; position:relative; overflow:hidden; flex-shrink:0; }
-.earn-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.07); }
-.eh-lbl { font-size:12px; color:rgba(255,255,255,.7); font-weight:600; margin-bottom:4px; }
-.eh-amount { font-size:40px; font-weight:900; color:#fff; letter-spacing:-.8px; margin-bottom:16px; position:relative; z-index:1; }
-.eh-stats { display:flex; gap:10px; position:relative; z-index:1; }
-.eh-stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:12px; padding:10px 14px; flex:1; }
-.eh-stat-val { font-size:18px; font-weight:800; color:#fff; }
-.eh-stat-lbl { font-size:10px; color:rgba(255,255,255,.65); margin-top:2px; font-weight:700; text-transform:uppercase; }
+.earn-hero{background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6);border-radius:18px;padding:20px;position:relative;overflow:hidden;flex-shrink:0}
+.earn-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07)}
+.eh-lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:3px}
+.eh-amount{font-size:36px;font-weight:900;color:#fff;letter-spacing:-.8px;margin-bottom:14px;position:relative;z-index:1}
+.eh-stats{display:flex;gap:8px;position:relative;z-index:1}
+.eh-stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:11px;padding:9px 12px;flex:1}
+.eh-stat-val{font-size:17px;font-weight:800;color:#fff}
+.eh-stat-lbl{font-size:9px;color:rgba(255,255,255,.65);margin-top:1px;font-weight:700;text-transform:uppercase}
 
 /* Trip cards */
-.trip-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; display:flex; justify-content:space-between; align-items:flex-start; transition:.14s; }
-.trip-card:hover { background:var(--card2); }
-.tc-type { font-size:14px; font-weight:800; color:var(--ink); }
-.tc-rider { font-size:12px; color:var(--blue); font-weight:700; margin-top:3px; }
-.tc-route { font-size:11px; font-weight:500; color:var(--muted); margin-top:4px; line-height:1.4; }
-.tc-date { font-size:11px; color:var(--muted); margin-top:6px; font-weight:500; }
-.tc-badge { font-size:10px; font-weight:800; color:var(--green2); background:rgba(16,185,129,.1); padding:3px 9px; border-radius:8px; margin-top:6px; display:inline-block; }
-.tc-fare { font-size:16px; font-weight:900; color:var(--green2); flex-shrink:0; padding-left:10px; }
-.tc-km { font-size:11px; color:var(--muted); font-weight:600; text-align:right; margin-top:4px; }
+.trip-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start}
+.tc-type{font-size:14px;font-weight:800;color:var(--ink)}
+.tc-rider{font-size:12px;color:var(--blue);font-weight:700;margin-top:2px}
+.tc-route{font-size:11px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.4}
+.tc-date{font-size:11px;color:var(--muted);margin-top:5px;font-weight:500}
+.tc-badge{font-size:9px;font-weight:800;color:var(--green2);background:rgba(16,185,129,.1);padding:3px 8px;border-radius:7px;margin-top:5px;display:inline-block}
+.tc-badge.canceled{color:var(--red);background:rgba(239,68,68,.1)}
+.tc-fare{font-size:16px;font-weight:900;color:var(--green2);flex-shrink:0;padding-left:10px}
+.tc-fare.canceled{color:var(--red)}
+.tc-km{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px}
 
 /* Account */
-.prof-card { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1px solid rgba(26,59,255,.2); border-radius:20px; padding:20px; display:flex; align-items:center; gap:16px; position:relative; overflow:hidden; flex-shrink:0; }
-.prof-card::after { content:''; position:absolute; top:-25px; right:-25px; width:120px; height:120px; border-radius:50%; background:rgba(26,59,255,.06); }
-.pc-av { width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; flex-shrink:0; box-shadow:0 4px 16px var(--glow); }
-.pc-name { font-size:18px; font-weight:900; color:var(--ink); }
-.pc-email { font-size:12px; font-weight:500; color:var(--muted); margin-top:2px; }
-.pc-tag { font-size:10px; font-weight:800; background:rgba(16,185,129,.12); color:var(--green2); padding:3px 9px; border-radius:8px; margin-top:8px; display:inline-block; text-transform:uppercase; letter-spacing:.05em; }
-.acc-group-title { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin:4px 0 6px 4px; flex-shrink:0; }
-.acc-group { background:var(--card); border-radius:16px; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
-.acc-row { display:flex; align-items:center; justify-content:space-between; padding:16px; border-bottom:1px solid var(--border); cursor:pointer; transition:.14s; touch-action:manipulation; }
-.acc-row:last-child { border:none; }
-.acc-row:hover { background:rgba(0,0,0,.025); }
-.acc-row:active { background:rgba(0,0,0,.05); }
-.arl { display:flex; align-items:center; gap:14px; }
-.ar-icon { width:34px; height:34px; border-radius:10px; background:rgba(26,59,255,.09); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.ar-icon.red-bg { background:rgba(239,68,68,.09); }
-.ar-icon.green-bg { background:rgba(16,185,129,.09); }
-.ar-label { font-size:14px; font-weight:700; color:var(--ink); }
-.ar-arrow { color:var(--muted); font-size:16px; }
+.prof-card{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
+.prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(26,59,255,.06)}
+.pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow)}
+.pc-name{font-size:17px;font-weight:900;color:var(--ink)}
+.pc-email{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
+.pc-tag{font-size:9px;font-weight:800;background:rgba(16,185,129,.12);color:var(--green2);padding:3px 8px;border-radius:7px;margin-top:7px;display:inline-block;text-transform:uppercase;letter-spacing:.05em}
+.acc-group-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:2px 0 5px 3px;flex-shrink:0}
+.acc-group{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.acc-row{display:flex;align-items:center;justify-content:space-between;padding:15px;border-bottom:1px solid var(--border);cursor:pointer;transition:.14s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.acc-row:last-child{border:none}
+.acc-row:active{background:rgba(0,0,0,.05)}
+.arl{display:flex;align-items:center;gap:12px}
+.ar-icon{width:32px;height:32px;border-radius:9px;background:rgba(26,59,255,.09);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ar-icon.red-bg{background:rgba(239,68,68,.09)}
+.ar-icon.green-bg{background:rgba(16,185,129,.09)}
+.ar-label{font-size:14px;font-weight:700;color:var(--ink)}
+.ar-arrow{color:var(--muted);font-size:16px}
 
 /* ── BOTTOM NAV ── */
-.bnav { position:fixed; bottom:0; left:0; right:0; height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px)); background:rgba(255,255,255,.98); backdrop-filter:blur(14px); border-top:1px solid var(--border); display:flex; justify-content:space-around; align-items:flex-start; padding-top:10px; z-index:100; }
-@media(min-width:900px){ .bnav { display:none; } }
-.bni { display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); font-size:11px; font-weight:700; cursor:pointer; transition:.14s; padding:4px 16px; position:relative; touch-action:manipulation; }
-.bni.act { color:var(--blue); }
-.bni-dot { position:absolute; top:2px; right:10px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid #fff; display:none; }
-.bni-dot.show { display:block; }
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(var(--nav-h) + var(--safe-bottom));
+  background:rgba(255,255,255,.98);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;align-items:flex-start;
+  padding-top:8px;z-index:100;
+}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:.14s;padding:4px 14px;position:relative;touch-action:manipulation;min-width:60px}
+.bni.act{color:var(--blue)}
+.bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid #fff;display:none}
+.bni-dot.show{display:block}
+
+/* ── CANCEL MODAL ── */
+.cancel-modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.cancel-modal-bg.show{display:flex}
+.cancel-modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .28s cubic-bezier(.4,0,.2,1)}
+.cm-pill{width:38px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px}
+.cm-title{font-size:18px;font-weight:900;color:var(--ink);margin-bottom:5px}
+.cm-sub{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:16px}
+.cm-reasons{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.cm-reason{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:13px;border:1.5px solid var(--border);cursor:pointer;transition:.14s;touch-action:manipulation}
+.cm-reason:active{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.03)}
+.cm-reason.selected{border-color:var(--red);background:rgba(239,68,68,.06)}
+.cm-reason-icon{font-size:18px;flex-shrink:0}
+.cm-reason-text{font-size:13px;font-weight:700;color:var(--ink)}
+.cm-reason-check{margin-left:auto;width:19px;height:19px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.14s}
+.cm-reason.selected .cm-reason-check{border-color:var(--red);background:var(--red)}
+.cm-reason.selected .cm-reason-check::after{content:'✓';font-size:10px;color:#fff;font-weight:800}
+.cm-btns{display:grid;grid-template-columns:1fr 2fr;gap:9px}
+.cm-cancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation}
+.cm-confirm{padding:14px;border:none;background:var(--red);color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation}
+.cm-confirm:disabled{opacity:.5}
 
 /* ── ACCEPT MODAL ── */
-.mbg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:600; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
-@media(min-width:900px){ .mbg { align-items:center; } }
-.mbg.show { display:flex; }
-.modal { background:var(--card); border-radius:24px 24px 0 0; padding:24px 20px calc(32px + env(safe-area-inset-bottom,0px)); width:100%; max-width:440px; animation:sheetUp .28s cubic-bezier(.4,0,.2,1); border:1px solid var(--border); border-bottom:none; }
-@media(min-width:900px){ .modal { border-radius:20px; padding-bottom:32px; border:1px solid var(--border); } }
-.mh { font-size:18px; font-weight:900; color:var(--ink); margin-bottom:16px; }
-.mrow { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
-.mrow:last-of-type { border:none; }
-.mrl { font-size:13px; font-weight:500; color:var(--muted); }
-.mrv { font-size:13px; font-weight:700; color:var(--ink); max-width:220px; text-align:right; }
-.mbtns { display:flex; gap:10px; margin-top:20px; }
-.mcancel { flex:1; padding:14px; border:1.5px solid var(--border); background:transparent; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; color:var(--ink); touch-action:manipulation; }
-.mcancel:active { background:var(--bg); }
-.mok { flex:2; padding:14px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 16px var(--glow); touch-action:manipulation; }
-.t-input { width:100%; padding:14px 16px; border-radius:12px; border:1.5px solid var(--border); background:var(--card2); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; color:var(--ink); outline:none; transition:.18s; }
-.t-input:focus { border-color:var(--blue2); background:var(--card); }
-.t-input::placeholder { color:var(--muted); font-weight:500; }
-.slabel { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:8px; display:block; }
-.input-wrap { margin-bottom:16px; }
-.vehicle-mbg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:600; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
-@media(min-width:900px){ .vehicle-mbg { align-items:center; } }
-.vehicle-mbg.show { display:flex; }
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.mbg.show{display:flex}
+.modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);border-bottom:none}
+.mh{font-size:17px;font-weight:900;color:var(--ink);margin-bottom:14px}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.mrow:last-of-type{border:none}
+.mrl{font-size:13px;font-weight:500;color:var(--muted)}
+.mrv{font-size:13px;font-weight:700;color:var(--ink);max-width:200px;text-align:right}
+.mbtns{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:18px}
+.mcancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation}
+.mok{padding:14px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);touch-action:manipulation}
+
+/* ── VEHICLE MODAL ── */
+.vehicle-mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.vehicle-mbg.show{display:flex}
+.t-input{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--ink);outline:none;transition:.18s}
+.t-input:focus{border-color:var(--blue2);background:var(--card)}
+.t-input::placeholder{color:var(--muted);font-weight:500}
+.slabel{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;display:block}
+.input-wrap{margin-bottom:14px}
+
+/* ── CHAT SHEET ── */
+.chat-sheet-bg{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.chat-sheet-bg.show{display:flex}
+.chat-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,.15)}
+.chat-header{display:flex;align-items:center;gap:11px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.chat-rider-name{font-size:15px;font-weight:800;color:var(--ink)}
+.chat-status{font-size:12px;color:var(--green2);font-weight:700;margin-top:1px}
+.chat-close{margin-left:auto;width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:manipulation}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+.chat-msg{display:flex;flex-direction:column;gap:3px;max-width:80%}
+.chat-msg.mine{align-self:flex-end;align-items:flex-end}
+.chat-msg.theirs{align-self:flex-start;align-items:flex-start}
+.chat-bubble{padding:10px 14px;border-radius:18px;font-size:14px;font-weight:500;line-height:1.4;word-break:break-word}
+.chat-msg.mine .chat-bubble{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;border-bottom-right-radius:4px}
+.chat-msg.theirs .chat-bubble{background:var(--card2);border:1px solid var(--border);color:var(--ink);border-bottom-left-radius:4px}
+.chat-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-weight:600}
+.quick-replies{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:7px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.quick-replies::-webkit-scrollbar{display:none}
+.qr-btn{white-space:nowrap;padding:8px 13px;border-radius:18px;background:rgba(26,59,255,.06);border:1px solid rgba(26,59,255,.18);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;flex-shrink:0;touch-action:manipulation}
+.qr-btn:active{background:rgba(26,59,255,.12)}
+.chat-input-row{display:flex;gap:9px;padding:10px 14px calc(14px + var(--safe-bottom));border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end}
+.chat-text-input{flex:1;border:1.5px solid var(--border);border-radius:22px;padding:10px 15px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);background:var(--card2);outline:none;resize:none;max-height:90px;line-height:1.4;transition:.18s}
+.chat-text-input:focus{border-color:var(--blue2);background:#fff}
+.chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;box-shadow:0 3px 10px var(--glow);flex-shrink:0;touch-action:manipulation}
+.chat-send-btn:active{transform:scale(.92)}
 
 /* ── TOAST ── */
-.toast { position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,16px) + 16px); left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:.2s; z-index:1000; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 24px rgba(0,0,0,.2); }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-@media(min-width:900px){ .toast { bottom:30px; } }
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);
+  left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--ink);color:#fff;padding:11px 22px;
+  border-radius:28px;font-size:13px;font-weight:800;
+  opacity:0;pointer-events:none;transition:.2s;z-index:1000;
+  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 6px 24px rgba(0,0,0,.2);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── NEW RIDE NOTIFICATION BANNER ── */
-.ride-notif-banner {
-  position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-120px);
-  background:var(--ink); color:#fff; border-radius:16px; padding:14px 20px;
-  display:flex; align-items:center; gap:12px; z-index:2000;
-  box-shadow:0 12px 40px rgba(0,0,0,.35); max-width:380px; width:calc(100% - 32px);
+/* ── RIDE NOTIF BANNER ── */
+.ride-notif-banner{
+  position:fixed;top:calc(10px + var(--safe-top));left:50%;
+  transform:translateX(-50%) translateY(-140px);
+  background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;z-index:2000;
+  box-shadow:0 12px 40px rgba(0,0,0,.35);
+  max-width:calc(100vw - 24px);width:calc(100% - 24px);
   transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
 }
-.ride-notif-banner.show { transform:translateX(-50%) translateY(0); }
-.rnb-pulse { width:12px; height:12px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 1s infinite; }
-.rnb-text { flex:1; min-width:0; }
-.rnb-title { font-size:13px; font-weight:800; }
-.rnb-sub { font-size:11px; color:rgba(255,255,255,.7); margin-top:2px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rnb-btn { background:var(--green); color:#fff; border:none; border-radius:10px; padding:8px 14px; font-size:12px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; flex-shrink:0; }
+.ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
+.rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
+.rnb-text{flex:1;min-width:0}
+.rnb-title{font-size:13px;font-weight:800}
+.rnb-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation}
+
+/* ── DRIVER MARKER ── */
+.driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
+.driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+@keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
 </style>
 </head>
 <body>
 
 <div class="init-loader" id="initLoader">
   <div class="loader-spinner"></div>
-  <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:20px;">VynixRide Driver</div>
+  <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:18px">VynixRide Driver</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Ride notification banner (sound + visual) -->
 <div class="ride-notif-banner" id="rideNotifBanner">
   <div class="rnb-pulse"></div>
   <div class="rnb-text">
@@ -576,46 +543,46 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 </div>
 
 <!-- Accept Modal -->
-<div class="mbg" id="acceptModal" onclick="if(event.target===this) closeAcceptModal()">
+<div class="mbg" id="acceptModal" onclick="if(event.target===this)closeAcceptModal()">
   <div class="modal">
-    <div class="mh">Confirm Ride Accept</div>
+    <div class="mh">Confirm Accept</div>
     <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
-    <div class="mrow"><span class="mrl">Ride Type</span><b class="mrv" id="am-type">—</b></div>
+    <div class="mrow"><span class="mrl">Type</span><b class="mrv" id="am-type">—</b></div>
     <div class="mrow"><span class="mrl">Pickup</span><b class="mrv" id="am-pickup">—</b></div>
     <div class="mrow"><span class="mrl">Destination</span><b class="mrv" id="am-dest">—</b></div>
     <div class="mrow"><span class="mrl">Distance</span><b class="mrv" id="am-dist">—</b></div>
-    <div class="mrow"><span class="mrl">Est. Duration</span><b class="mrv" id="am-dur">—</b></div>
+    <div class="mrow"><span class="mrl">Duration</span><b class="mrv" id="am-dur">—</b></div>
     <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare" style="color:var(--green2);font-size:16px">—</b></div>
     <div class="mbtns">
-      <button class="mcancel" onclick="closeAcceptModal()">Cancel</button>
+      <button class="mcancel" onclick="closeAcceptModal()">Back</button>
       <button class="mok" onclick="confirmAccept()">✓ Accept Ride</button>
     </div>
   </div>
 </div>
 
 <!-- Vehicle Modal -->
-<div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this) this.classList.remove('show')">
+<div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
     <div class="input-wrap"><span class="slabel">Vehicle Make & Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
     <div class="input-wrap"><span class="slabel">Licence Plate</span><input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase"></div>
-    <div class="input-wrap"><span class="slabel">Ride Type You Drive</span>
+    <div class="input-wrap"><span class="slabel">Ride Type</span>
       <select id="v-type" class="t-input">
         <option value="VynixGo">VynixGo — Compact · Economy</option>
         <option value="VynixComfort">VynixComfort — Newer · Legroom</option>
         <option value="VynixXL">VynixXL — SUV · 6 seats</option>
       </select>
     </div>
-    <div class="mbtns"><button class="mok" onclick="saveVehicle()" style="flex:1">Save & Continue</button></div>
+    <div class="mbtns" style="grid-template-columns:1fr"><button class="mok" onclick="saveVehicle()">Save & Continue</button></div>
   </div>
 </div>
 
 <!-- Cancel Reason Modal -->
-<div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this) closeCancelModal()">
+<div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this)closeCancelModal()">
   <div class="cancel-modal">
     <div class="cm-pill"></div>
     <div class="cm-title" id="cm-title">Why are you declining?</div>
-    <div class="cm-sub" id="cm-sub">Please select a reason so we can improve the platform.</div>
+    <div class="cm-sub" id="cm-sub">Please select a reason.</div>
     <div class="cm-reasons" id="cmReasons">
       <div class="cm-reason" onclick="selectCancelReason(this,'Rider no-show')"><span class="cm-reason-icon">🚶</span><span class="cm-reason-text">Rider no-show</span><div class="cm-reason-check"></div></div>
       <div class="cm-reason" onclick="selectCancelReason(this,'Wrong or unclear address')"><span class="cm-reason-icon">📍</span><span class="cm-reason-text">Wrong or unclear address</span><div class="cm-reason-check"></div></div>
@@ -626,13 +593,13 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     </div>
     <div class="cm-btns">
       <button class="cm-cancel" onclick="closeCancelModal()">Back</button>
-      <button class="cm-confirm-decline" id="cmConfirmBtn" onclick="confirmCancelAction()" disabled style="opacity:.5">Confirm</button>
+      <button class="cm-confirm" id="cmConfirmBtn" onclick="confirmCancelAction()" disabled>Confirm</button>
     </div>
   </div>
 </div>
 
 <!-- Chat Sheet -->
-<div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this) closeChat()">
+<div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this)closeChat()">
   <div class="chat-sheet">
     <div class="chat-header">
       <div class="chat-av" id="chatAv">?</div>
@@ -654,7 +621,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     <div class="chat-input-row">
       <textarea class="chat-text-input" id="chatInput" placeholder="Message rider…" rows="1" onkeydown="chatKeydown(event)"></textarea>
       <button class="chat-send-btn" onclick="sendChatMsg()">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
   </div>
@@ -670,259 +637,237 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     <div class="pin-input-row" id="pinInputRow"></div>
     <button class="pin-verify-btn" onclick="verifyPin()">Verify & Start Ride</button>
     <div class="pin-error" id="pinError">❌ Wrong PIN — try again</div>
-    <div class="pin-arrived-note">The rider received this PIN when they booked. It changes each ride.</div>
+    <div class="pin-arrived-note">The rider received this PIN when they booked.</div>
   </div>
 </div>
 
+<!-- SHELL -->
 <div class="shell" id="appShell">
-  <aside class="sidebar" id="mainSidebar">
-    <div class="s-logo">
-      <div class="s-logo-mark">VX</div>
-      <div><div class="s-logo-txt">VynixRide</div><div class="s-logo-badge">Driver</div></div>
-    </div>
-    <div class="snl act" data-page="map" onclick="switchPage('map')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      <span class="s-ntxt">Live Rides</span><span class="s-badge" id="sb-req-count"></span>
-    </div>
-    <div class="snl" data-page="earnings" onclick="switchPage('earnings')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="s-ntxt">Earnings</span>
-    </div>
-    <div class="snl" data-page="history" onclick="switchPage('history')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <span class="s-ntxt">Trip History</span>
-    </div>
-    <div class="snl" data-page="account" onclick="switchPage('account')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="s-ntxt">Account</span>
-    </div>
-    <div class="s-spacer"></div>
-    <div class="s-status-row off" id="sidebarStatusRow" onclick="toggleOnline()">
-      <div class="s-status-dot off" id="sidebarDot"></div>
-      <span class="s-status-txt" id="sidebarStatusTxt">Offline</span>
-    </div>
-    <div class="s-user" onclick="switchPage('account')">
-      <div class="s-av" id="sbAv">?</div>
-      <div class="s-user-info"><div class="s-uname" id="sbName">Driver</div><div class="s-uemail" id="sbEmail">—</div></div>
-    </div>
-  </aside>
 
-  <div class="main">
-    <div class="topbar">
-      <div class="tb-logo">
-        <div class="tb-mark">VX</div>
-        <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <div class="tb-mark">VX</div>
+      <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
+        <div class="ot-dot"></div>
+        <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
       </div>
-      <div class="tb-right">
-        <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
-          <div class="ot-dot"></div>
-          <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
-        </div>
-        <div class="tb-av" id="tbAv" onclick="switchPage('account')">?</div>
-      </div>
-    </div>
-
-    <!-- MAP PAGE -->
-    <div class="map-page show" id="page-map">
-
-      <!-- MAP takes full flex:1 on desktop, absolute on mobile -->
-      <div class="map-wrap" id="mapWrap">
-        <div id="driverMap"></div>
-
-        <!-- Navigation HUD (inside the map wrap) -->
-        <div class="nav-hud" id="navHud">
-
-          <!-- Top instruction bar -->
-          <div class="nav-instruction-bar" id="navInstructionBar">
-            <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
-            <div class="nav-inst-text">
-              <div class="nav-dist-lbl" id="navDistLbl">NEXT TURN</div>
-              <div class="nav-inst-main" id="navInstMain">Calculating route…</div>
-            </div>
-            <button class="nav-close-x" onclick="stopNavigation()">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-
-          <!-- Steps side panel -->
-          <div class="nav-steps-panel" id="navStepsPanel">
-            <div class="nav-steps-header">
-              <span class="nav-steps-title">Turn-by-Turn</span>
-              <div class="nav-eta-chips">
-                <span class="nav-eta-chip highlight" id="navETA">—</span>
-                <span class="nav-eta-chip" id="navDistTotal">—</span>
-              </div>
-            </div>
-            <div class="nav-steps-scroll" id="navStepsList"></div>
-          </div>
-
-          <!-- Map controls (recenter, zoom) -->
-          <div class="map-controls" id="mapControls">
-            <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center on driver">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-            </button>
-            <button class="map-ctrl-btn" onclick="driverMap.zoomIn()" title="Zoom in">+</button>
-            <button class="map-ctrl-btn" onclick="driverMap.zoomOut()" title="Zoom out">−</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- DRIVER PANEL (left on desktop, bottom sheet on mobile) -->
-      <div class="driver-panel collapsed" id="driverPanel">
-        <div class="panel-handle" onclick="togglePanel()">
-          <div class="panel-drag-bar"></div>
-          <span class="panel-toggle-btn" id="panelToggleBtn">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" id="panelChevron"><polyline points="6 9 12 15 18 9"/></svg>
-            <span id="panelToggleTxt">Expand</span>
-          </span>
-        </div>
-
-        <div class="panel-collapsed-row">
-          <div class="pcr-info">
-            <div class="pcr-dot" id="pcrDot"></div>
-            <span class="pcr-label" id="pcrLabel">Offline</span>
-          </div>
-          <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation(); toggleOnline()"></button>
-        </div>
-
-        <div class="panel-scroll">
-          <div class="status-hero">
-            <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
-            <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
-          </div>
-
-          <div class="stat-row" id="todayStats">
-            <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
-            <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
-            <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
-          </div>
-
-          <div class="active-ride-card" id="activeRideCard">
-            <div class="ar-header">
-              <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
-              <div class="ar-fare-big" id="ar-fare">—</div>
-            </div>
-            <div class="ar-rider-row">
-              <div class="ar-av" id="ar-av">?</div>
-              <div><div class="ar-name" id="ar-name">—</div><div class="ar-dest-txt" id="ar-dest">—</div></div>
-            </div>
-            <div class="ar-cells">
-              <div class="ar-cell"><div class="ar-cell-lbl">PIN</div><div class="ar-cell-val" id="ar-pin">—</div></div>
-              <div class="ar-cell"><div class="ar-cell-lbl">Type</div><div class="ar-cell-val" id="ar-type" style="font-size:12px">—</div></div>
-              <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
-            </div>
-            <div class="ar-route-box">
-              <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt" style="font-size:12px;color:var(--muted)">—</span></div>
-              <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt" style="font-size:12px;color:var(--muted)">—</span></div>
-            </div>
-            <div class="arrived-pin-card" id="arrivedPinCard">
-              <div class="apc-label">🔐 Share this PIN with rider</div>
-              <div class="apc-pin" id="arrivedPinDisplay">—</div>
-              <div class="apc-note">Rider must confirm this in their app before the trip starts.</div>
-            </div>
-            <div class="ride-phase active" id="phase-pickup">
-              <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-                Navigate to Pickup
-              </button>
-              <button class="btn-chat-ar" onclick="openChat()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Chat<span class="chat-unread-badge" id="chatBadge1">0</span>
-              </button>
-              <button class="btn-arrived" onclick="driverArrived()" style="width:100%">📍 I've Arrived at Pickup</button>
-              <button class="btn-cancel-active" onclick="openCancelActiveModal()" style="width:100%">Cancel Trip</button>
-            </div>
-            <div class="ride-phase" id="phase-pin">
-              <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-                Navigate to Dest
-              </button>
-              <button class="btn-chat-ar" onclick="openChat()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Chat<span class="chat-unread-badge" id="chatBadge2">0</span>
-              </button>
-              <button class="btn-complete" onclick="completeRide()" style="width:100%">✓ Complete Ride</button>
-              <button class="btn-cancel-active" onclick="openCancelActiveModal()" style="width:100%">Cancel Trip</button>
-            </div>
-          </div>
-
-          <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
-          <div class="ride-req-list" id="rideReqList">
-            <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- EARNINGS PAGE -->
-    <div class="page" id="page-earnings">
-      <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
-      <div class="earn-hero">
-        <div class="eh-lbl">Total Earnings</div>
-        <div class="eh-amount" id="totalEarnings">R 0.00</div>
-        <div class="eh-stats">
-          <div class="eh-stat"><div class="eh-stat-val" id="totalTrips">0</div><div class="eh-stat-lbl">Trips</div></div>
-          <div class="eh-stat"><div class="eh-stat-val" id="todayEarnings">R0</div><div class="eh-stat-lbl">Today</div></div>
-          <div class="eh-stat"><div class="eh-stat-val" id="avgFare">R0</div><div class="eh-stat-lbl">Avg Fare</div></div>
-        </div>
-      </div>
-      <div class="section-title">Recent Trips</div>
-      <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div></div>
-    </div>
-
-    <!-- HISTORY PAGE -->
-    <div class="page" id="page-history">
-      <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All rides you have completed</div></div>
-      <div id="historyList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">🗂️ No trips yet.</div></div>
-    </div>
-
-    <!-- ACCOUNT PAGE -->
-    <div class="page" id="page-account">
-      <div><div class="ph">Account</div></div>
-      <div class="prof-card">
-        <div class="pc-av" id="profAv">?</div>
-        <div><div class="pc-name" id="profName">Driver</div><div class="pc-email" id="profEmail">—</div><div class="pc-tag">🚗 VynixRide Driver</div></div>
-      </div>
-      <div class="acc-group-title">Vehicle</div>
-      <div class="acc-group">
-        <div class="acc-row" onclick="openVehicleModal()">
-          <div class="arl"><div class="ar-icon"><svg width="18" height="18" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-          <div><div class="ar-label">Vehicle Details</div><div style="font-size:12px;color:var(--muted);margin-top:2px" id="vehicleSummary">Not set up yet</div></div></div>
-          <div class="ar-arrow">›</div>
-        </div>
-      </div>
-      <div class="acc-group-title">App</div>
-      <div class="acc-group">
-        <div class="acc-row" onclick="switchPage('history')">
-          <div class="arl"><div class="ar-icon green-bg"><svg width="18" height="18" fill="none" stroke="var(--green2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ar-label">Trip History</div></div>
-          <div class="ar-arrow">›</div>
-        </div>
-        <div class="acc-row" onclick="window.open('index.html','_blank')">
-          <div class="arl"><div class="ar-icon"><svg width="18" height="18" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="ar-label">Open Rider App</div></div>
-          <div class="ar-arrow">›</div>
-        </div>
-        <div class="acc-row" onclick="doSignOut()">
-          <div class="arl"><div class="ar-icon red-bg"><svg width="18" height="18" fill="none" stroke="var(--red)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="ar-label" style="color:var(--red)">Sign Out</div></div>
-          <div class="ar-arrow" style="color:var(--red)">›</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500;">VynixRide Driver v2.1 · South Africa 🇿🇦</div>
+      <div class="tb-av" id="tbAv" onclick="switchPage('account')">?</div>
     </div>
   </div>
 
+  <!-- MAP PAGE -->
+  <div class="map-page show" id="page-map">
+    <div class="map-wrap" id="mapWrap">
+      <div id="driverMap"></div>
+
+      <!-- Navigation HUD -->
+      <div class="nav-hud" id="navHud">
+        <div class="nav-instruction-bar" id="navInstructionBar">
+          <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
+          <div class="nav-inst-text">
+            <div class="nav-dist-lbl" id="navDistLbl">NEXT TURN</div>
+            <div class="nav-inst-main" id="navInstMain">Calculating route…</div>
+          </div>
+          <button class="nav-close-x" onclick="stopNavigation()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="nav-steps-panel" id="navStepsPanel">
+          <div class="nav-steps-header">
+            <span class="nav-steps-title">Turn-by-Turn</span>
+            <div class="nav-eta-chips">
+              <span class="nav-eta-chip highlight" id="navETA">—</span>
+              <span class="nav-eta-chip" id="navDistTotal">—</span>
+            </div>
+          </div>
+          <div class="nav-steps-scroll" id="navStepsList"></div>
+        </div>
+        <div class="map-controls" id="mapControls">
+          <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          </button>
+          <button class="map-ctrl-btn" onclick="driverMap.zoomIn()">+</button>
+          <button class="map-ctrl-btn" onclick="driverMap.zoomOut()">−</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRIVER PANEL -->
+    <div class="driver-panel" id="driverPanel">
+      <!-- Handle -->
+      <div class="panel-handle" onclick="togglePanel()">
+        <div class="panel-drag-bar"></div>
+      </div>
+
+      <!-- Peek row — always visible when collapsed -->
+      <div class="panel-peek-row">
+        <div class="ppr-info">
+          <div class="ppr-dot" id="pcrDot"></div>
+          <div>
+            <div class="ppr-label" id="pcrLabel">Offline</div>
+            <div class="ppr-sub" id="pcrSub">Tap to expand</div>
+          </div>
+        </div>
+        <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation();toggleOnline()"></button>
+      </div>
+
+      <!-- Scrollable content -->
+      <div class="panel-scroll">
+
+        <!-- Status hero -->
+        <div class="status-hero">
+          <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
+          <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
+        </div>
+
+        <!-- Today stats -->
+        <div class="stat-row">
+          <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
+          <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
+          <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
+        </div>
+
+        <!-- Active ride card -->
+        <div class="active-ride-card" id="activeRideCard">
+          <div class="ar-header">
+            <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
+            <div class="ar-fare-big" id="ar-fare">—</div>
+          </div>
+          <div class="ar-rider-row">
+            <div class="ar-av" id="ar-av">?</div>
+            <div><div class="ar-name" id="ar-name">—</div><div class="ar-dest-txt" id="ar-dest">—</div></div>
+          </div>
+          <div class="ar-cells">
+            <div class="ar-cell"><div class="ar-cell-lbl">PIN</div><div class="ar-cell-val" id="ar-pin">—</div></div>
+            <div class="ar-cell"><div class="ar-cell-lbl">Type</div><div class="ar-cell-val" id="ar-type" style="font-size:11px">—</div></div>
+            <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
+          </div>
+          <div class="ar-route-box">
+            <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt" style="font-size:12px;color:var(--muted)">—</span></div>
+            <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt" style="font-size:12px;color:var(--muted)">—</span></div>
+          </div>
+          <div class="arrived-pin-card" id="arrivedPinCard">
+            <div class="apc-label">🔐 Share this PIN with rider</div>
+            <div class="apc-pin" id="arrivedPinDisplay">—</div>
+            <div class="apc-note">Rider confirms this in their app before trip starts.</div>
+          </div>
+
+          <!-- Phase 1: En route to pickup -->
+          <div class="ride-phase active" id="phase-pickup">
+            <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              Navigate to Pickup
+            </button>
+            <button class="btn-chat-ar" onclick="openChat()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chat<span class="chat-unread-badge" id="chatBadge1">0</span>
+            </button>
+            <button class="btn-arrived" onclick="driverArrived()">📍 I've Arrived at Pickup</button>
+            <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
+          </div>
+
+          <!-- Phase 2: Riding -->
+          <div class="ride-phase" id="phase-riding">
+            <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              Navigate to Dest
+            </button>
+            <button class="btn-chat-ar" onclick="openChat()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chat<span class="chat-unread-badge" id="chatBadge2">0</span>
+            </button>
+            <button class="btn-complete" onclick="completeRide()">✓ Complete Ride</button>
+            <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
+          </div>
+        </div>
+
+        <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
+        <div class="ride-req-list" id="rideReqList">
+          <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EARNINGS PAGE -->
+  <div class="page" id="page-earnings">
+    <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
+    <div class="earn-hero">
+      <div class="eh-lbl">Total Earnings</div>
+      <div class="eh-amount" id="totalEarnings">R 0.00</div>
+      <div class="eh-stats">
+        <div class="eh-stat"><div class="eh-stat-val" id="totalTrips">0</div><div class="eh-stat-lbl">Trips</div></div>
+        <div class="eh-stat"><div class="eh-stat-val" id="todayEarnings">R0</div><div class="eh-stat-lbl">Today</div></div>
+        <div class="eh-stat"><div class="eh-stat-val" id="avgFare">R0</div><div class="eh-stat-lbl">Avg Fare</div></div>
+      </div>
+    </div>
+    <div class="section-title">Recent Trips</div>
+    <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div></div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All your rides</div></div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button id="tab-all" onclick="showHistoryTab('all')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--blue);background:rgba(26,59,255,.08);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">All Trips</button>
+      <button id="tab-canceled" onclick="showHistoryTab('canceled')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">Canceled</button>
+    </div>
+    <div id="historyList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">🗂️ No trips yet.</div></div>
+    <div id="canceledList" style="display:none"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">No canceled rides.</div></div>
+  </div>
+
+  <!-- ACCOUNT PAGE -->
+  <div class="page" id="page-account">
+    <div><div class="ph">Account</div></div>
+    <div class="prof-card">
+      <div class="pc-av" id="profAv">?</div>
+      <div><div class="pc-name" id="profName">Driver</div><div class="pc-email" id="profEmail">—</div><div class="pc-tag">🚗 VynixRide Driver</div></div>
+    </div>
+    <div class="acc-group-title">Vehicle</div>
+    <div class="acc-group">
+      <div class="acc-row" onclick="openVehicleModal()">
+        <div class="arl"><div class="ar-icon"><svg width="17" height="17" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div><div class="ar-label">Vehicle Details</div><div style="font-size:11px;color:var(--muted);margin-top:2px" id="vehicleSummary">Not set up yet</div></div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+    </div>
+    <div class="acc-group-title">App</div>
+    <div class="acc-group">
+      <div class="acc-row" onclick="switchPage('history')">
+        <div class="arl"><div class="ar-icon green-bg"><svg width="17" height="17" fill="none" stroke="var(--green2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ar-label">Trip History</div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+      <div class="acc-row" onclick="window.open('index.html','_blank')">
+        <div class="arl"><div class="ar-icon"><svg width="17" height="17" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="ar-label">Open Rider App</div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+      <div class="acc-row" onclick="doSignOut()">
+        <div class="arl"><div class="ar-icon red-bg"><svg width="17" height="17" fill="none" stroke="var(--red)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="ar-label" style="color:var(--red)">Sign Out</div></div>
+        <div class="ar-arrow" style="color:var(--red)">›</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.2 · South Africa 🇿🇦</div>
+  </div>
+
+  <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bni act" id="bn-map" onclick="switchPage('map')">
       <div class="bni-dot" id="bn-map-dot"></div>
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Rides
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Rides
     </div>
     <div class="bni" id="bn-earnings" onclick="switchPage('earnings')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Earnings
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Earnings
     </div>
     <div class="bni" id="bn-history" onclick="switchPage('history')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>History
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>History
     </div>
     <div class="bni" id="bn-account" onclick="switchPage('account')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account
     </div>
   </nav>
 </div>
@@ -944,78 +889,60 @@ const app = initializeApp({
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// ── STATE ──
-let cu = null;
-let isOnline = false;
-let activeRideId = null;
-let activeRideData = null;
-let pendingAcceptId = null;
-let pendingAcceptData = null;
+// ─── STATE ───────────────────────────────────────────────────
+let cu = null, isOnline = false;
+let activeRideId = null, activeRideData = null;
+let pendingAcceptId = null, pendingAcceptData = null;
 let onlineStartTime = null;
 let statsToday = { rides:0, earned:0 };
-let rideRequestsUnsub = null;
-let chatUnsub = null;
+let rideRequestsUnsub = null, chatUnsub = null;
 let panelExpanded = false;
 let ridePhase = 'pickup';
-let cancelMode = null;
-let pendingDeclineId = null;
+let cancelMode = null, pendingDeclineId = null;
+let selectedReasonText = null;
+let chatMessages = [], chatUnread = 0;
+let knownRequestIds = new Set();
+let currentHistoryTab = 'all';
 
-// ── NAV STATE ──
-let navSteps = [];
-let navCurrentStep = 0;
-let navMode = null;
+// ─── NAV STATE ───────────────────────────────────────────────
+let navSteps = [], navCurrentStep = 0, navMode = null;
 let navRouteCoords = [];
 let driverLngLat = [28.9934, -24.1991];
 let isNavigating = false;
+let mapInteracting = false;
 
-// ── MAP ──
+// ─── MAP ─────────────────────────────────────────────────────
 const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 mapboxgl.accessToken = TK;
-let driverMap, driverMarker;
-const ROUTE_SOURCE = 'nav-route';
-const ROUTE_LAYER  = 'nav-route-layer';
-const ROUTE_LAYER_BG = 'nav-route-layer-bg';
-let destMarker = null;
-let mapInteracting = false; // tracks if user is manually panning
+let driverMap, driverMarker, destMarker = null;
+const ROUTE_SRC = 'nav-route', ROUTE_L = 'nav-route-l', ROUTE_LBG = 'nav-route-lbg';
 
-// ── SOUND ENGINE (Web Audio API — no external files needed) ──
+// ─── AUDIO ───────────────────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playNotificationSound() {
-  // Three-tone ascending chime like ride-hailing apps
-  const times = [0, 0.18, 0.36];
-  const freqs = [880, 1100, 1320];
-  times.forEach((t, i) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+function playNotif() {
+  [0, .18, .36].forEach((t, i) => {
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freqs[i], audioCtx.currentTime + t);
+    osc.type = 'sine'; osc.frequency.setValueAtTime([880,1100,1320][i], audioCtx.currentTime + t);
     gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
-    gain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + t + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.28);
-    osc.start(audioCtx.currentTime + t);
-    osc.stop(audioCtx.currentTime + t + 0.3);
+    gain.gain.linearRampToValueAtTime(.35, audioCtx.currentTime + t + .05);
+    gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .28);
+    osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + .3);
   });
 }
-
 function resumeAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
-document.addEventListener('click', resumeAudio, { once: true });
-document.addEventListener('touchstart', resumeAudio, { once: true });
+document.addEventListener('click', resumeAudio, { once:true });
+document.addEventListener('touchstart', resumeAudio, { once:true });
 
-// ── AUTH GUARD ──
+// ─── AUTH ─────────────────────────────────────────────────────
 onAuthStateChanged(auth, user => {
   const isDemo = localStorage.getItem('vynix_demo') === 'true';
-  if (user) {
-    initAppWithUser(user);
-  } else if (isDemo) {
-    initAppWithUser({ uid:"demo_driver", displayName:"Demo Driver", email:"demo@vynixride.com" });
-  } else {
-    window.location.href = 'login.html';
-  }
+  if (user) initApp(user);
+  else if (isDemo) initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
+  else window.location.href = 'login.html';
 });
 
-function initAppWithUser(userData) {
+function initApp(userData) {
   document.getElementById('initLoader').classList.add('hide');
   document.getElementById('appShell').classList.add('ready');
   cu = userData;
@@ -1026,335 +953,197 @@ function initAppWithUser(userData) {
   watchLocation();
   listenActiveRide();
   loadVehicleInfo();
-  if (localStorage.getItem('vynix_driver_status') === 'online') {
-    goOnline();
-  } else {
-    goOffline();
-  }
+  // Restore online/offline status from localStorage
+  if (localStorage.getItem('vynix_driver_status') === 'online') goOnline();
+  else goOffline();
 }
 
 window.doSignOut = () => {
   if (isOnline) goOffline();
   localStorage.removeItem('vynix_driver_status');
   localStorage.removeItem('vynix_demo');
-  if (cu?.uid === 'demo_driver') {
-    window.location.href = 'login.html';
-  } else {
-    signOut(auth).then(() => { window.location.href = 'login.html'; });
-  }
+  if (cu?.uid === 'demo_driver') window.location.href = 'login.html';
+  else signOut(auth).then(() => { window.location.href = 'login.html'; });
 };
 
-// ── MAP INIT ──
+// ─── MAP ──────────────────────────────────────────────────────
 function initMap() {
   driverMap = new mapboxgl.Map({
-    container:'driverMap',
-    style:'mapbox://styles/mapbox/streets-v12', // streets style for navigation
-    center:driverLngLat, zoom:15, pitch:45, bearing:0,
-    attributionControl:false
+    container:'driverMap', style:'mapbox://styles/mapbox/streets-v12',
+    center:driverLngLat, zoom:15, pitch:45, bearing:0, attributionControl:false
   });
   driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
-
   driverMap.on('style.load', () => {
-    // 3D buildings
     const layers = driverMap.getStyle().layers;
-    const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
+    const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
     driverMap.addLayer({
       id:'3d-buildings', source:'composite', 'source-layer':'building',
       filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
-      paint:{
-        'fill-extrusion-color':'#e8edf2',
-        'fill-extrusion-height':['get','height'],
-        'fill-extrusion-base':['get','min_height'],
-        'fill-extrusion-opacity':0.6
-      }
-    }, labelLayerId);
-
-    // Re-draw route if active after style change
-    if (navRouteCoords.length > 0) {
-      drawRoute(navRouteCoords);
-    }
+      paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6}
+    }, labelId);
+    if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
   });
-
-  // Track user interaction so we don't auto-flyTo while they're exploring
   driverMap.on('dragstart', () => { mapInteracting = true; });
-  driverMap.on('zoomstart', () => { mapInteracting = true; });
   driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
   driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
 
-  // Driver halo marker
   const el = document.createElement('div');
-  el.innerHTML = `<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>`;
-  driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' })
-    .setLngLat(driverLngLat)
-    .addTo(driverMap);
-
+  el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
+  driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
   setTimeout(() => driverMap.resize(), 150);
 }
 
 function updateDriverLocation(lat, lng) {
   driverLngLat = [lng, lat];
   driverMarker?.setLngLat([lng, lat]);
-  // Only auto-pan if user isn't interacting AND not in navigation mode (nav handles camera)
   if (!mapInteracting && !isNavigating) {
-    driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:0.5, easing:t=>t });
+    driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
   }
   if (cu?.uid !== 'demo_driver' && isOnline) {
-    set(ref(db,`active_drivers/${cu.uid}`),{
-      lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now()
-    }).catch(()=>{});
+    set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now() }).catch(()=>{});
   }
 }
-
 function watchLocation() {
   if (!navigator.geolocation) return;
-  navigator.geolocation.watchPosition(pos => {
-    updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
-  }, ()=>{}, { enableHighAccuracy:true, maximumAge:3000 });
+  navigator.geolocation.watchPosition(
+    pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
+    ()=>{}, { enableHighAccuracy:true, maximumAge:3000 }
+  );
 }
 
-// ══════════════════════════════════════════════════════════════
-//  NAVIGATION — Uber-style close-up route view
-// ══════════════════════════════════════════════════════════════
-
-const MANEUVER_ICONS = {
-  'turn-left':'↰','turn-right':'↱','turn-slight-left':'↖','turn-slight-right':'↗',
-  'turn-sharp-left':'⬅','turn-sharp-right':'➡','uturn':'↩','continue':'⬆',
-  'merge':'🔀','on ramp':'↗','off ramp':'↙','fork-left':'↰','fork-right':'↱',
-  'arrive':'🏁','depart':'🚗','roundabout':'🔄','rotary':'🔄',
-};
-function mIcon(type) { return MANEUVER_ICONS[type] || '⬆'; }
-function mToStr(m) { return m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
-function sToStr(s) {
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
-  return h > 0 ? h+'h '+m+'m' : m < 1 ? '<1 min' : m+' min';
-}
+// ─── NAVIGATION ───────────────────────────────────────────────
+const MICONS = {'turn-left':'↰','turn-right':'↱','turn-slight-left':'↖','turn-slight-right':'↗','turn-sharp-left':'⬅','turn-sharp-right':'➡','uturn':'↩','continue':'⬆','merge':'🔀','on ramp':'↗','off ramp':'↙','arrive':'🏁','depart':'🚗','roundabout':'🔄','rotary':'🔄'};
+const mIcon = t => MICONS[t]||'⬆';
+const mToStr = m => m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m';
+const sToStr = s => { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60); return h>0?h+'h '+m+'m':m<1?'<1 min':m+' min'; };
 
 window.startNavigation = async function(mode) {
-  if (!activeRideData) { showToast('No active ride data'); return; }
-  navMode = mode;
-  isNavigating = true;
-
-  // Collapse the bottom panel on mobile to give map 80%+
-  if (window.innerWidth < 900) {
-    document.getElementById('driverPanel').classList.add('nav-mode');
-    document.getElementById('mapWrap').classList.add('nav-active');
-  }
-
-  // Show HUD
+  if (!activeRideData) { showToast('No active ride'); return; }
+  navMode = mode; isNavigating = true;
+  document.getElementById('driverPanel').classList.add('nav-mode');
+  document.getElementById('mapWrap').classList.add('nav-active');
   document.getElementById('navHud').classList.add('show');
   document.getElementById('navInstMain').textContent = 'Fetching route…';
   document.getElementById('navManeuverBox').textContent = '⏳';
-
-  // Update navigate button state
   const btnId = mode === 'pickup' ? 'btnNavPickup' : 'btnNavDest';
   const btn = document.getElementById(btnId);
-  if (btn) {
-    btn.classList.add('navigating');
-    btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…`;
-  }
-
-  const destStr = mode === 'pickup'
-    ? (activeRideData.pickup || '')
-    : (activeRideData.destination || '');
-
+  if (btn) { btn.classList.add('navigating'); btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…'; }
+  const destStr = mode === 'pickup' ? (activeRideData.pickup||'') : (activeRideData.destination||'');
   try {
     await fetchAndRenderRoute(driverLngLat, destStr);
     showToast('Route loaded — follow the blue line');
-  } catch(e) {
-    showToast('Route error: ' + e.message);
-    console.error(e);
-  }
+  } catch(e) { showToast('Route error: '+e.message); }
 };
 
-async function geocodeAddress(address) {
-  const q = encodeURIComponent(address + ', South Africa');
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${TK}&country=ZA&limit=1`;
-  const res = await fetch(url);
+async function geocodeAddress(addr) {
+  const q = encodeURIComponent(addr+', South Africa');
+  const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${TK}&country=ZA&limit=1`);
   const data = await res.json();
-  if (!data.features?.length) throw new Error('Could not locate: ' + address);
-  return data.features[0].center; // [lng, lat]
+  if (!data.features?.length) throw new Error('Could not locate: '+addr);
+  return data.features[0].center;
 }
 
-async function fetchAndRenderRoute(originLngLat, destAddress) {
-  const destCoords = await geocodeAddress(destAddress);
-  const [olng, olat] = originLngLat;
-  const [dlng, dlat] = destCoords;
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${olng},${olat};${dlng},${dlat}?steps=true&geometries=geojson&access_token=${TK}&overview=full&annotations=distance,duration`;
-  const res = await fetch(url);
+async function fetchAndRenderRoute(origin, destAddr) {
+  const dest = await geocodeAddress(destAddr);
+  const [olng,olat] = origin, [dlng,dlat] = dest;
+  const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${olng},${olat};${dlng},${dlat}?steps=true&geometries=geojson&access_token=${TK}&overview=full`);
   const data = await res.json();
-
   if (!data.routes?.length) throw new Error('No route found');
-  const route = data.routes[0];
-  const leg   = route.legs[0];
-
-  navSteps = leg.steps;
-  navCurrentStep = 0;
-  navRouteCoords = route.geometry.coordinates;
-
+  const route = data.routes[0], leg = route.legs[0];
+  navSteps = leg.steps; navCurrentStep = 0; navRouteCoords = route.geometry.coordinates;
   drawRoute(navRouteCoords);
-
-  // Destination marker (red pin)
   if (destMarker) destMarker.remove();
-  const destEl = document.createElement('div');
-  destEl.style.cssText = 'width:22px;height:22px;background:#EF4444;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 12px rgba(0,0,0,.4);';
-  destMarker = new mapboxgl.Marker({ element:destEl }).setLngLat(destCoords).addTo(driverMap);
-
-  // ETA and total distance
+  const dEl = document.createElement('div');
+  dEl.style.cssText = 'width:20px;height:20px;background:#EF4444;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 12px rgba(0,0,0,.4)';
+  destMarker = new mapboxgl.Marker({ element:dEl }).setLngLat(dest).addTo(driverMap);
   document.getElementById('navETA').textContent = sToStr(route.duration);
   document.getElementById('navDistTotal').textContent = mToStr(route.distance);
-
-  // Zoom to show driver + next few steps (close-up view, not full route)
-  // We zoom to the first 20% of the route for a tight, Uber-style view
-  const closeUpCoords = navRouteCoords.slice(0, Math.max(10, Math.floor(navRouteCoords.length * 0.15)));
-  closeUpCoords.push(driverLngLat);
-  const bounds = closeUpCoords.reduce(
-    (b, c) => b.extend(c),
-    new mapboxgl.LngLatBounds(closeUpCoords[0], closeUpCoords[0])
-  );
-
-  // Padding accounts for the nav HUD at top and steps panel
-  const isDesktop = window.innerWidth >= 900;
-  driverMap.fitBounds(bounds, {
-    padding: {
-      top: isDesktop ? 120 : 100,
-      bottom: isDesktop ? 80 : 200, // more bottom space for mobile step sheet
-      left: isDesktop ? 80 : 40,
-      right: isDesktop ? 340 : 40  // right space for the desktop steps panel
-    },
-    bearing: computeRouteBearing(navRouteCoords),
-    pitch: 60,
-    duration: 1000
-  });
-
-  renderNavSteps();
-  updateCurrentStep();
+  const closeUp = navRouteCoords.slice(0, Math.max(8, Math.floor(navRouteCoords.length*.15)));
+  closeUp.push(driverLngLat);
+  const bounds = closeUp.reduce((b,c) => b.extend(c), new mapboxgl.LngLatBounds(closeUp[0], closeUp[0]));
+  driverMap.fitBounds(bounds, { padding:{top:100,bottom:200,left:30,right:30}, bearing:computeBearing(navRouteCoords), pitch:55, duration:1000 });
+  renderNavSteps(); updateCurrentStep();
 }
 
-function computeRouteBearing(coords) {
+function computeBearing(coords) {
   if (coords.length < 2) return 0;
-  // Bearing of the first segment
-  const [lng1, lat1] = coords[0];
-  const [lng2, lat2] = coords[Math.min(5, coords.length-1)];
-  const dLng = lng2 - lng1;
-  const y = Math.sin(dLng * Math.PI/180) * Math.cos(lat2 * Math.PI/180);
-  const x = Math.cos(lat1 * Math.PI/180) * Math.sin(lat2 * Math.PI/180) -
-             Math.sin(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.cos(dLng * Math.PI/180);
-  return (Math.atan2(y, x) * 180/Math.PI + 360) % 360;
+  const [lng1,lat1] = coords[0], [lng2,lat2] = coords[Math.min(5,coords.length-1)];
+  const dL = lng2-lng1;
+  const y = Math.sin(dL*Math.PI/180)*Math.cos(lat2*Math.PI/180);
+  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dL*Math.PI/180);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
 }
 
 function drawRoute(coords) {
-  // Remove existing route layers/source without resetting the style
-  if (driverMap.getLayer(ROUTE_LAYER_BG)) driverMap.removeLayer(ROUTE_LAYER_BG);
-  if (driverMap.getLayer(ROUTE_LAYER))    driverMap.removeLayer(ROUTE_LAYER);
-  if (driverMap.getSource(ROUTE_SOURCE))  driverMap.removeSource(ROUTE_SOURCE);
-
-  driverMap.addSource(ROUTE_SOURCE, {
-    type:'geojson',
-    data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } }
-  });
-
-  // Glow/background layer
-  driverMap.addLayer({
-    id: ROUTE_LAYER_BG, type:'line', source:ROUTE_SOURCE,
-    layout:{ 'line-cap':'round', 'line-join':'round' },
-    paint:{ 'line-color':'#1E40AF', 'line-width':12, 'line-opacity':0.25 }
-  });
-
-  // Solid route line
-  driverMap.addLayer({
-    id: ROUTE_LAYER, type:'line', source:ROUTE_SOURCE,
-    layout:{ 'line-cap':'round', 'line-join':'round' },
-    paint:{ 'line-color':'#1A3BFF', 'line-width':7, 'line-opacity':1 }
-  });
+  if (driverMap.getLayer(ROUTE_LBG)) driverMap.removeLayer(ROUTE_LBG);
+  if (driverMap.getLayer(ROUTE_L)) driverMap.removeLayer(ROUTE_L);
+  if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+  driverMap.addSource(ROUTE_SRC, { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } } });
+  driverMap.addLayer({ id:ROUTE_LBG, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1E40AF','line-width':12,'line-opacity':.25} });
+  driverMap.addLayer({ id:ROUTE_L, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1A3BFF','line-width':7,'line-opacity':1} });
 }
 
 function renderNavSteps() {
   const list = document.getElementById('navStepsList');
-  list.innerHTML = navSteps.map((step, i) => {
-    const isCurrent = i === navCurrentStep;
-    const isDone    = i < navCurrentStep;
-    const numClass  = isDone ? 'done' : isCurrent ? 'cur' : '';
-    const rowClass  = isCurrent ? 'current-step' : '';
-    const inst      = step.maneuver?.instruction || 'Continue';
-    const icon      = mIcon(step.maneuver?.type || 'continue');
-    const dist      = mToStr(step.distance || 0);
-    return `<div class="nav-step-row ${rowClass}">
-      <div class="nav-step-num ${numClass}">${isDone ? '✓' : isCurrent ? icon : i+1}</div>
-      <div class="nav-step-body"><div class="nav-step-text">${inst}</div><div class="nav-step-d">${dist}</div></div>
+  list.innerHTML = navSteps.map((s,i) => {
+    const isCur = i===navCurrentStep, isDone = i<navCurrentStep;
+    const nc = isDone?'done':isCur?'cur':'', rc = isCur?'current-step':'';
+    return `<div class="nav-step-row ${rc}">
+      <div class="nav-step-num ${nc}">${isDone?'✓':isCur?mIcon(s.maneuver?.type):i+1}</div>
+      <div class="nav-step-body"><div class="nav-step-text">${s.maneuver?.instruction||'Continue'}</div><div class="nav-step-d">${mToStr(s.distance||0)}</div></div>
     </div>`;
   }).join('');
-  // Scroll current step into view
   const rows = list.querySelectorAll('.nav-step-row');
-  if (rows[navCurrentStep]) rows[navCurrentStep].scrollIntoView({ block:'center', behavior:'smooth' });
+  rows[navCurrentStep]?.scrollIntoView({ block:'center', behavior:'smooth' });
 }
-
 function updateCurrentStep() {
   if (!navSteps.length) return;
-  const step = navSteps[navCurrentStep];
-  document.getElementById('navManeuverBox').textContent = mIcon(step.maneuver?.type || 'continue');
-  document.getElementById('navDistLbl').textContent = 'IN ' + mToStr(step.distance || 0);
-  document.getElementById('navInstMain').textContent = step.maneuver?.instruction || 'Continue';
+  const s = navSteps[navCurrentStep];
+  document.getElementById('navManeuverBox').textContent = mIcon(s.maneuver?.type||'continue');
+  document.getElementById('navDistLbl').textContent = 'IN '+mToStr(s.distance||0);
+  document.getElementById('navInstMain').textContent = s.maneuver?.instruction||'Continue';
 }
-
 window.stopNavigation = function() {
   isNavigating = false;
   document.getElementById('navHud').classList.remove('show');
-
-  // Restore panel/map layout on mobile
-  if (window.innerWidth < 900) {
-    document.getElementById('driverPanel').classList.remove('nav-mode');
-    document.getElementById('mapWrap').classList.remove('nav-active');
-  }
-
-  // Reset navigate buttons
+  document.getElementById('driverPanel').classList.remove('nav-mode');
+  document.getElementById('mapWrap').classList.remove('nav-active');
   const bp = document.getElementById('btnNavPickup');
   const bd = document.getElementById('btnNavDest');
-  if (bp) { bp.classList.remove('navigating'); bp.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Pickup'; }
-  if (bd) { bd.classList.remove('navigating'); bd.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Dest'; }
-
-  // Keep the route drawn on map but reset camera gently
+  if (bp) { bp.classList.remove('navigating'); bp.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Pickup'; }
+  if (bd) { bd.classList.remove('navigating'); bd.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Dest'; }
   driverMap?.easeTo({ center:driverLngLat, zoom:15, pitch:45, bearing:0, duration:800 });
   navMode = null;
 };
+window.recenterMap = function() { mapInteracting = false; driverMap.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 }); };
 
-window.recenterMap = function() {
-  mapInteracting = false;
-  driverMap.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 });
-};
-
-// ── PIN VERIFICATION ──
+// ─── PIN VERIFICATION ──────────────────────────────────────────
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
   if (cu?.uid !== 'demo_driver') {
-    await update(ref(db,`ride_requests/${activeRideId}`),{ arrivedPin:newPin, arrived:true }).catch(()=>{});
+    await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
   }
   activeRideData.arrivedPin = newPin;
   document.getElementById('arrivedPinDisplay').textContent = newPin;
   document.getElementById('arrivedPinCard').classList.add('show');
   document.getElementById('ar-pin').textContent = newPin;
   showPinOverlay(newPin);
-  showToast('📍 Marked as arrived — share PIN with rider');
+  showToast('📍 Marked arrived — share PIN with rider');
 };
-
 function showPinOverlay(pin) {
-  const disp = document.getElementById('pinDisplay');
-  disp.innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
-  const row = document.getElementById('pinInputRow');
-  row.innerHTML = Array.from({length:4}, (_,i) =>
+  document.getElementById('pinDisplay').innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
+  document.getElementById('pinInputRow').innerHTML = Array.from({length:4},(_,i) =>
     `<input class="pin-input-digit" id="pinI${i}" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="pinDigitInput(event,${i})">`
   ).join('');
   document.getElementById('pinError').style.display = 'none';
   document.getElementById('pinOverlay').classList.add('show');
   setTimeout(() => document.getElementById('pinI0')?.focus(), 200);
 }
-
 window.pinDigitInput = function(e, idx) {
-  const val = e.target.value.replace(/\D/g,'');
-  e.target.value = val;
+  const val = e.target.value.replace(/\D/g,''); e.target.value = val;
   if (val && idx < 3) document.getElementById(`pinI${idx+1}`)?.focus();
 };
-
 window.verifyPin = function() {
   const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
   const expected = activeRideData?.arrivedPin || activeRideData?.securityPin || '';
@@ -1362,36 +1151,27 @@ window.verifyPin = function() {
     document.getElementById('pinOverlay').classList.remove('show');
     ridePhase = 'riding';
     document.getElementById('phase-pickup').classList.remove('active');
-    document.getElementById('phase-pin').classList.add('active');
+    document.getElementById('phase-riding').classList.add('active');
     document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
     showToast('✅ PIN verified — enjoy the ride!');
   } else {
     document.getElementById('pinError').style.display = 'block';
-    [0,1,2,3].forEach(i => {
-      const el = document.getElementById(`pinI${i}`);
-      if (el) { el.value=''; el.style.borderColor='var(--red)'; }
-    });
+    [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el){el.value='';el.style.borderColor='var(--red)';} });
     setTimeout(() => {
       document.getElementById('pinError').style.display = 'none';
-      [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el)el.style.borderColor=''; });
+      [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el) el.style.borderColor=''; });
     }, 2000);
     document.getElementById('pinI0')?.focus();
   }
 };
 
-// ── CHAT ──
-let chatMessages = [];
-let chatUnread = 0;
-
+// ─── CHAT ─────────────────────────────────────────────────────
 window.openChat = function() {
   if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
   document.getElementById('chatAv').textContent = ini2(activeRideData.riderName||'R');
   document.getElementById('chatRiderName').textContent = activeRideData.riderName||'Rider';
   document.getElementById('chatSheet').classList.add('show');
-  chatUnread = 0;
-  updateChatBadge();
-  listenChat();
-  scrollChatBottom();
+  chatUnread = 0; updateChatBadge(); listenChat(); scrollChatBottom();
 };
 window.closeChat = function() {
   document.getElementById('chatSheet').classList.remove('show');
@@ -1400,94 +1180,69 @@ window.closeChat = function() {
 function listenChat() {
   if (!activeRideId || cu?.uid === 'demo_driver') return;
   if (chatUnsub) chatUnsub();
-  chatUnsub = onValue(ref(db,`ride_requests/${activeRideId}/chat`), snap => {
-    const msgs = snap.val() || {};
-    chatMessages = Object.values(msgs).sort((a,b) => a.ts - b.ts);
-    renderChatMessages();
-    scrollChatBottom();
+  chatUnsub = onValue(ref(db, `ride_requests/${activeRideId}/chat`), snap => {
+    const msgs = snap.val()||{};
+    chatMessages = Object.values(msgs).sort((a,b) => a.ts-b.ts);
+    renderChatMsgs(); scrollChatBottom();
   });
 }
-function renderChatMessages() {
+function renderChatMsgs() {
   const el = document.getElementById('chatMessages');
-  if (!chatMessages.length) {
-    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600;">Say hello to your rider 👋</div>';
-    return;
-  }
+  if (!chatMessages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>'; return; }
   el.innerHTML = chatMessages.map(m => {
-    const mine = m.sender === 'driver';
+    const mine = m.sender==='driver';
     const time = m.ts ? new Date(m.ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '';
-    const read = mine && m.readByRider ? '<span class="chat-read">✓✓</span>' : mine ? '✓' : '';
     return `<div class="chat-msg ${mine?'mine':'theirs'}">
       <div class="chat-bubble">${escHtml(m.text)}</div>
-      <div class="chat-meta">${time} ${read}</div>
+      <div class="chat-meta">${time}</div>
     </div>`;
   }).join('');
 }
 function scrollChatBottom() { const el=document.getElementById('chatMessages'); if(el) setTimeout(()=>el.scrollTop=el.scrollHeight,60); }
-function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function updateChatBadge() {
   ['chatBadge1','chatBadge2'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = chatUnread;
-    el.classList.toggle('show', chatUnread > 0);
+    const el=document.getElementById(id); if(!el) return;
+    el.textContent=chatUnread; el.classList.toggle('show',chatUnread>0);
   });
 }
 window.sendChatMsg = async function() {
   const inp = document.getElementById('chatInput');
-  const text = inp.value.trim();
-  if (!text || !activeRideId) return;
-  inp.value = '';
-  await _pushChatMsg(text);
+  const text = inp.value.trim(); if (!text || !activeRideId) return;
+  inp.value = ''; await _pushChat(text);
 };
-window.sendQuickReply = async function(text) {
-  if (!activeRideId) { showToast('No active ride'); return; }
-  await _pushChatMsg(text);
-};
-async function _pushChatMsg(text) {
+window.sendQuickReply = async function(text) { if(!activeRideId){showToast('No active ride');return;} await _pushChat(text); };
+async function _pushChat(text) {
   const msg = { text, sender:'driver', ts:Date.now(), readByRider:false };
-  if (cu?.uid !== 'demo_driver') {
-    await push(ref(db,`ride_requests/${activeRideId}/chat`), msg).catch(()=>{});
-  } else {
-    chatMessages.push(msg);
-    renderChatMessages();
-    scrollChatBottom();
-  }
+  if (cu?.uid !== 'demo_driver') await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
+  else { chatMessages.push(msg); renderChatMsgs(); scrollChatBottom(); }
 }
-window.chatKeydown = function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendChatMsg(); }
-};
+window.chatKeydown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendChatMsg();} };
 
-// ── CANCELLATION ──
-let selectedReasonText = null;
+// ─── CANCELLATION — stores canceled rides in Firebase & localStorage ───
 window.selectCancelReason = function(el, reason) {
-  document.querySelectorAll('.cm-reason').forEach(r => r.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedReasonText = reason;
-  const btn = document.getElementById('cmConfirmBtn');
-  btn.disabled = false; btn.style.opacity = '1';
+  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected'); selectedReasonText = reason;
+  const btn = document.getElementById('cmConfirmBtn'); btn.disabled=false; btn.style.opacity='1';
 };
 window.closeCancelModal = function() {
   document.getElementById('cancelReasonModal').classList.remove('show');
-  cancelMode = null; pendingDeclineId = null; selectedReasonText = null;
-  document.querySelectorAll('.cm-reason').forEach(r => r.classList.remove('selected'));
-  const btn = document.getElementById('cmConfirmBtn');
-  btn.disabled = true; btn.style.opacity = '.5';
+  cancelMode=null; pendingDeclineId=null; selectedReasonText=null;
+  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
+  const btn=document.getElementById('cmConfirmBtn'); btn.disabled=true; btn.style.opacity='.5';
 };
 window.openDeclineModal = function(id) {
-  cancelMode = 'decline'; pendingDeclineId = id;
-  document.getElementById('cm-title').textContent = 'Why are you declining?';
-  document.getElementById('cm-sub').textContent = 'Please select a reason so we can improve match quality.';
-  const btn = document.getElementById('cmConfirmBtn');
-  btn.textContent = 'Decline Ride'; btn.className = 'cm-confirm-decline';
+  cancelMode='decline'; pendingDeclineId=id;
+  document.getElementById('cm-title').textContent='Why are you declining?';
+  document.getElementById('cm-sub').textContent='Select a reason.';
+  document.getElementById('cmConfirmBtn').textContent='Decline Ride';
   document.getElementById('cancelReasonModal').classList.add('show');
 };
 window.openCancelActiveModal = function() {
-  cancelMode = 'active';
-  document.getElementById('cm-title').textContent = 'Why are you cancelling?';
-  document.getElementById('cm-sub').textContent = 'This will return the ride to the queue. Please choose a reason.';
-  const btn = document.getElementById('cmConfirmBtn');
-  btn.textContent = 'Cancel Ride'; btn.className = 'cm-confirm-cancel';
+  cancelMode='active';
+  document.getElementById('cm-title').textContent='Why are you cancelling?';
+  document.getElementById('cm-sub').textContent='This will return the ride to the queue.';
+  document.getElementById('cmConfirmBtn').textContent='Cancel Ride';
   document.getElementById('cancelReasonModal').classList.add('show');
 };
 window.confirmCancelAction = async function() {
@@ -1495,154 +1250,149 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
+    // Store declined ride in canceled_rides node
     if (cu?.uid !== 'demo_driver') {
-      await update(ref(db,`ride_requests/${id}`),{ declineReason:selectedReasonText }).catch(()=>{});
+      try {
+        const snap = await get(ref(db,`ride_requests/${id}`));
+        const rData = snap.val()||{};
+        await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
+          ...rData, canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined'
+        });
+      } catch(e) {}
     }
     const el = document.getElementById(`req-${id}`);
     if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
-    showToast('Ride declined: ' + selectedReasonText);
+    showToast('Ride declined');
   } else if (cancelMode === 'active') {
     window.closeCancelModal();
-    await cancelActiveRideWithReason(selectedReasonText);
+    await cancelActiveRide(selectedReasonText);
   }
 };
-async function cancelActiveRideWithReason(reason) {
+
+async function cancelActiveRide(reason) {
   if (!activeRideId || !cu) return;
   try {
-    await update(ref(db,`ride_requests/${activeRideId}`),{
-      status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
-    });
-    activeRideId = null; activeRideData = null; ridePhase = 'pickup';
+    const snap = await get(ref(db,`ride_requests/${activeRideId}`));
+    const rData = snap.val()||{};
+    // Store in canceled_rides with full ride details
+    if (cu?.uid !== 'demo_driver') {
+      await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
+        ...rData,
+        canceledAt: Date.now(),
+        cancelReason: reason,
+        canceledBy: 'driver',
+        type: 'active_canceled',
+        originalRideId: activeRideId
+      });
+      await update(ref(db,`ride_requests/${activeRideId}`), {
+        status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
+      });
+    }
+    activeRideId=null; activeRideData=null; ridePhase='pickup';
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
+    document.getElementById('reqLabel').style.display='';
+    document.getElementById('rideReqList').style.display='';
     if (isNavigating) stopNavigation();
-    showToast('Ride cancelled: ' + reason);
-  } catch(e) { showToast('Error cancelling'); }
+    loadTripHistory(); // refresh history to show canceled ride
+    showToast('Ride canceled: '+reason);
+  } catch(e) { showToast('Error canceling ride'); }
 }
 
-// ── NOTIFICATION BANNER ──
-let notifBannerTimer = null;
-function showRideNotification(rideData) {
-  const banner = document.getElementById('rideNotifBanner');
-  document.getElementById('rnbSub').textContent =
-    `${rideData.riderName||'Rider'} • R${parseFloat(rideData.fare||0).toFixed(2)} • ${(rideData.pickup||'Unknown pickup').substring(0,40)}`;
-  banner.classList.add('show');
-  playNotificationSound();
-  if (notifBannerTimer) clearTimeout(notifBannerTimer);
-  notifBannerTimer = setTimeout(() => banner.classList.remove('show'), 7000);
+// ─── NOTIFICATION BANNER ──────────────────────────────────────
+let notifTimer = null;
+function showRideNotif(r) {
+  const b = document.getElementById('rideNotifBanner');
+  document.getElementById('rnbSub').textContent = `${r.riderName||'Rider'} • R${parseFloat(r.fare||0).toFixed(2)} • ${(r.pickup||'Pickup').substring(0,35)}`;
+  b.classList.add('show'); playNotif();
+  if (notifTimer) clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => b.classList.remove('show'), 7000);
 }
 window.dismissNotifBanner = function() {
   document.getElementById('rideNotifBanner').classList.remove('show');
-  if (notifBannerTimer) clearTimeout(notifBannerTimer);
+  if (notifTimer) clearTimeout(notifTimer);
 };
 
-// ── HELPERS ──
+// ─── HELPERS ──────────────────────────────────────────────────
 function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
 function updateUI(u) {
-  const n = u?(u.displayName||'Driver'):'Guest', e = u?u.email:'Not signed in', i = ini2(n);
-  ['sbAv','tbAv','profAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
-  ['sbName','profName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
-  ['sbEmail','profEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
+  const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'', i=ini2(n);
+  ['tbAv','profAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
+  ['profName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
+  ['profEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
 }
 
-// ── PANEL TOGGLE ──
+// ─── PANEL TOGGLE ─────────────────────────────────────────────
 window.togglePanel = function() {
   panelExpanded = !panelExpanded;
   const panel = document.getElementById('driverPanel');
-  panel.classList.toggle('collapsed', !panelExpanded);
-  panel.classList.remove('nav-mode'); // exit nav mode if user taps handle
+  panel.classList.toggle('expanded', panelExpanded);
+  panel.classList.remove('nav-mode');
   document.getElementById('mapWrap').classList.remove('nav-active');
-  const txt = document.getElementById('panelToggleTxt'), chev = document.getElementById('panelChevron');
-  if (txt) txt.textContent = panelExpanded ? 'Collapse' : 'Expand';
-  if (chev) chev.style.transform = panelExpanded ? 'rotate(180deg)' : '';
-  setTimeout(() => driverMap?.resize(), 360);
+  document.getElementById('pcrSub').textContent = panelExpanded ? 'Tap to collapse' : 'Tap to expand';
+  setTimeout(() => driverMap?.resize(), 380);
 };
 function expandPanel() {
-  if (window.innerWidth >= 900) return;
-  if (!panelExpanded) {
-    panelExpanded = true;
-    document.getElementById('driverPanel').classList.remove('collapsed');
-    const txt = document.getElementById('panelToggleTxt'), chev = document.getElementById('panelChevron');
-    if (txt) txt.textContent = 'Collapse';
-    if (chev) chev.style.transform = 'rotate(180deg)';
-    setTimeout(() => driverMap?.resize(), 360);
-  }
+  if (!panelExpanded) { panelExpanded=true; document.getElementById('driverPanel').classList.add('expanded'); document.getElementById('pcrSub').textContent='Tap to collapse'; setTimeout(()=>driverMap?.resize(),380); }
 }
 
-// ── ONLINE TOGGLE ──
+// ─── ONLINE TOGGLE ────────────────────────────────────────────
 async function goOnline() {
-  isOnline = true; onlineStartTime = Date.now(); setOnlineUI(true);
-  localStorage.setItem('vynix_driver_status', 'online');
+  isOnline=true; onlineStartTime=Date.now(); setOnlineUI(true);
+  localStorage.setItem('vynix_driver_status','online');
   navigator.geolocation?.getCurrentPosition(
-    pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
-    ()  => updateDriverLocation(-24.1991, 28.9934)
+    pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),
+    ()=>updateDriverLocation(-24.1991,28.9934)
   );
-  listenRideRequests();
-  expandPanel();
-  showToast('You are now Online 🟢');
+  listenRideRequests(); expandPanel(); showToast('You are now Online 🟢');
 }
 async function goOffline() {
-  isOnline = false; setOnlineUI(false);
-  localStorage.setItem('vynix_driver_status', 'offline');
-  if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub = null; }
+  isOnline=false; setOnlineUI(false);
+  localStorage.setItem('vynix_driver_status','offline');
+  if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub=null; }
   if (cu?.uid !== 'demo_driver') await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
-  document.getElementById('rideReqList').innerHTML =
-    '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
-  updateHoursOnline();
-  showToast('You are now Offline ⚫');
+  document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+  updateHoursOnline(); showToast('You are now Offline ⚫');
 }
 window.toggleOnline = function() {
-  if (!cu) { showToast('Please sign in first'); return; }
-  if (activeRideId) { showToast('Complete your current ride first'); return; }
+  if (!cu){showToast('Please sign in first');return;}
+  if (activeRideId){showToast('Complete your current ride first');return;}
   if (isOnline) goOffline(); else goOnline();
 };
 function setOnlineUI(on) {
-  ['bigToggle','bigToggleMini'].forEach(id => { const el=document.getElementById(id); if(el)el.classList.toggle('on',on); });
-  const sv = document.getElementById('statusVal'); if(sv){ sv.textContent=on?'Online':'Offline'; sv.classList.toggle('off',!on); }
-  const sd = document.getElementById('sidebarDot'); if(sd) sd.classList.toggle('off',!on);
-  const st = document.getElementById('sidebarStatusTxt'); if(st) st.textContent = on?'Online':'Offline';
-  const sr = document.getElementById('sidebarStatusRow'); if(sr) sr.classList.toggle('off',!on);
-  const mt = document.getElementById('mobileToggle'); if(mt) mt.classList.toggle('on',on);
-  const ml = document.getElementById('mobileToggleLbl'); if(ml) ml.textContent = on?'Online':'Offline';
-  const pd = document.getElementById('pcrDot'); if(pd) pd.classList.toggle('on',on);
-  const pl = document.getElementById('pcrLabel'); if(pl) pl.textContent = on?'Online':'Offline';
+  ['bigToggle','bigToggleMini'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',on)});
+  const sv=document.getElementById('statusVal'); if(sv){sv.textContent=on?'Online':'Offline';sv.classList.toggle('off',!on);}
+  const mt=document.getElementById('mobileToggle'); if(mt) mt.classList.toggle('on',on);
+  const ml=document.getElementById('mobileToggleLbl'); if(ml) ml.textContent=on?'Online':'Offline';
+  const pd=document.getElementById('pcrDot'); if(pd) pd.classList.toggle('on',on);
+  const pl=document.getElementById('pcrLabel'); if(pl) pl.textContent=on?'Online':'Offline';
 }
 function updateHoursOnline() {
   if (!onlineStartTime) return;
-  const hrs = ((Date.now()-onlineStartTime)/3600000).toFixed(1);
-  const el = document.getElementById('stat-hrs'); if(el) el.innerHTML = hrs+'<span>h</span>';
+  const hrs=((Date.now()-onlineStartTime)/3600000).toFixed(1);
+  const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
 }
 
-// ── RIDE REQUESTS (Real-time with sound) ──
-let knownRequestIds = new Set();
+// ─── RIDE REQUESTS (ACTIVE ONLY — excludes canceled) ──────────
 function listenRideRequests() {
-  if (!cu || cu.uid === 'demo_driver') return;
+  if (!cu || cu.uid==='demo_driver') return;
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
-    const data = snap.val() || {};
-    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending');
-
-    // Detect genuinely NEW requests for notification
-    pending.forEach(([id, r]) => {
+    const data = snap.val()||{};
+    // Only show rides that are PENDING (not canceled, not accepted by someone else)
+    const pending = Object.entries(data).filter(([,v]) =>
+      v.status === 'pending' && !v.canceledAt
+    );
+    pending.forEach(([id,r]) => {
       if (!knownRequestIds.has(id)) {
         knownRequestIds.add(id);
-        // Show notification for newly appearing requests (not on first load)
-        if (knownRequestIds.size > 1 || document.getElementById('appShell').classList.contains('ready')) {
-          showRideNotification(r);
-        }
+        if (document.getElementById('appShell').classList.contains('ready')) showRideNotif(r);
       }
     });
-    // Remove IDs that are no longer pending
-    [...knownRequestIds].forEach(id => {
-      if (!pending.find(([pid]) => pid === id)) knownRequestIds.delete(id);
-    });
-
+    [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
     renderRideRequests(pending);
     const cnt = pending.length;
-    const badge = document.getElementById('sb-req-count'); if(badge) badge.textContent = cnt > 0 ? cnt : '';
-    const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', cnt > 0);
+    const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show',cnt>0);
   });
 }
 
@@ -1650,12 +1400,8 @@ function renderRideRequests(list) {
   const el = document.getElementById('rideReqList');
   const lbl = document.getElementById('reqLabel');
   if (activeRideId) { if(lbl)lbl.style.display='none'; el.style.display='none'; return; }
-  if (lbl) lbl.style.display='';
-  el.style.display = '';
-  if (!list.length) {
-    el.innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';
-    return;
-  }
+  if (lbl) lbl.style.display=''; el.style.display='';
+  if (!list.length) { el.innerHTML='<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>'; return; }
   el.innerHTML = list.map(([id,r]) => `
     <div class="req-card" id="req-${id}">
       <div class="req-top">
@@ -1670,14 +1416,8 @@ function renderRideRequests(list) {
       </div>
       <div class="req-divider"></div>
       <div class="req-route">
-        <div class="req-point">
-          <div class="rp-icon pickup"><div class="rp-dot pickup"></div></div>
-          <div><div class="rp-lbl">Pickup</div><div class="rp-addr">${(r.pickup||'Current Location').substring(0,55)}</div></div>
-        </div>
-        <div class="req-point">
-          <div class="rp-icon drop"><div class="rp-dot drop"></div></div>
-          <div><div class="rp-lbl">Destination</div><div class="rp-addr">${(r.destination||'—').substring(0,55)}</div></div>
-        </div>
+        <div class="req-point"><div class="rp-icon pickup"><div class="rp-dot pickup"></div></div><div><div class="rp-lbl">Pickup</div><div class="rp-addr">${(r.pickup||'Current Location').substring(0,55)}</div></div></div>
+        <div class="req-point"><div class="rp-icon drop"><div class="rp-dot drop"></div></div><div><div class="rp-lbl">Destination</div><div class="rp-addr">${(r.destination||'—').substring(0,55)}</div></div></div>
       </div>
       <div class="req-meta">
         <span class="req-chip">📍 ${r.distKm?r.distKm.toFixed(1)+' km':'—'}</span>
@@ -1693,193 +1433,227 @@ function renderRideRequests(list) {
   `).join('');
 }
 
-// ── ACCEPT MODAL ──
+// ─── ACCEPT MODAL ─────────────────────────────────────────────
 window.openAcceptModal = function(id) {
-  if (!isOnline) { showToast('Go online first'); return; }
+  if (!isOnline){showToast('Go online first');return;}
   get(ref(db,`ride_requests/${id}`)).then(snap => {
-    if (!snap.exists() || snap.val().status !== 'pending') { showToast('Ride already taken'); return; }
-    const r = snap.val(); pendingAcceptId = id; pendingAcceptData = r;
-    document.getElementById('am-rider').textContent = r.riderName||'Rider';
-    document.getElementById('am-type').textContent = r.rideType||'VynixGo';
-    document.getElementById('am-pickup').textContent = (r.pickup||'Current Location').substring(0,50);
-    document.getElementById('am-dest').textContent = (r.destination||'—').substring(0,50);
-    document.getElementById('am-dist').textContent = r.distKm?r.distKm.toFixed(1)+' km':'—';
-    document.getElementById('am-dur').textContent = r.tripMins?r.tripMins+' min':'—';
-    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+    if (!snap.exists()||snap.val().status!=='pending'){showToast('Ride already taken');return;}
+    const r=snap.val(); pendingAcceptId=id; pendingAcceptData=r;
+    document.getElementById('am-rider').textContent=r.riderName||'Rider';
+    document.getElementById('am-type').textContent=r.rideType||'VynixGo';
+    document.getElementById('am-pickup').textContent=(r.pickup||'Current Location').substring(0,48);
+    document.getElementById('am-dest').textContent=(r.destination||'—').substring(0,48);
+    document.getElementById('am-dist').textContent=r.distKm?r.distKm.toFixed(1)+' km':'—';
+    document.getElementById('am-dur').textContent=r.tripMins?r.tripMins+' min':'—';
+    document.getElementById('am-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
     document.getElementById('acceptModal').classList.add('show');
   });
 };
-window.closeAcceptModal = function() {
-  document.getElementById('acceptModal').classList.remove('show');
-  pendingAcceptId = null; pendingAcceptData = null;
-};
+window.closeAcceptModal = function() { document.getElementById('acceptModal').classList.remove('show'); pendingAcceptId=null; pendingAcceptData=null; };
 window.confirmAccept = function() {
-  if (!pendingAcceptId || !cu) return;
-  const id = pendingAcceptId, r = pendingAcceptData;
-  runTransaction(ref(db,`ride_requests/${id}`), current => {
-    if (!current || current.status !== 'pending') return;
-    return {...current, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver', acceptedAt:Date.now()};
+  if (!pendingAcceptId||!cu) return;
+  const id=pendingAcceptId, r=pendingAcceptData;
+  runTransaction(ref(db,`ride_requests/${id}`), cur => {
+    if (!cur||cur.status!=='pending') return;
+    return {...cur,status:'accepted',driverId:cu.uid,driverName:cu.displayName||'Driver',acceptedAt:Date.now()};
   }).then(result => {
-    if (!result.committed) { showToast('Ride taken by another driver'); window.closeAcceptModal(); return; }
-    activeRideId = id; activeRideData = r;
-    window.closeAcceptModal();
-    showActiveRide(r); expandPanel();
-    showToast('Ride accepted! 🎉');
-  }).catch(() => showToast('Error accepting ride'));
+    if (!result.committed){showToast('Ride taken by another driver');window.closeAcceptModal();return;}
+    activeRideId=id; activeRideData=r;
+    window.closeAcceptModal(); showActiveRide(r); expandPanel(); showToast('Ride accepted! 🎉');
+  }).catch(()=>showToast('Error accepting ride'));
 };
 
-// ── ACTIVE RIDE ──
+// ─── ACTIVE RIDE ──────────────────────────────────────────────
 function resetPhaseUI() {
-  ridePhase = 'pickup';
+  ridePhase='pickup';
   document.getElementById('phase-pickup').classList.add('active');
-  document.getElementById('phase-pin').classList.remove('active');
-  document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
+  document.getElementById('phase-riding').classList.remove('active');
+  document.getElementById('ar-phase-label').textContent='En Route to Pickup';
 }
 function showActiveRide(r) {
-  const card = document.getElementById('activeRideCard'); card.classList.add('show');
-  document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
-  document.getElementById('ar-name').textContent = r.riderName||'Rider';
-  document.getElementById('ar-dest').textContent = '→ '+(r.destination||'—').substring(0,38);
-  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
-  document.getElementById('ar-pin').textContent = r.securityPin||'—';
-  document.getElementById('ar-type').textContent = r.rideType||'VynixGo';
-  document.getElementById('ar-seats').textContent = r.capacity||4;
-  document.getElementById('ar-pickup-txt').textContent = (r.pickup||'Current Location').substring(0,52);
-  document.getElementById('ar-drop-txt').textContent = (r.destination||'—').substring(0,52);
-  const lbl = document.getElementById('reqLabel'); if(lbl) lbl.style.display = 'none';
-  document.getElementById('rideReqList').style.display = 'none';
+  const card=document.getElementById('activeRideCard'); card.classList.add('show');
+  document.getElementById('ar-av').textContent=ini2(r.riderName||'R');
+  document.getElementById('ar-name').textContent=r.riderName||'Rider';
+  document.getElementById('ar-dest').textContent='→ '+(r.destination||'—').substring(0,36);
+  document.getElementById('ar-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
+  document.getElementById('ar-pin').textContent=r.securityPin||'—';
+  document.getElementById('ar-type').textContent=r.rideType||'VynixGo';
+  document.getElementById('ar-seats').textContent=r.capacity||4;
+  document.getElementById('ar-pickup-txt').textContent=(r.pickup||'Current Location').substring(0,50);
+  document.getElementById('ar-drop-txt').textContent=(r.destination||'—').substring(0,50);
+  document.getElementById('reqLabel').style.display='none';
+  document.getElementById('rideReqList').style.display='none';
   resetPhaseUI();
 }
 function listenActiveRide() {
-  if (!cu || cu.uid === 'demo_driver') return;
+  if (!cu||cu.uid==='demo_driver') return;
   get(ref(db,'ride_requests')).then(snap => {
-    const all = snap.val() || {};
-    const mine = Object.entries(all).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
-    if (mine) { const [id,r] = mine; activeRideId = id; activeRideData = r; showActiveRide(r); }
+    const all=snap.val()||{};
+    const mine=Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
+    if (mine){const[id,r]=mine;activeRideId=id;activeRideData=r;showActiveRide(r);expandPanel();}
   });
 }
 window.completeRide = async function() {
-  if (!activeRideId || !cu) return;
+  if (!activeRideId||!cu) return;
   try {
-    const snap = await get(ref(db,`ride_requests/${activeRideId}`)); const r = snap.val()||{};
-    const fare = parseFloat(r.fare||0);
+    const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
+    const fare=parseFloat(r.fare||0);
     await push(ref(db,`drivers/${cu.uid}/trips`),{
-      rideType:r.rideType||'VynixGo', riderName:r.riderName||'Rider',
-      pickup:r.pickup||'—', destination:r.destination||'—',
-      distKm:r.distKm||0, tripMins:r.tripMins||0, capacity:r.capacity||4,
-      fare, status:'Completed', date:Date.now()
+      rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
+      pickup:r.pickup||'—',destination:r.destination||'—',
+      distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
+      fare,status:'Completed',date:Date.now()
     });
     await remove(ref(db,`ride_requests/${activeRideId}`));
-    const eRef = ref(db,`drivers/${cu.uid}/earnings`);
-    const eSnap = await get(eRef); const curr = eSnap.val()||{total:0,trips:0};
-    await set(eRef, { total:curr.total+fare, trips:curr.trips+1 });
-    statsToday.rides++; statsToday.earned += fare;
-    document.getElementById('stat-rides').textContent = statsToday.rides;
-    document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
-    activeRideId = null; activeRideData = null;
+    const eRef=ref(db,`drivers/${cu.uid}/earnings`);
+    const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
+    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
+    statsToday.rides++; statsToday.earned+=fare;
+    document.getElementById('stat-rides').textContent=statsToday.rides;
+    document.getElementById('stat-earn').textContent='R'+statsToday.earned.toFixed(0);
+    activeRideId=null; activeRideData=null;
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
+    document.getElementById('reqLabel').style.display='';
+    document.getElementById('rideReqList').style.display='';
     if (isNavigating) stopNavigation();
-    // Remove route from map
-    if (driverMap.getLayer(ROUTE_LAYER_BG)) driverMap.removeLayer(ROUTE_LAYER_BG);
-    if (driverMap.getLayer(ROUTE_LAYER)) driverMap.removeLayer(ROUTE_LAYER);
-    if (driverMap.getSource(ROUTE_SOURCE)) driverMap.removeSource(ROUTE_SOURCE);
-    if (destMarker) { destMarker.remove(); destMarker = null; }
-    navRouteCoords = [];
+    // Clean up route from map
+    [ROUTE_LBG,ROUTE_L].forEach(l => { if(driverMap.getLayer(l))driverMap.removeLayer(l); });
+    if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+    if (destMarker){destMarker.remove();destMarker=null;}
+    navRouteCoords=[];
     loadTripHistory(); loadTodayStats();
     showToast('✓ Ride completed! +R'+fare.toFixed(2));
-  } catch(e) { showToast('Error completing ride'); console.error(e); }
+  } catch(e){showToast('Error completing ride');}
 };
 
-// ── STATS & HISTORY ──
+// ─── STATS ────────────────────────────────────────────────────
 async function loadTodayStats() {
-  if (!cu || cu.uid === 'demo_driver') return;
+  if (!cu||cu.uid==='demo_driver') return;
   try {
-    const snap = await get(ref(db,`drivers/${cu.uid}/earnings`)); const d = snap.val()||{total:0,trips:0};
-    document.getElementById('totalEarnings').textContent = `R ${d.total.toFixed(2)}`;
-    document.getElementById('totalTrips').textContent = d.trips;
-    document.getElementById('avgFare').textContent = d.trips ? 'R'+(d.total/d.trips).toFixed(0) : 'R0';
-    document.getElementById('todayEarnings').textContent = 'R'+statsToday.earned.toFixed(0);
-  } catch(e) {}
+    const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
+    document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
+    document.getElementById('totalTrips').textContent=d.trips;
+    document.getElementById('avgFare').textContent=d.trips?'R'+(d.total/d.trips).toFixed(0):'R0';
+    document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
+  } catch(e){}
 }
+function updateHoursOnline() {
+  if (!onlineStartTime) return;
+  const hrs=((Date.now()-onlineStartTime)/3600000).toFixed(1);
+  const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
+}
+
+// ─── TRIP HISTORY (active + canceled, tabs) ───────────────────
+let allTrips = [], allCanceled = [];
 function loadTripHistory() {
-  if (!cu || cu.uid === 'demo_driver') return;
+  if (!cu||cu.uid==='demo_driver') return;
+  // Load completed trips
   onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
-    const list = Object.values(snap.val()||{}).reverse();
-    const hCount = document.getElementById('historyCount');
-    if (hCount) hCount.textContent = list.length+' trip'+(list.length!==1?'s':'')+' completed';
-    const card = t => `
-      <div class="trip-card">
-        <div style="flex:1;min-width:0">
-          <div class="tc-type">${t.rideType||'VynixGo'}</div>
-          <div class="tc-rider">👤 ${t.riderName||'Rider'}</div>
-          <div class="tc-route">📍 ${(t.pickup||'—').substring(0,28)} → ${(t.destination||'—').substring(0,28)}</div>
-          <div class="tc-date">${t.date?new Date(t.date).toLocaleString('en-ZA',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
-          <span class="tc-badge">✓ Completed</span>
-        </div>
-        <div style="text-align:right;flex-shrink:0;padding-left:10px">
-          <div class="tc-fare">+R ${parseFloat(t.fare||0).toFixed(2)}</div>
-          ${t.distKm?`<div class="tc-km">${parseFloat(t.distKm).toFixed(1)} km</div>`:''}
-        </div>
-      </div>`;
-    document.getElementById('earningsTripList').innerHTML = list.length
-      ? list.slice(0,5).map(card).join('')
-      : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div>';
-    document.getElementById('historyList').innerHTML = list.length
-      ? list.map(card).join('')
-      : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">🗂️ No trips yet.</div>';
+    allTrips = Object.values(snap.val()||{}).reverse();
+    // Load canceled rides too
+    get(ref(db,`drivers/${cu.uid}/canceled_rides`)).then(csnap => {
+      allCanceled = Object.values(csnap.val()||{}).reverse();
+      renderHistoryLists();
+    });
     loadTodayStats();
   });
 }
+function renderHistoryLists() {
+  const total = allTrips.length + allCanceled.length;
+  const hCount=document.getElementById('historyCount');
+  if(hCount) hCount.textContent=`${allTrips.length} completed · ${allCanceled.length} canceled`;
 
-// ── VEHICLE ──
+  const tripCard = (t, isCanceled=false) => `
+    <div class="trip-card">
+      <div style="flex:1;min-width:0">
+        <div class="tc-type">${t.rideType||'VynixGo'}</div>
+        <div class="tc-rider">👤 ${t.riderName||'Rider'}</div>
+        <div class="tc-route">📍 ${(t.pickup||'—').substring(0,26)} → ${(t.destination||'—').substring(0,26)}</div>
+        <div class="tc-date">${(t.date||t.canceledAt)?new Date(t.date||t.canceledAt).toLocaleString('en-ZA',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+        ${isCanceled ? `<span class="tc-badge canceled">✕ Canceled · ${t.cancelReason||''}</span>` : `<span class="tc-badge">✓ Completed</span>`}
+      </div>
+      <div style="text-align:right;flex-shrink:0;padding-left:10px">
+        ${isCanceled
+          ? `<div class="tc-fare canceled" style="font-size:14px">Canceled</div>`
+          : `<div class="tc-fare">+R ${parseFloat(t.fare||0).toFixed(2)}</div>${t.distKm?`<div class="tc-km">${parseFloat(t.distKm).toFixed(1)} km</div>`:''}`
+        }
+      </div>
+    </div>`;
+
+  // All trips tab: completed only (no canceled mixed in)
+  document.getElementById('historyList').innerHTML = allTrips.length
+    ? allTrips.map(t=>tripCard(t,false)).join('')
+    : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">🗂️ No completed trips yet.</div>';
+
+  // Canceled tab
+  document.getElementById('canceledList').innerHTML = allCanceled.length
+    ? allCanceled.map(t=>tripCard(t,true)).join('')
+    : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">No canceled rides. 👍</div>';
+
+  // Earnings page: recent 5 completed
+  document.getElementById('earningsTripList').innerHTML = allTrips.length
+    ? allTrips.slice(0,5).map(t=>tripCard(t,false)).join('')
+    : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">💰 No completed trips yet.</div>';
+}
+
+window.showHistoryTab = function(tab) {
+  currentHistoryTab = tab;
+  document.getElementById('historyList').style.display = tab==='all' ? '' : 'none';
+  document.getElementById('canceledList').style.display = tab==='canceled' ? '' : 'none';
+  const allBtn=document.getElementById('tab-all'), cancelBtn=document.getElementById('tab-canceled');
+  if (tab==='all') {
+    allBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--blue);background:rgba(26,59,255,.08);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif';
+    cancelBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif';
+  } else {
+    cancelBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--red);background:rgba(239,68,68,.08);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif';
+    allBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif';
+  }
+};
+
+// ─── VEHICLE ──────────────────────────────────────────────────
 function loadVehicleInfo() {
-  if (!cu || cu.uid === 'demo_driver') return;
+  if (!cu||cu.uid==='demo_driver') return;
   get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap => {
-    const v = snap.val();
+    const v=snap.val();
     if (v) {
-      document.getElementById('vehicleSummary').textContent = `${v.car} · ${v.plate} · ${v.type}`;
-      document.getElementById('v-car').value = v.car||'';
-      document.getElementById('v-plate').value = v.plate||'';
-      document.getElementById('v-type').value = v.type||'VynixGo';
-    } else {
-      setTimeout(() => document.getElementById('vehicleModal').classList.add('show'), 700);
-    }
+      document.getElementById('vehicleSummary').textContent=`${v.car} · ${v.plate} · ${v.type}`;
+      document.getElementById('v-car').value=v.car||'';
+      document.getElementById('v-plate').value=v.plate||'';
+      document.getElementById('v-type').value=v.type||'VynixGo';
+    } else { setTimeout(()=>document.getElementById('vehicleModal').classList.add('show'),700); }
   });
 }
-window.openVehicleModal = () => document.getElementById('vehicleModal').classList.add('show');
+window.openVehicleModal = ()=>document.getElementById('vehicleModal').classList.add('show');
 window.saveVehicle = async function() {
   if (!cu) return;
-  const car = document.getElementById('v-car').value.trim();
-  const plate = document.getElementById('v-plate').value.trim().toUpperCase();
-  const type = document.getElementById('v-type').value;
-  if (!car || !plate) { showToast('Please fill in all vehicle details'); return; }
-  if (cu.uid !== 'demo_driver') await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
-  document.getElementById('vehicleSummary').textContent = `${car} · ${plate} · ${type}`;
+  const car=document.getElementById('v-car').value.trim();
+  const plate=document.getElementById('v-plate').value.trim().toUpperCase();
+  const type=document.getElementById('v-type').value;
+  if (!car||!plate){showToast('Please fill in all vehicle details');return;}
+  if (cu.uid!=='demo_driver') await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
+  document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
   document.getElementById('vehicleModal').classList.remove('show');
   showToast('Vehicle details saved');
 };
 
-// ── PAGE NAV ──
-const PAGES = ['map','earnings','history','account'];
+// ─── PAGE NAV ─────────────────────────────────────────────────
+const PAGES=['map','earnings','history','account'];
 window.switchPage = function(name) {
   PAGES.forEach(p => {
-    const pg = document.getElementById(p==='map'?'page-map':`page-${p}`); if(!pg) return;
-    pg.classList.toggle('show', p===name);
-    const bn = document.getElementById(`bn-${p}`); if(bn) bn.classList.toggle('act', p===name);
-    const snl = document.querySelector(`.snl[data-page="${p}"]`); if(snl) snl.classList.toggle('act', p===name);
+    const pg=document.getElementById(p==='map'?'page-map':`page-${p}`); if(!pg) return;
+    pg.classList.toggle('show',p===name);
+    const bn=document.getElementById(`bn-${p}`); if(bn) bn.classList.toggle('act',p===name);
   });
-  if (name === 'map') setTimeout(() => driverMap?.resize(), 60);
+  if (name==='map') setTimeout(()=>driverMap?.resize(),60);
 };
 
-// ── TOAST ──
+// ─── TOAST ────────────────────────────────────────────────────
 window.showToast = function(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3200);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
 };
 </script>
 </body>
