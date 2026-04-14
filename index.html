@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+
 <style>
 :root {
   --ink: #0F172A;
@@ -23,8 +24,9 @@
   --orange: #F59E0B;
   --glow: rgba(26,59,255,.2);
   --nav-h: 64px;
-  --panel-expanded: 450px;
-  --panel-collapsed: 74px;
+  --panel-w: 340px; /* Desktop panel width */
+  --panel-collapsed-mobile: 74px;
+  --panel-expanded-mobile: 420px;
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:var(--ink); }
@@ -36,10 +38,10 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 @keyframes sp { to { transform:rotate(360deg); } }
 
 /* ── SHELL ── */
-.shell { display:flex; height:100dvh; width:100vw; overflow:hidden; opacity: 0; transition: opacity 0.4s; }
-.shell.ready { opacity: 1; }
+.shell { display:flex; height:100dvh; width:100vw; overflow:hidden; opacity:0; transition:opacity .4s; }
+.shell.ready { opacity:1; }
 
-/* ── SIDEBAR ── */
+/* ── SIDEBAR (desktop only) ── */
 .sidebar { display:none; width:74px; background:var(--card); border-right:1px solid var(--border); flex-direction:column; padding:22px 11px; z-index:60; flex-shrink:0; transition:width .28s cubic-bezier(.4,0,.2,1),padding .28s; overflow:hidden; white-space:nowrap; }
 @media(min-width:900px){ .sidebar { display:flex; } }
 .sidebar:hover { width:252px; padding:22px 17px; box-shadow:4px 0 24px rgba(0,0,0,.08); }
@@ -94,74 +96,67 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .ot-lbl { font-size:11px; font-weight:700; color:var(--muted); }
 .online-toggle.on .ot-lbl { color:var(--green2); }
 
-/* ── MAP PAGE (REDESIGNED FOR BOTTOM SHEET UX) ── */
-.map-page { flex:1; display:none; flex-direction:column; position:relative; overflow:hidden; min-height:0; }
+/* ══════════════════════════════════════════════
+   MAP PAGE LAYOUT — KEY FIX: Navigation Mode
+══════════════════════════════════════════════ */
+.map-page { flex:1; display:none; position:relative; overflow:hidden; min-height:0; }
 .map-page.show { display:flex; }
 
-/* Desktop Map Page behaves normally side-by-side */
-@media(min-width:900px){ 
-  .map-page { flex-direction:row; } 
-  .map-wrap { position:relative !important; bottom:0 !important; }
+/* ── DEFAULT layout: panel on the left (desktop), map takes remaining space ── */
+@media(min-width:900px){
+  .map-page { flex-direction:row; }
+  /* Map fills everything EXCEPT the panel */
+  .map-wrap { position:relative !important; width:auto !important; height:auto !important; flex:1; }
 }
 
-.map-wrap { 
-  flex:1; position:absolute; inset:0; 
-  /* Leaves space for the collapsed panel on mobile so map controls stay visible */
-  bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--panel-collapsed)); 
-  overflow:hidden; min-height:0; min-width:0; 
-}
-#driverMap { position:absolute; inset:0; width:100%; height:100%; cursor: pointer; }
-
-/* CUSTOM DRIVER MARKER HALO */
-.driver-marker-halo {
-  width: 50px; height: 50px;
-  background: rgba(26,59,255,0.15);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  animation: pulse-halo 2.5s infinite;
-}
-.driver-marker-core {
-  width: 18px; height: 18px;
-  background: #1A3BFF;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-}
-@keyframes pulse-halo {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(1.6); opacity: 0; }
-}
-
-
-/* ── DRIVER PANEL ── */
-.driver-panel { 
-  background:var(--card); flex-shrink:0; display:flex; flex-direction:column; overflow:hidden; 
-  border-top:1px solid var(--border); border-radius:24px 24px 0 0; 
-  box-shadow:0 -6px 24px rgba(0,0,0,.08); 
-}
-
-/* Mobile Bottom Sheet Config */
+/* ── Mobile: absolute map behind sheet ── */
 @media(max-width:899px){
-  .driver-panel { 
-    position:absolute; left:0; right:0; 
-    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px)); 
-    height:var(--panel-expanded); 
-    z-index:50; 
-    transition:transform .38s cubic-bezier(.175, .885, .32, 1); 
+  .map-wrap {
+    position:absolute; inset:0;
+    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--panel-collapsed-mobile));
+    transition:bottom .38s cubic-bezier(.175,.885,.32,1);
   }
-  .driver-panel.collapsed { 
-    transform:translateY(calc(var(--panel-expanded) - var(--panel-collapsed))); 
+  /* When navigating on mobile: map takes 80%, hide the bottom sheet partially */
+  .map-wrap.nav-active {
+    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
   }
 }
 
-/* Desktop Sidebar Config */
-@media(min-width:900px){ 
-  .driver-panel { 
-    position:relative; width:356px; height:100%; 
-    border-top:none; border-right:1px solid var(--border); 
-    border-radius:0; box-shadow:none; order:-1; 
-    transform:none !important; 
-  } 
+#driverMap { position:absolute; inset:0; width:100%; height:100%; }
+
+/* Driver marker */
+.driver-marker-halo { width:50px; height:50px; background:rgba(26,59,255,.15); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse-halo 2.5s infinite; }
+.driver-marker-core { width:18px; height:18px; background:#1A3BFF; border:3px solid #fff; border-radius:50%; box-shadow:0 3px 10px rgba(0,0,0,.3); }
+@keyframes pulse-halo { 0%{transform:scale(.8);opacity:1} 100%{transform:scale(1.6);opacity:0} }
+
+/* ══════════════════════════════════════════════
+   DRIVER PANEL
+══════════════════════════════════════════════ */
+.driver-panel {
+  background:var(--card); flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;
+  border-top:1px solid var(--border); border-radius:24px 24px 0 0;
+  box-shadow:0 -6px 24px rgba(0,0,0,.08);
+}
+@media(max-width:899px){
+  .driver-panel {
+    position:absolute; left:0; right:0;
+    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
+    height:var(--panel-expanded-mobile);
+    z-index:50;
+    transition:transform .38s cubic-bezier(.175,.885,.32,1);
+  }
+  .driver-panel.collapsed { transform:translateY(calc(var(--panel-expanded-mobile) - var(--panel-collapsed-mobile))); }
+  /* When nav is active on mobile, collapse the panel to a minimal strip */
+  .driver-panel.nav-mode { transform:translateY(calc(var(--panel-expanded-mobile) - 54px)); }
+}
+@media(min-width:900px){
+  .driver-panel {
+    position:relative; width:var(--panel-w); height:100%;
+    border-top:none; border-right:1px solid var(--border);
+    border-radius:0; box-shadow:none; order:-1;
+    transform:none !important;
+    flex-shrink:0;
+  }
 }
 
 .panel-handle { display:flex; align-items:center; justify-content:center; padding:10px 16px 8px; flex-shrink:0; cursor:pointer; position:relative; touch-action:manipulation; }
@@ -171,7 +166,8 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 .panel-collapsed-row { display:none; align-items:center; justify-content:space-between; padding:0 18px 12px; flex-shrink:0; }
 .driver-panel.collapsed .panel-collapsed-row { display:flex; }
-@media(min-width:900px) { .panel-collapsed-row { display:none !important; } }
+.driver-panel.nav-mode .panel-collapsed-row { display:flex; }
+@media(min-width:900px){ .panel-collapsed-row { display:none !important; } }
 
 .pcr-info { display:flex; align-items:center; gap:8px; }
 .pcr-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
@@ -179,9 +175,10 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .pcr-label { font-size:14px; font-weight:800; color:var(--ink); }
 
 .driver-panel.collapsed .panel-scroll { opacity:0; pointer-events:none; }
-@media(min-width:900px) { .driver-panel.collapsed .panel-scroll { opacity:1; pointer-events:all; } }
+.driver-panel.nav-mode .panel-scroll { opacity:0; pointer-events:none; }
+@media(min-width:900px){ .driver-panel.collapsed .panel-scroll, .driver-panel.nav-mode .panel-scroll { opacity:1; pointer-events:all; } }
 
-.panel-scroll { flex:1; overflow-y:auto; padding:10px 18px 18px; display:flex; flex-direction:column; gap:13px; -webkit-overflow-scrolling:touch; min-height:0; transition:opacity 0.2s; }
+.panel-scroll { flex:1; overflow-y:auto; padding:10px 18px 18px; display:flex; flex-direction:column; gap:13px; -webkit-overflow-scrolling:touch; min-height:0; transition:opacity .2s; }
 .panel-scroll::-webkit-scrollbar { width:3px; }
 .panel-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
@@ -204,9 +201,9 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 /* ── RIDE REQUEST CARDS ── */
 .req-section-lbl { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; flex-shrink:0; margin-top:8px; }
-.ride-req-list { display:flex; flex-direction:column; gap:10px; padding-bottom: 20px;}
-.no-rides { text-align:center; padding:24px 12px; color:var(--muted); font-size:13px; font-weight:600; background: var(--card2); border-radius: 12px; border: 1px dashed var(--border);}
-.no-rides-ico { font-size:28px; margin-bottom:8px; opacity:0.6;}
+.ride-req-list { display:flex; flex-direction:column; gap:10px; padding-bottom:20px; }
+.no-rides { text-align:center; padding:24px 12px; color:var(--muted); font-size:13px; font-weight:600; background:var(--card2); border-radius:12px; border:1px dashed var(--border); }
+.no-rides-ico { font-size:28px; margin-bottom:8px; opacity:.6; }
 .req-card { background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:14px; transition:border-color .18s; animation:slideIn .25s cubic-bezier(.4,0,.2,1); }
 @keyframes slideIn { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
 .req-card:hover { border-color:rgba(26,59,255,.25); }
@@ -236,9 +233,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .btn-accept { flex:2; padding:12px; border-radius:10px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; box-shadow:0 3px 12px var(--glow); touch-action:manipulation; }
 .btn-accept:active { opacity:.88; transform:scale(0.98); }
 
-/* ══════════════════════════════════════════════
-   ACTIVE RIDE CARD
-══════════════════════════════════════════════ */
+/* ── ACTIVE RIDE CARD ── */
 .active-ride-card { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1.5px solid rgba(26,59,255,.22); border-radius:14px; padding:16px; display:none; flex-direction:column; gap:12px; flex-shrink:0; }
 .active-ride-card.show { display:flex; }
 .ar-header { display:flex; justify-content:space-between; align-items:center; }
@@ -274,255 +269,177 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .btn-complete:active { opacity:.88; }
 .btn-cancel-active { padding:13px 15px; border-radius:10px; background:rgba(239,68,68,.07); border:1.5px solid rgba(239,68,68,.2); color:var(--red); font-size:12px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; touch-action:manipulation; transition:.14s; }
 .btn-cancel-active:active { background:rgba(239,68,68,.13); }
-
-/* ── RIDE STATE PHASES ── */
 .ride-phase { display:none; }
 .ride-phase.active { display:flex; gap:8px; flex-wrap:wrap; }
 
 /* ══════════════════════════════════════════════
-   NAVIGATION OVERLAY
+   NAVIGATION HUD — Uber-style overlay
+   On desktop: floating panel top-right of map
+   On mobile: compact bar at top, map = 80% height
 ══════════════════════════════════════════════ */
-.nav-overlay {
-  position:absolute; inset:0; z-index:200; pointer-events:none;
-  display:flex; flex-direction:column; justify-content:flex-end;
-}
-.nav-overlay.show { pointer-events:all; }
 
-/* Floating turn panel */
-.nav-panel {
+/* The nav HUD sits INSIDE .map-wrap */
+.nav-hud {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  z-index:100; pointer-events:none;
+  display:none;
+}
+.nav-hud.show { display:block; pointer-events:all; }
+
+/* ── Top instruction strip (always visible when navigating) ── */
+.nav-instruction-bar {
   position:absolute; top:12px; left:12px; right:12px;
-  background:rgba(255,255,255,.97); backdrop-filter:blur(14px);
-  border-radius:18px; box-shadow:0 8px 32px rgba(0,0,0,.2);
-  border:1px solid var(--border);
-  transform:translateY(-110%); transition:transform .38s cubic-bezier(.4,0,.2,1);
-  overflow:hidden; max-height:72vh; display:flex; flex-direction:column;
+  background:rgba(15,23,42,.92); backdrop-filter:blur(12px);
+  border-radius:16px; padding:14px 16px;
+  display:flex; align-items:center; gap:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  pointer-events:all;
+  z-index:10;
 }
-.nav-panel.show { transform:translateY(0); }
-
-.nav-header {
-  display:flex; align-items:center; gap:12px; padding:16px 16px 12px;
-  border-bottom:1px solid var(--border); flex-shrink:0;
-}
-.nav-header-icon {
-  width:40px; height:40px; border-radius:12px;
-  background:linear-gradient(135deg,#7C3AED,#4F46E5);
-  display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
-.nav-title { font-size:15px; font-weight:800; color:var(--ink); }
-.nav-subtitle { font-size:12px; font-weight:500; color:var(--muted); margin-top:2px; }
-.nav-close-btn {
-  margin-left:auto; width:32px; height:32px; border-radius:50%;
-  background:var(--bg); border:none; cursor:pointer;
+.nav-maneuver-box {
+  width:48px; height:48px; border-radius:13px;
+  background:linear-gradient(135deg,#4F46E5,#7C3AED);
   display:flex; align-items:center; justify-content:center;
-  color:var(--muted); transition:.14s; flex-shrink:0;
+  font-size:24px; flex-shrink:0;
 }
-.nav-close-btn:hover { background:var(--border); }
+.nav-inst-text { flex:1; min-width:0; }
+.nav-dist-lbl { font-size:11px; font-weight:800; color:#94A3B8; letter-spacing:.06em; text-transform:uppercase; }
+.nav-inst-main { font-size:16px; font-weight:900; color:#fff; margin-top:3px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-close-x {
+  width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.12);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:#fff; flex-shrink:0; transition:.14s;
+}
+.nav-close-x:hover { background:rgba(255,255,255,.22); }
 
-/* Current step hero */
-.nav-step-hero { padding:16px 16px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.nav-maneuver { display:flex; align-items:center; gap:12px; }
-.nav-maneuver-icon { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,#4F46E5,#7C3AED); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
-.nav-step-dist { font-size:12px; font-weight:800; color:var(--blue2); letter-spacing:.04em; text-transform:uppercase; }
-.nav-step-inst { font-size:17px; font-weight:900; color:var(--ink); margin-top:2px; line-height:1.3; }
+/* ── Side steps panel (desktop: anchored right; mobile: bottom drawer) ── */
+.nav-steps-panel {
+  position:absolute; pointer-events:all;
+}
+/* Desktop layout: right side bar */
+@media(min-width:900px){
+  .nav-steps-panel {
+    top:80px; right:12px; bottom:12px; width:300px;
+    background:rgba(255,255,255,.97); backdrop-filter:blur(14px);
+    border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,.18);
+    border:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+}
+/* Mobile layout: bottom sheet sitting at 20% from bottom */
+@media(max-width:899px){
+  .nav-steps-panel {
+    left:0; right:0; bottom:0;
+    height:22vh; /* ~20% of viewport */
+    background:rgba(255,255,255,.97); backdrop-filter:blur(14px);
+    border-radius:20px 20px 0 0;
+    box-shadow:0 -6px 24px rgba(0,0,0,.18);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+}
 
-/* Steps list */
-.nav-steps-list { flex:1; overflow-y:auto; padding:8px 0; }
-.nav-steps-list::-webkit-scrollbar { width:4px; }
-.nav-steps-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px;}
-.nav-step-row { display:flex; align-items:flex-start; gap:12px; padding:10px 16px; border-bottom:1px solid rgba(0,0,0,.04); transition:.12s; }
+.nav-steps-header {
+  padding:14px 16px 10px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.nav-steps-title { font-size:13px; font-weight:800; color:var(--ink); }
+.nav-eta-chips { display:flex; gap:8px; }
+.nav-eta-chip { font-size:11px; font-weight:700; color:var(--muted); background:var(--bg); padding:3px 10px; border-radius:10px; }
+.nav-eta-chip.highlight { background:rgba(26,59,255,.1); color:var(--blue); }
+
+.nav-steps-scroll { flex:1; overflow-y:auto; }
+.nav-steps-scroll::-webkit-scrollbar { width:3px; }
+.nav-steps-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.nav-step-row { display:flex; align-items:flex-start; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(0,0,0,.04); }
 .nav-step-row:last-child { border:none; }
-.nav-step-row.current-step { background:rgba(79,70,229,.06); }
+.nav-step-row.current-step { background:rgba(79,70,229,.07); }
 .nav-step-num { width:22px; height:22px; border-radius:50%; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--muted); flex-shrink:0; margin-top:1px; }
 .nav-step-num.done { background:var(--green); color:#fff; }
-.nav-step-num.current { background:var(--blue); color:#fff; }
-.nav-step-text { font-size:13px; color:var(--ink); font-weight:600; line-height:1.35; flex:1; }
-.nav-step-d { font-size:11px; color:var(--muted); font-weight:600; margin-top:3px; }
+.nav-step-num.cur { background:var(--blue); color:#fff; }
+.nav-step-body { flex:1; min-width:0; }
+.nav-step-text { font-size:12px; font-weight:700; color:var(--ink); line-height:1.35; }
+.nav-step-d { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
 
-/* ETA bar */
-.nav-eta-bar { display:flex; gap:0; border-top:1px solid var(--border); flex-shrink:0; }
-.nav-eta-cell { flex:1; padding:12px 14px; text-align:center; border-right:1px solid var(--border); }
-.nav-eta-cell:last-child { border:none; }
-.nav-eta-lbl { font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-.nav-eta-val { font-size:16px; font-weight:900; color:var(--ink); margin-top:2px; }
-
-/* Recenter btn */
-.nav-recenter {
-  position:absolute; bottom:20px; right:20px;
-  width:46px; height:46px; border-radius:50%;
-  background:#fff; border:1px solid var(--border);
-  box-shadow:0 4px 16px rgba(0,0,0,.15);
-  cursor:pointer; display:none; align-items:center; justify-content:center;
-  color:var(--blue); font-size:20px; transition:.14s; z-index:100;
+/* Map controls */
+.map-controls {
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:8px; z-index:5;
+  pointer-events:all;
 }
-.nav-recenter:hover { background:var(--bg); transform:scale(1.05); }
-.nav-overlay.show .nav-recenter { display:flex; }
-
-/* ══════════════════════════════════════════════
-   PIN CONFIRMATION OVERLAY
-══════════════════════════════════════════════ */
-.pin-overlay {
-  position:fixed; inset:0; z-index:600;
-  background:rgba(0,0,0,.65); backdrop-filter:blur(8px);
-  display:none; align-items:center; justify-content:center; padding:20px;
+.map-ctrl-btn {
+  width:42px; height:42px; border-radius:50%; background:#fff;
+  border:1px solid var(--border); box-shadow:0 3px 12px rgba(0,0,0,.12);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:var(--ink); font-size:18px; transition:.14s;
 }
+.map-ctrl-btn:hover { background:var(--bg); transform:scale(1.05); }
+
+/* ── PIN Overlay ── */
+.pin-overlay { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.65); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
 .pin-overlay.show { display:flex; }
-.pin-card {
-  background:#fff; border-radius:24px; padding:28px 24px 24px;
-  width:100%; max-width:340px; text-align:center;
-  animation:pinPop .32s cubic-bezier(.175,.885,.32,1.275);
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
-}
+.pin-card { background:#fff; border-radius:24px; padding:28px 24px 24px; width:100%; max-width:340px; text-align:center; animation:pinPop .32s cubic-bezier(.175,.885,.32,1.275); box-shadow:0 20px 60px rgba(0,0,0,.25); }
 @keyframes pinPop { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
 .pin-icon { font-size:40px; margin-bottom:12px; }
 .pin-title { font-size:20px; font-weight:900; color:var(--ink); letter-spacing:-.4px; margin-bottom:6px; }
-.pin-subtitle { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; font-weight:500;}
+.pin-subtitle { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5; font-weight:500; }
 .pin-display { display:flex; gap:10px; justify-content:center; margin-bottom:22px; }
-.pin-digit {
-  width:52px; height:64px; border-radius:14px;
-  background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
-  border:2px solid rgba(26,59,255,.2);
-  display:flex; align-items:center; justify-content:center;
-  font-size:32px; font-weight:900; color:var(--blue);
-  font-family:'Outfit',sans-serif; letter-spacing:0;
-}
+.pin-digit { width:52px; height:64px; border-radius:14px; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:2px solid rgba(26,59,255,.2); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; color:var(--blue); font-family:'Outfit',sans-serif; }
 .pin-input-row { display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
-.pin-input-digit {
-  width:52px; height:56px; border-radius:12px;
-  border:2px solid var(--border); background:var(--card2);
-  font-size:24px; font-weight:800; text-align:center;
-  font-family:'Outfit',sans-serif; color:var(--ink); outline:none;
-  transition:.18s;
-}
+.pin-input-digit { width:52px; height:56px; border-radius:12px; border:2px solid var(--border); background:var(--card2); font-size:24px; font-weight:800; text-align:center; font-family:'Outfit',sans-serif; color:var(--ink); outline:none; transition:.18s; }
 .pin-input-digit:focus { border-color:var(--blue); background:#fff; }
-.pin-verify-btn {
-  width:100%; padding:14px; border-radius:13px; border:none;
-  background:linear-gradient(130deg,var(--blue2),var(--blue));
-  color:#fff; font-size:15px; font-weight:800; cursor:pointer;
-  font-family:'Outfit',sans-serif; box-shadow:0 4px 16px var(--glow); transition:.14s; margin-bottom:10px;
-}
+.pin-verify-btn { width:100%; padding:14px; border-radius:13px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; font-size:15px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 16px var(--glow); transition:.14s; margin-bottom:10px; }
 .pin-verify-btn:active { opacity:.88; }
 .pin-error { font-size:12px; color:var(--red); font-weight:700; display:none; margin-top:4px; }
 .pin-arrived-note { font-size:11px; font-weight:500; color:var(--muted); line-height:1.5; }
-/* "Show PIN" driver side card */
-.arrived-pin-card {
-  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
-  border:1.5px solid rgba(245,158,11,.3); border-radius:12px; padding:14px;
-  display:none; flex-direction:column; align-items:center; gap:8px;
-  text-align:center;
-}
+.arrived-pin-card { background:linear-gradient(135deg,#FFF7ED,#FFEDD5); border:1.5px solid rgba(245,158,11,.3); border-radius:12px; padding:14px; display:none; flex-direction:column; align-items:center; gap:8px; text-align:center; }
 .arrived-pin-card.show { display:flex; }
 .apc-label { font-size:11px; font-weight:800; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; }
-.apc-pin { font-size:36px; font-weight:900; color:var(--ink); letter-spacing:8px; font-family:'Outfit',sans-serif; line-height: 1;}
+.apc-pin { font-size:36px; font-weight:900; color:var(--ink); letter-spacing:8px; font-family:'Outfit',sans-serif; line-height:1; }
 .apc-note { font-size:12px; font-weight:500; color:var(--muted); }
 
-/* ══════════════════════════════════════════════
-   CHAT PANEL
-══════════════════════════════════════════════ */
-.chat-sheet-bg {
-  position:fixed; inset:0; z-index:700;
-  background:rgba(0,0,0,.55); backdrop-filter:blur(6px);
-  display:none; align-items:flex-end; justify-content:center;
-}
+/* ── CHAT ── */
+.chat-sheet-bg { position:fixed; inset:0; z-index:700; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); display:none; align-items:flex-end; justify-content:center; }
 .chat-sheet-bg.show { display:flex; }
-.chat-sheet {
-  background:#fff; border-radius:22px 22px 0 0;
-  width:100%; max-width:520px; max-height:80vh;
-  display:flex; flex-direction:column;
-  animation:sheetUp .3s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 -4px 30px rgba(0,0,0,.15);
-}
-@media(min-width:900px){
-  .chat-sheet-bg { align-items:center; }
-  .chat-sheet { border-radius:18px; max-height:68vh; }
-}
+.chat-sheet { background:#fff; border-radius:22px 22px 0 0; width:100%; max-width:520px; max-height:80vh; display:flex; flex-direction:column; animation:sheetUp .3s cubic-bezier(.4,0,.2,1); box-shadow:0 -4px 30px rgba(0,0,0,.15); }
+@media(min-width:900px){ .chat-sheet-bg { align-items:center; } .chat-sheet { border-radius:18px; max-height:68vh; } }
 @keyframes sheetUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
-.chat-header {
-  display:flex; align-items:center; gap:12px; padding:16px 18px 14px;
-  border-bottom:1px solid var(--border); flex-shrink:0;
-}
+.chat-header { display:flex; align-items:center; gap:12px; padding:16px 18px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
 .chat-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; }
 .chat-rider-name { font-size:15px; font-weight:800; color:var(--ink); }
 .chat-status { font-size:12px; color:var(--green2); font-weight:700; margin-top:2px; }
 .chat-close { margin-left:auto; width:34px; height:34px; border-radius:50%; background:var(--bg); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted); }
-
 .chat-messages { flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:10px; -webkit-overflow-scrolling:touch; }
 .chat-messages::-webkit-scrollbar { width:4px; }
-.chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius: 4px; }
-
+.chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 .chat-msg { display:flex; flex-direction:column; gap:3px; max-width:80%; }
 .chat-msg.mine { align-self:flex-end; align-items:flex-end; }
 .chat-msg.theirs { align-self:flex-start; align-items:flex-start; }
-.chat-bubble {
-  padding:10px 14px; border-radius:18px; font-size:14px; font-weight:500;
-  line-height:1.4; word-break:break-word;
-}
-.chat-msg.mine .chat-bubble {
-  background:linear-gradient(135deg,var(--blue2),var(--blue));
-  color:#fff; border-bottom-right-radius:4px;
-}
-.chat-msg.theirs .chat-bubble {
-  background:var(--card2); border:1px solid var(--border);
-  color:var(--ink); border-bottom-left-radius:4px;
-}
+.chat-bubble { padding:10px 14px; border-radius:18px; font-size:14px; font-weight:500; line-height:1.4; word-break:break-word; }
+.chat-msg.mine .chat-bubble { background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; border-bottom-right-radius:4px; }
+.chat-msg.theirs .chat-bubble { background:var(--card2); border:1px solid var(--border); color:var(--ink); border-bottom-left-radius:4px; }
 .chat-meta { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--muted); font-weight:600; }
 .chat-read { color:var(--blue2); }
-
-/* Quick replies */
 .quick-replies { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:8px; overflow-x:auto; flex-shrink:0; -webkit-overflow-scrolling:touch; }
 .quick-replies::-webkit-scrollbar { display:none; }
-.qr-btn {
-  white-space:nowrap; padding:8px 14px; border-radius:20px;
-  background:rgba(26,59,255,.06); border:1px solid rgba(26,59,255,.18);
-  color:var(--blue); font-size:12px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.14s; flex-shrink:0;
-}
+.qr-btn { white-space:nowrap; padding:8px 14px; border-radius:20px; background:rgba(26,59,255,.06); border:1px solid rgba(26,59,255,.18); color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; flex-shrink:0; }
 .qr-btn:hover { background:rgba(26,59,255,.12); }
 .qr-btn:active { transform:scale(.96); }
-
-/* Input */
-.chat-input-row {
-  display:flex; gap:10px; padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px));
-  border-top:1px solid var(--border); flex-shrink:0; align-items:flex-end;
-}
-.chat-text-input {
-  flex:1; border:1.5px solid var(--border); border-radius:24px;
-  padding:10px 16px; font-family:'Outfit',sans-serif; font-size:14px;
-  color:var(--ink); background:var(--card2); outline:none; resize:none;
-  max-height:100px; line-height:1.4; transition:.18s;
-}
+.chat-input-row { display:flex; gap:10px; padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--border); flex-shrink:0; align-items:flex-end; }
+.chat-text-input { flex:1; border:1.5px solid var(--border); border-radius:24px; padding:10px 16px; font-family:'Outfit',sans-serif; font-size:14px; color:var(--ink); background:var(--card2); outline:none; resize:none; max-height:100px; line-height:1.4; transition:.18s; }
 .chat-text-input:focus { border-color:var(--blue2); background:#fff; }
-.chat-send-btn {
-  width:42px; height:42px; border-radius:50%; border:none;
-  background:linear-gradient(135deg,var(--blue2),var(--blue));
-  color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:.14s; box-shadow:0 3px 10px var(--glow); flex-shrink:0;
-}
+.chat-send-btn { width:42px; height:42px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.14s; box-shadow:0 3px 10px var(--glow); flex-shrink:0; }
 .chat-send-btn:active { transform:scale(.92); }
 
-/* ══════════════════════════════════════════════
-   CANCELLATION REASON MODAL
-══════════════════════════════════════════════ */
-.cancel-modal-bg {
-  position:fixed; inset:0; z-index:500;
-  background:rgba(0,0,0,.55); backdrop-filter:blur(6px);
-  display:none; align-items:flex-end; justify-content:center;
-}
+/* ── CANCEL MODAL ── */
+.cancel-modal-bg { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); display:none; align-items:flex-end; justify-content:center; }
 .cancel-modal-bg.show { display:flex; }
-.cancel-modal {
-  background:#fff; border-radius:24px 24px 0 0;
-  width:100%; max-width:480px; padding:20px 20px calc(28px + env(safe-area-inset-bottom,0px));
-  animation:sheetUp .28s cubic-bezier(.4,0,.2,1);
-}
+.cancel-modal { background:#fff; border-radius:24px 24px 0 0; width:100%; max-width:480px; padding:20px 20px calc(28px + env(safe-area-inset-bottom,0px)); animation:sheetUp .28s cubic-bezier(.4,0,.2,1); }
 @media(min-width:900px){ .cancel-modal-bg { align-items:center; } .cancel-modal { border-radius:20px; padding-bottom:28px; } }
 .cm-pill { width:40px; height:5px; background:var(--border); border-radius:5px; margin:0 auto 20px; }
 .cm-title { font-size:18px; font-weight:900; color:var(--ink); margin-bottom:6px; }
 .cm-sub { font-size:13px; font-weight:500; color:var(--muted); margin-bottom:18px; }
 .cm-reasons { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
-.cm-reason {
-  display:flex; align-items:center; gap:12px; padding:14px 16px;
-  border-radius:14px; border:1.5px solid var(--border); cursor:pointer;
-  transition:.14s; touch-action:manipulation;
-}
+.cm-reason { display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:.14s; touch-action:manipulation; }
 .cm-reason:hover { border-color:rgba(239,68,68,.3); background:rgba(239,68,68,.03); }
 .cm-reason.selected { border-color:var(--red); background:rgba(239,68,68,.06); }
 .cm-reason-icon { font-size:20px; flex-shrink:0; }
@@ -551,17 +468,17 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .eh-lbl { font-size:12px; color:rgba(255,255,255,.7); font-weight:600; margin-bottom:4px; }
 .eh-amount { font-size:40px; font-weight:900; color:#fff; letter-spacing:-.8px; margin-bottom:16px; position:relative; z-index:1; }
 .eh-stats { display:flex; gap:10px; position:relative; z-index:1; }
-.eh-stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:12px; padding:10px 14px; flex:1;}
+.eh-stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:12px; padding:10px 14px; flex:1; }
 .eh-stat-val { font-size:18px; font-weight:800; color:#fff; }
 .eh-stat-lbl { font-size:10px; color:rgba(255,255,255,.65); margin-top:2px; font-weight:700; text-transform:uppercase; }
 
-/* Trip history card */
+/* Trip cards */
 .trip-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; display:flex; justify-content:space-between; align-items:flex-start; transition:.14s; }
 .trip-card:hover { background:var(--card2); }
 .tc-type { font-size:14px; font-weight:800; color:var(--ink); }
 .tc-rider { font-size:12px; color:var(--blue); font-weight:700; margin-top:3px; }
 .tc-route { font-size:11px; font-weight:500; color:var(--muted); margin-top:4px; line-height:1.4; }
-.tc-date { font-size:11px; color:var(--muted); margin-top:6px; font-weight:500;}
+.tc-date { font-size:11px; color:var(--muted); margin-top:6px; font-weight:500; }
 .tc-badge { font-size:10px; font-weight:800; color:var(--green2); background:rgba(16,185,129,.1); padding:3px 9px; border-radius:8px; margin-top:6px; display:inline-block; }
 .tc-fare { font-size:16px; font-weight:900; color:var(--green2); flex-shrink:0; padding-left:10px; }
 .tc-km { font-size:11px; color:var(--muted); font-weight:600; text-align:right; margin-top:4px; }
@@ -573,7 +490,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .pc-name { font-size:18px; font-weight:900; color:var(--ink); }
 .pc-email { font-size:12px; font-weight:500; color:var(--muted); margin-top:2px; }
 .pc-tag { font-size:10px; font-weight:800; background:rgba(16,185,129,.12); color:var(--green2); padding:3px 9px; border-radius:8px; margin-top:8px; display:inline-block; text-transform:uppercase; letter-spacing:.05em; }
-
 .acc-group-title { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin:4px 0 6px 4px; flex-shrink:0; }
 .acc-group { background:var(--card); border-radius:16px; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
 .acc-row { display:flex; align-items:center; justify-content:space-between; padding:16px; border-bottom:1px solid var(--border); cursor:pointer; transition:.14s; touch-action:manipulation; }
@@ -595,11 +511,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .bni-dot { position:absolute; top:2px; right:10px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid #fff; display:none; }
 .bni-dot.show { display:block; }
 
-/* ── TOAST ── */
-.toast { position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,16px) + 16px); left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:.2s; z-index:1000; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 24px rgba(0,0,0,.2); }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-@media(min-width:900px){ .toast { bottom:30px; } }
-
 /* ── ACCEPT MODAL ── */
 .mbg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:600; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
 @media(min-width:900px){ .mbg { align-items:center; } }
@@ -620,22 +531,51 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .t-input::placeholder { color:var(--muted); font-weight:500; }
 .slabel { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:8px; display:block; }
 .input-wrap { margin-bottom:16px; }
-
-/* Vehicle modal */
 .vehicle-mbg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:600; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
 @media(min-width:900px){ .vehicle-mbg { align-items:center; } }
 .vehicle-mbg.show { display:flex; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,16px) + 16px); left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:.2s; z-index:1000; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 24px rgba(0,0,0,.2); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+@media(min-width:900px){ .toast { bottom:30px; } }
+
+/* ── NEW RIDE NOTIFICATION BANNER ── */
+.ride-notif-banner {
+  position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-120px);
+  background:var(--ink); color:#fff; border-radius:16px; padding:14px 20px;
+  display:flex; align-items:center; gap:12px; z-index:2000;
+  box-shadow:0 12px 40px rgba(0,0,0,.35); max-width:380px; width:calc(100% - 32px);
+  transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
+}
+.ride-notif-banner.show { transform:translateX(-50%) translateY(0); }
+.rnb-pulse { width:12px; height:12px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 1s infinite; }
+.rnb-text { flex:1; min-width:0; }
+.rnb-title { font-size:13px; font-weight:800; }
+.rnb-sub { font-size:11px; color:rgba(255,255,255,.7); margin-top:2px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rnb-btn { background:var(--green); color:#fff; border:none; border-radius:10px; padding:8px 14px; font-size:12px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; flex-shrink:0; }
 </style>
 </head>
 <body>
 
 <div class="init-loader" id="initLoader">
   <div class="loader-spinner"></div>
-  <div style="font-family:'Outfit',sans-serif; font-weight:900; color:var(--blue); font-size:20px;">VynixRide Driver</div>
+  <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:20px;">VynixRide Driver</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- Ride notification banner (sound + visual) -->
+<div class="ride-notif-banner" id="rideNotifBanner">
+  <div class="rnb-pulse"></div>
+  <div class="rnb-text">
+    <div class="rnb-title">🚗 New Ride Request!</div>
+    <div class="rnb-sub" id="rnbSub">Pickup nearby</div>
+  </div>
+  <button class="rnb-btn" onclick="switchPage('map');dismissNotifBanner()">View</button>
+</div>
+
+<!-- Accept Modal -->
 <div class="mbg" id="acceptModal" onclick="if(event.target===this) closeAcceptModal()">
   <div class="modal">
     <div class="mh">Confirm Ride Accept</div>
@@ -653,6 +593,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
+<!-- Vehicle Modal -->
 <div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this) this.classList.remove('show')">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
@@ -669,6 +610,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
+<!-- Cancel Reason Modal -->
 <div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this) closeCancelModal()">
   <div class="cancel-modal">
     <div class="cm-pill"></div>
@@ -689,6 +631,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
+<!-- Chat Sheet -->
 <div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this) closeChat()">
   <div class="chat-sheet">
     <div class="chat-header">
@@ -717,6 +660,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
+<!-- PIN Overlay -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-card">
     <div class="pin-icon">🔐</div>
@@ -778,50 +722,52 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
       </div>
     </div>
 
+    <!-- MAP PAGE -->
     <div class="map-page show" id="page-map">
+
+      <!-- MAP takes full flex:1 on desktop, absolute on mobile -->
       <div class="map-wrap" id="mapWrap">
         <div id="driverMap"></div>
 
-        <div class="nav-overlay" id="navOverlay">
-          <div class="nav-panel" id="navPanel">
-            <div class="nav-header">
-              <div class="nav-header-icon">
-                <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              </div>
-              <div>
-                <div class="nav-title">Turn-by-Turn Navigation</div>
-                <div class="nav-subtitle" id="navDestLabel">Loading route…</div>
-              </div>
-              <button class="nav-close-btn" onclick="stopNavigation()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
+        <!-- Navigation HUD (inside the map wrap) -->
+        <div class="nav-hud" id="navHud">
 
-            <div class="nav-step-hero" id="navStepHero">
-              <div class="nav-maneuver">
-                <div class="nav-maneuver-icon" id="navManeuverIcon">🔄</div>
-                <div>
-                  <div class="nav-step-dist" id="navStepDist">—</div>
-                  <div class="nav-step-inst" id="navStepInst">Calculating route…</div>
-                </div>
-              </div>
+          <!-- Top instruction bar -->
+          <div class="nav-instruction-bar" id="navInstructionBar">
+            <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
+            <div class="nav-inst-text">
+              <div class="nav-dist-lbl" id="navDistLbl">NEXT TURN</div>
+              <div class="nav-inst-main" id="navInstMain">Calculating route…</div>
             </div>
-
-            <div class="nav-steps-list" id="navStepsList"></div>
-
-            <div class="nav-eta-bar">
-              <div class="nav-eta-cell"><div class="nav-eta-lbl">ETA</div><div class="nav-eta-val" id="navETA">—</div></div>
-              <div class="nav-eta-cell"><div class="nav-eta-lbl">Distance</div><div class="nav-eta-val" id="navDist">—</div></div>
-              <div class="nav-eta-cell"><div class="nav-eta-lbl">Step</div><div class="nav-eta-val" id="navStepCount">—</div></div>
-            </div>
+            <button class="nav-close-x" onclick="stopNavigation()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
-          <button class="nav-recenter" id="navRecenter" onclick="recenterMap()" title="Recentre on driver">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-          </button>
+          <!-- Steps side panel -->
+          <div class="nav-steps-panel" id="navStepsPanel">
+            <div class="nav-steps-header">
+              <span class="nav-steps-title">Turn-by-Turn</span>
+              <div class="nav-eta-chips">
+                <span class="nav-eta-chip highlight" id="navETA">—</span>
+                <span class="nav-eta-chip" id="navDistTotal">—</span>
+              </div>
+            </div>
+            <div class="nav-steps-scroll" id="navStepsList"></div>
+          </div>
+
+          <!-- Map controls (recenter, zoom) -->
+          <div class="map-controls" id="mapControls">
+            <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center on driver">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+            </button>
+            <button class="map-ctrl-btn" onclick="driverMap.zoomIn()" title="Zoom in">+</button>
+            <button class="map-ctrl-btn" onclick="driverMap.zoomOut()" title="Zoom out">−</button>
+          </div>
         </div>
       </div>
 
+      <!-- DRIVER PANEL (left on desktop, bottom sheet on mobile) -->
       <div class="driver-panel collapsed" id="driverPanel">
         <div class="panel-handle" onclick="togglePanel()">
           <div class="panel-drag-bar"></div>
@@ -856,60 +802,48 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
               <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
               <div class="ar-fare-big" id="ar-fare">—</div>
             </div>
-
             <div class="ar-rider-row">
               <div class="ar-av" id="ar-av">?</div>
-              <div>
-                <div class="ar-name" id="ar-name">—</div>
-                <div class="ar-dest-txt" id="ar-dest">—</div>
-              </div>
+              <div><div class="ar-name" id="ar-name">—</div><div class="ar-dest-txt" id="ar-dest">—</div></div>
             </div>
-
             <div class="ar-cells">
               <div class="ar-cell"><div class="ar-cell-lbl">PIN</div><div class="ar-cell-val" id="ar-pin">—</div></div>
               <div class="ar-cell"><div class="ar-cell-lbl">Type</div><div class="ar-cell-val" id="ar-type" style="font-size:12px">—</div></div>
               <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
             </div>
-
             <div class="ar-route-box">
               <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt" style="font-size:12px;color:var(--muted)">—</span></div>
               <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt" style="font-size:12px;color:var(--muted)">—</span></div>
             </div>
-
             <div class="arrived-pin-card" id="arrivedPinCard">
               <div class="apc-label">🔐 Share this PIN with rider</div>
               <div class="apc-pin" id="arrivedPinDisplay">—</div>
               <div class="apc-note">Rider must confirm this in their app before the trip starts.</div>
             </div>
-
             <div class="ride-phase active" id="phase-pickup">
               <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-                Navigate
+                Navigate to Pickup
               </button>
               <button class="btn-chat-ar" onclick="openChat()">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Chat
-                <span class="chat-unread-badge" id="chatBadge1">0</span>
+                Chat<span class="chat-unread-badge" id="chatBadge1">0</span>
               </button>
               <button class="btn-arrived" onclick="driverArrived()" style="width:100%">📍 I've Arrived at Pickup</button>
               <button class="btn-cancel-active" onclick="openCancelActiveModal()" style="width:100%">Cancel Trip</button>
             </div>
-
             <div class="ride-phase" id="phase-pin">
               <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-                Navigate
+                Navigate to Dest
               </button>
               <button class="btn-chat-ar" onclick="openChat()">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Chat
-                <span class="chat-unread-badge" id="chatBadge2">0</span>
+                Chat<span class="chat-unread-badge" id="chatBadge2">0</span>
               </button>
               <button class="btn-complete" onclick="completeRide()" style="width:100%">✓ Complete Ride</button>
               <button class="btn-cancel-active" onclick="openCancelActiveModal()" style="width:100%">Cancel Trip</button>
             </div>
-
           </div>
 
           <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
@@ -920,6 +854,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
       </div>
     </div>
 
+    <!-- EARNINGS PAGE -->
     <div class="page" id="page-earnings">
       <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
       <div class="earn-hero">
@@ -932,14 +867,16 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
         </div>
       </div>
       <div class="section-title">Recent Trips</div>
-      <div id="earningsTripList"><div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div></div>
+      <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div></div>
     </div>
 
+    <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All rides you have completed</div></div>
-      <div id="historyList"><div class="empty"><div class="empty-ico">🗂️</div><p>No trips yet.</p></div></div>
+      <div id="historyList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">🗂️ No trips yet.</div></div>
     </div>
 
+    <!-- ACCOUNT PAGE -->
     <div class="page" id="page-account">
       <div><div class="ph">Account</div></div>
       <div class="prof-card">
@@ -969,7 +906,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
           <div class="ar-arrow" style="color:var(--red)">›</div>
         </div>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500;">VynixRide Driver v2.0 · South Africa 🇿🇦</div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500;">VynixRide Driver v2.1 · South Africa 🇿🇦</div>
     </div>
   </div>
 
@@ -1007,7 +944,7 @@ const app = initializeApp({
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// ── STATE ──────────────────────────────────────────────────────────────
+// ── STATE ──
 let cu = null;
 let isOnline = false;
 let activeRideId = null;
@@ -1019,30 +956,61 @@ let statsToday = { rides:0, earned:0 };
 let rideRequestsUnsub = null;
 let chatUnsub = null;
 let panelExpanded = false;
-let ridePhase = 'pickup'; // 'pickup' | 'riding'
-let cancelMode = null; // 'decline' | 'active'
+let ridePhase = 'pickup';
+let cancelMode = null;
 let pendingDeclineId = null;
-let selectedCancelReason = null;
 
-// ── NAV STATE ──────────────────────────────────────────────────────────
+// ── NAV STATE ──
 let navSteps = [];
 let navCurrentStep = 0;
-let navMode = null; // 'pickup' | 'destination'
+let navMode = null;
 let navRouteCoords = [];
 let driverLngLat = [28.9934, -24.1991];
+let isNavigating = false;
 
-// ── AUTH GUARD ─────────────────────────────────────────────────────────
+// ── MAP ──
+const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
+mapboxgl.accessToken = TK;
+let driverMap, driverMarker;
+const ROUTE_SOURCE = 'nav-route';
+const ROUTE_LAYER  = 'nav-route-layer';
+const ROUTE_LAYER_BG = 'nav-route-layer-bg';
+let destMarker = null;
+let mapInteracting = false; // tracks if user is manually panning
+
+// ── SOUND ENGINE (Web Audio API — no external files needed) ──
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playNotificationSound() {
+  // Three-tone ascending chime like ride-hailing apps
+  const times = [0, 0.18, 0.36];
+  const freqs = [880, 1100, 1320];
+  times.forEach((t, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freqs[i], audioCtx.currentTime + t);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
+    gain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + t + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.28);
+    osc.start(audioCtx.currentTime + t);
+    osc.stop(audioCtx.currentTime + t + 0.3);
+  });
+}
+
+function resumeAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
+document.addEventListener('click', resumeAudio, { once: true });
+document.addEventListener('touchstart', resumeAudio, { once: true });
+
+// ── AUTH GUARD ──
 onAuthStateChanged(auth, user => {
   const isDemo = localStorage.getItem('vynix_demo') === 'true';
-
   if (user) {
-    // Regular logged in user
     initAppWithUser(user);
   } else if (isDemo) {
-    // Demo Mode logic
-    initAppWithUser({ uid: "demo_driver", displayName: "Demo Driver", email: "demo@vynixride.com" });
+    initAppWithUser({ uid:"demo_driver", displayName:"Demo Driver", email:"demo@vynixride.com" });
   } else {
-    // Not authenticated, send back to login
     window.location.href = 'login.html';
   }
 });
@@ -1051,20 +1019,17 @@ function initAppWithUser(userData) {
   document.getElementById('initLoader').classList.add('hide');
   document.getElementById('appShell').classList.add('ready');
   cu = userData;
-  
   updateUI(cu);
-  loadTodayStats(); 
+  loadTodayStats();
   loadTripHistory();
   if (!driverMap) initMap();
-  watchLocation(); 
-  listenActiveRide(); 
+  watchLocation();
+  listenActiveRide();
   loadVehicleInfo();
-  
-  // Resume online state if they left the app while online
   if (localStorage.getItem('vynix_driver_status') === 'online') {
-     goOnline();
+    goOnline();
   } else {
-     goOffline();
+    goOffline();
   }
 }
 
@@ -1072,139 +1037,148 @@ window.doSignOut = () => {
   if (isOnline) goOffline();
   localStorage.removeItem('vynix_driver_status');
   localStorage.removeItem('vynix_demo');
-  
-  if (cu?.uid === 'demo_driver') { 
+  if (cu?.uid === 'demo_driver') {
     window.location.href = 'login.html';
   } else {
     signOut(auth).then(() => { window.location.href = 'login.html'; });
   }
 };
 
-// ── MAP ────────────────────────────────────────────────────────────────
-const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
-mapboxgl.accessToken = TK;
-let driverMap, driverMarker;
-let routeLayerId = 'route-layer';
-let destMarker = null;
-
+// ── MAP INIT ──
 function initMap() {
   driverMap = new mapboxgl.Map({
-    container:'driverMap', style:'mapbox://styles/mapbox/light-v11',
-    center:driverLngLat, zoom:14.5, pitch: 45, attributionControl:false
+    container:'driverMap',
+    style:'mapbox://styles/mapbox/streets-v12', // streets style for navigation
+    center:driverLngLat, zoom:15, pitch:45, bearing:0,
+    attributionControl:false
   });
-  driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }),'top-right');
+  driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
 
-  // Load 3D Buildings
   driverMap.on('style.load', () => {
-     const layers = driverMap.getStyle().layers;
-     const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
-     driverMap.addLayer({
-         'id': '3d-buildings',
-         'source': 'composite',
-         'source-layer': 'building',
-         'filter': ['==', 'extrude', 'true'],
-         'type': 'fill-extrusion',
-         'minzoom': 15,
-         'paint': {
-             'fill-extrusion-color': '#f8fafc',
-             'fill-extrusion-height': ['get', 'height'],
-             'fill-extrusion-base': ['get', 'min_height'],
-             'fill-extrusion-opacity': 0.7
-         }
-     }, labelLayerId);
-  });
+    // 3D buildings
+    const layers = driverMap.getStyle().layers;
+    const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
+    driverMap.addLayer({
+      id:'3d-buildings', source:'composite', 'source-layer':'building',
+      filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
+      paint:{
+        'fill-extrusion-color':'#e8edf2',
+        'fill-extrusion-height':['get','height'],
+        'fill-extrusion-base':['get','min_height'],
+        'fill-extrusion-opacity':0.6
+      }
+    }, labelLayerId);
 
-  // Collapse bottom sheet when map is clicked (Hollow space click logic)
-  driverMap.on('click', () => {
-    if (panelExpanded && window.innerWidth < 900) {
-      togglePanel();
+    // Re-draw route if active after style change
+    if (navRouteCoords.length > 0) {
+      drawRoute(navRouteCoords);
     }
   });
 
-  // Premium Driver Halo Marker
+  // Track user interaction so we don't auto-flyTo while they're exploring
+  driverMap.on('dragstart', () => { mapInteracting = true; });
+  driverMap.on('zoomstart', () => { mapInteracting = true; });
+  driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
+  driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
+
+  // Driver halo marker
   const el = document.createElement('div');
   el.innerHTML = `<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>`;
-  driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
-  
-  setTimeout(()=>driverMap.resize(),150);
+  driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' })
+    .setLngLat(driverLngLat)
+    .addTo(driverMap);
+
+  setTimeout(() => driverMap.resize(), 150);
 }
 
-function updateDriverLocation(lat,lng) {
-  driverLngLat = [lng,lat];
-  driverMarker?.setLngLat([lng,lat]);
+function updateDriverLocation(lat, lng) {
+  driverLngLat = [lng, lat];
+  driverMarker?.setLngLat([lng, lat]);
+  // Only auto-pan if user isn't interacting AND not in navigation mode (nav handles camera)
+  if (!mapInteracting && !isNavigating) {
+    driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:0.5, easing:t=>t });
+  }
   if (cu?.uid !== 'demo_driver' && isOnline) {
-    set(ref(db,`active_drivers/${cu.uid}`),{lat,lng,name:cu.displayName||'Driver',uid:cu.uid,online:true,timestamp:Date.now()}).catch(()=>{});
+    set(ref(db,`active_drivers/${cu.uid}`),{
+      lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now()
+    }).catch(()=>{});
   }
 }
+
 function watchLocation() {
   if (!navigator.geolocation) return;
-  navigator.geolocation.watchPosition(pos=>{
-    updateDriverLocation(pos.coords.latitude,pos.coords.longitude);
-    driverMap?.flyTo({center:[pos.coords.longitude,pos.coords.latitude],zoom:15,speed:0.4});
-  },()=>{},{enableHighAccuracy:true});
+  navigator.geolocation.watchPosition(pos => {
+    updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
+  }, ()=>{}, { enableHighAccuracy:true, maximumAge:3000 });
 }
 
 // ══════════════════════════════════════════════════════════════
-//  FEATURE 1 — TURN-BY-TURN NAVIGATION
+//  NAVIGATION — Uber-style close-up route view
 // ══════════════════════════════════════════════════════════════
+
 const MANEUVER_ICONS = {
   'turn-left':'↰','turn-right':'↱','turn-slight-left':'↖','turn-slight-right':'↗',
   'turn-sharp-left':'⬅','turn-sharp-right':'➡','uturn':'↩','continue':'⬆',
   'merge':'🔀','on ramp':'↗','off ramp':'↙','fork-left':'↰','fork-right':'↱',
-  'end of road-left':'↰','end of road-right':'↱','arrive':'🏁','depart':'🚗',
-  'roundabout':'🔄','rotary':'🔄',
+  'arrive':'🏁','depart':'🚗','roundabout':'🔄','rotary':'🔄',
 };
-function maneuverIcon(type) { return MANEUVER_ICONS[type] || '⬆'; }
-function metersToStr(m) { return m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
-function secsToStr(s) {
+function mIcon(type) { return MANEUVER_ICONS[type] || '⬆'; }
+function mToStr(m) { return m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m'; }
+function sToStr(s) {
   const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
-  if (h>0) return h+'h '+m+'m'; return m < 1 ? '<1 min' : m+' min';
+  return h > 0 ? h+'h '+m+'m' : m < 1 ? '<1 min' : m+' min';
 }
 
 window.startNavigation = async function(mode) {
   if (!activeRideData) { showToast('No active ride data'); return; }
   navMode = mode;
+  isNavigating = true;
 
-  driverMap.setStyle('mapbox://styles/mapbox/navigation-day-v1');
-  driverMap.once('styledata', ()=>{
-    if (navRouteCoords.length) drawRoute(navRouteCoords);
-  });
+  // Collapse the bottom panel on mobile to give map 80%+
+  if (window.innerWidth < 900) {
+    document.getElementById('driverPanel').classList.add('nav-mode');
+    document.getElementById('mapWrap').classList.add('nav-active');
+  }
 
-  let destStr = mode === 'pickup' ? (activeRideData.pickup||'') : (activeRideData.destination||'');
-  document.getElementById('navDestLabel').textContent = destStr.substring(0,42);
+  // Show HUD
+  document.getElementById('navHud').classList.add('show');
+  document.getElementById('navInstMain').textContent = 'Fetching route…';
+  document.getElementById('navManeuverBox').textContent = '⏳';
 
-  const navOverlay = document.getElementById('navOverlay');
-  const navPanel = document.getElementById('navPanel');
-  navOverlay.classList.add('show');
-  setTimeout(()=>navPanel.classList.add('show'),40);
+  // Update navigate button state
+  const btnId = mode === 'pickup' ? 'btnNavPickup' : 'btnNavDest';
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.add('navigating');
+    btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…`;
+  }
 
-  const btnPickup = document.getElementById('btnNavPickup');
-  const btnDest   = document.getElementById('btnNavDest');
-  if (mode==='pickup' && btnPickup) { btnPickup.classList.add('navigating'); btnPickup.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…'; }
-  if (mode==='destination' && btnDest) { btnDest.classList.add('navigating'); btnDest.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…'; }
+  const destStr = mode === 'pickup'
+    ? (activeRideData.pickup || '')
+    : (activeRideData.destination || '');
 
-  showToast('Fetching route…');
   try {
     await fetchAndRenderRoute(driverLngLat, destStr);
+    showToast('Route loaded — follow the blue line');
   } catch(e) {
-    showToast('Route error: '+e.message);
+    showToast('Route error: ' + e.message);
     console.error(e);
   }
 };
 
 async function geocodeAddress(address) {
-  const q = encodeURIComponent(address+', South Africa');
+  const q = encodeURIComponent(address + ', South Africa');
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${TK}&country=ZA&limit=1`;
   const res = await fetch(url);
   const data = await res.json();
-  if (!data.features?.length) throw new Error('Could not geocode: '+address);
+  if (!data.features?.length) throw new Error('Could not locate: ' + address);
   return data.features[0].center; // [lng, lat]
 }
 
 async function fetchAndRenderRoute(originLngLat, destAddress) {
   const destCoords = await geocodeAddress(destAddress);
-  const [olng,olat] = originLngLat;
-  const [dlng,dlat] = destCoords;
+  const [olng, olat] = originLngLat;
+  const [dlng, dlat] = destCoords;
   const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${olng},${olat};${dlng},${dlat}?steps=true&geometries=geojson&access_token=${TK}&overview=full&annotations=distance,duration`;
   const res = await fetch(url);
   const data = await res.json();
@@ -1219,130 +1193,170 @@ async function fetchAndRenderRoute(originLngLat, destAddress) {
 
   drawRoute(navRouteCoords);
 
-  // Apply padding for Bounds (Leaves space for the bottom sheet and nav panels)
-  const bounds = navRouteCoords.reduce((b,c)=>b.extend(c), new mapboxgl.LngLatBounds(navRouteCoords[0],navRouteCoords[0]));
-  driverMap.fitBounds(bounds,{ padding:{top:180,bottom: window.innerWidth < 900 ? 120 : 80,left:40,right:40}, duration:800 });
-
+  // Destination marker (red pin)
   if (destMarker) destMarker.remove();
   const destEl = document.createElement('div');
-  destEl.style.cssText='width:20px;height:20px;background:var(--red);border:3px solid #fff;border-radius:50%;box-shadow:0 3px 12px rgba(0,0,0,.3);';
-  destMarker = new mapboxgl.Marker({element:destEl}).setLngLat(destCoords).addTo(driverMap);
+  destEl.style.cssText = 'width:22px;height:22px;background:#EF4444;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 12px rgba(0,0,0,.4);';
+  destMarker = new mapboxgl.Marker({ element:destEl }).setLngLat(destCoords).addTo(driverMap);
 
-  document.getElementById('navETA').textContent = secsToStr(route.duration);
-  document.getElementById('navDist').textContent = metersToStr(route.distance);
-  document.getElementById('navStepCount').textContent = navCurrentStep+1+'/'+navSteps.length;
+  // ETA and total distance
+  document.getElementById('navETA').textContent = sToStr(route.duration);
+  document.getElementById('navDistTotal').textContent = mToStr(route.distance);
+
+  // Zoom to show driver + next few steps (close-up view, not full route)
+  // We zoom to the first 20% of the route for a tight, Uber-style view
+  const closeUpCoords = navRouteCoords.slice(0, Math.max(10, Math.floor(navRouteCoords.length * 0.15)));
+  closeUpCoords.push(driverLngLat);
+  const bounds = closeUpCoords.reduce(
+    (b, c) => b.extend(c),
+    new mapboxgl.LngLatBounds(closeUpCoords[0], closeUpCoords[0])
+  );
+
+  // Padding accounts for the nav HUD at top and steps panel
+  const isDesktop = window.innerWidth >= 900;
+  driverMap.fitBounds(bounds, {
+    padding: {
+      top: isDesktop ? 120 : 100,
+      bottom: isDesktop ? 80 : 200, // more bottom space for mobile step sheet
+      left: isDesktop ? 80 : 40,
+      right: isDesktop ? 340 : 40  // right space for the desktop steps panel
+    },
+    bearing: computeRouteBearing(navRouteCoords),
+    pitch: 60,
+    duration: 1000
+  });
 
   renderNavSteps();
   updateCurrentStep();
 }
 
-function drawRoute(coords) {
-  if (driverMap.getLayer(routeLayerId)) driverMap.removeLayer(routeLayerId);
-  if (driverMap.getLayer(routeLayerId + '-bg')) driverMap.removeLayer(routeLayerId + '-bg');
-  if (driverMap.getSource('route')) driverMap.removeSource('route');
+function computeRouteBearing(coords) {
+  if (coords.length < 2) return 0;
+  // Bearing of the first segment
+  const [lng1, lat1] = coords[0];
+  const [lng2, lat2] = coords[Math.min(5, coords.length-1)];
+  const dLng = lng2 - lng1;
+  const y = Math.sin(dLng * Math.PI/180) * Math.cos(lat2 * Math.PI/180);
+  const x = Math.cos(lat1 * Math.PI/180) * Math.sin(lat2 * Math.PI/180) -
+             Math.sin(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.cos(dLng * Math.PI/180);
+  return (Math.atan2(y, x) * 180/Math.PI + 360) % 360;
+}
 
-  driverMap.addSource('route',{ type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } } });
-  
-  // Sleek Route Background Outline
-  driverMap.addLayer({
-    id: routeLayerId + '-bg',
-    type: 'line', source: 'route',
-    layout: {'line-cap': 'round', 'line-join': 'round'},
-    paint: {'line-color': '#1E40AF', 'line-width': 9, 'line-opacity': 0.25}
+function drawRoute(coords) {
+  // Remove existing route layers/source without resetting the style
+  if (driverMap.getLayer(ROUTE_LAYER_BG)) driverMap.removeLayer(ROUTE_LAYER_BG);
+  if (driverMap.getLayer(ROUTE_LAYER))    driverMap.removeLayer(ROUTE_LAYER);
+  if (driverMap.getSource(ROUTE_SOURCE))  driverMap.removeSource(ROUTE_SOURCE);
+
+  driverMap.addSource(ROUTE_SOURCE, {
+    type:'geojson',
+    data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } }
   });
 
-  // Solid Route Core
+  // Glow/background layer
   driverMap.addLayer({
-    id: routeLayerId, type: 'line', source: 'route',
-    layout: {'line-cap': 'round', 'line-join': 'round'},
-    paint: {'line-color': '#1A3BFF', 'line-width': 6, 'line-opacity': 1}
+    id: ROUTE_LAYER_BG, type:'line', source:ROUTE_SOURCE,
+    layout:{ 'line-cap':'round', 'line-join':'round' },
+    paint:{ 'line-color':'#1E40AF', 'line-width':12, 'line-opacity':0.25 }
+  });
+
+  // Solid route line
+  driverMap.addLayer({
+    id: ROUTE_LAYER, type:'line', source:ROUTE_SOURCE,
+    layout:{ 'line-cap':'round', 'line-join':'round' },
+    paint:{ 'line-color':'#1A3BFF', 'line-width':7, 'line-opacity':1 }
   });
 }
 
 function renderNavSteps() {
   const list = document.getElementById('navStepsList');
-  list.innerHTML = navSteps.map((step,i)=>{
+  list.innerHTML = navSteps.map((step, i) => {
     const isCurrent = i === navCurrentStep;
     const isDone    = i < navCurrentStep;
-    const numClass  = isDone?'done':isCurrent?'current':'';
-    const rowClass  = isCurrent?'current-step':'';
+    const numClass  = isDone ? 'done' : isCurrent ? 'cur' : '';
+    const rowClass  = isCurrent ? 'current-step' : '';
     const inst      = step.maneuver?.instruction || 'Continue';
-    const icon      = maneuverIcon(step.maneuver?.type||'continue');
-    const dist      = metersToStr(step.distance||0);
+    const icon      = mIcon(step.maneuver?.type || 'continue');
+    const dist      = mToStr(step.distance || 0);
     return `<div class="nav-step-row ${rowClass}">
-      <div class="nav-step-num ${numClass}">${isDone?'✓':isCurrent?icon:i+1}</div>
-      <div><div class="nav-step-text">${inst}</div><div class="nav-step-d">${dist}</div></div>
+      <div class="nav-step-num ${numClass}">${isDone ? '✓' : isCurrent ? icon : i+1}</div>
+      <div class="nav-step-body"><div class="nav-step-text">${inst}</div><div class="nav-step-d">${dist}</div></div>
     </div>`;
   }).join('');
+  // Scroll current step into view
   const rows = list.querySelectorAll('.nav-step-row');
-  if (rows[navCurrentStep]) rows[navCurrentStep].scrollIntoView({block:'center',behavior:'smooth'});
+  if (rows[navCurrentStep]) rows[navCurrentStep].scrollIntoView({ block:'center', behavior:'smooth' });
 }
 
 function updateCurrentStep() {
   if (!navSteps.length) return;
   const step = navSteps[navCurrentStep];
-  const icon = maneuverIcon(step.maneuver?.type||'continue');
-  document.getElementById('navManeuverIcon').textContent = icon;
-  document.getElementById('navStepDist').textContent = 'In '+metersToStr(step.distance||0);
-  document.getElementById('navStepInst').textContent = step.maneuver?.instruction||'Continue';
-  document.getElementById('navStepCount').textContent = (navCurrentStep+1)+'/'+navSteps.length;
+  document.getElementById('navManeuverBox').textContent = mIcon(step.maneuver?.type || 'continue');
+  document.getElementById('navDistLbl').textContent = 'IN ' + mToStr(step.distance || 0);
+  document.getElementById('navInstMain').textContent = step.maneuver?.instruction || 'Continue';
 }
 
 window.stopNavigation = function() {
-  document.getElementById('navPanel').classList.remove('show');
-  setTimeout(()=>document.getElementById('navOverlay').classList.remove('show'),360);
-  driverMap.setStyle('mapbox://styles/mapbox/light-v11');
-  driverMap.once('styledata',()=>{ if(navRouteCoords.length) drawRoute(navRouteCoords); });
-  
-  const bp = document.getElementById('btnNavPickup'), bd = document.getElementById('btnNavDest');
-  if(bp){ bp.classList.remove('navigating'); bp.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate'; }
-  if(bd){ bd.classList.remove('navigating'); bd.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate'; }
+  isNavigating = false;
+  document.getElementById('navHud').classList.remove('show');
+
+  // Restore panel/map layout on mobile
+  if (window.innerWidth < 900) {
+    document.getElementById('driverPanel').classList.remove('nav-mode');
+    document.getElementById('mapWrap').classList.remove('nav-active');
+  }
+
+  // Reset navigate buttons
+  const bp = document.getElementById('btnNavPickup');
+  const bd = document.getElementById('btnNavDest');
+  if (bp) { bp.classList.remove('navigating'); bp.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Pickup'; }
+  if (bd) { bd.classList.remove('navigating'); bd.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Dest'; }
+
+  // Keep the route drawn on map but reset camera gently
+  driverMap?.easeTo({ center:driverLngLat, zoom:15, pitch:45, bearing:0, duration:800 });
   navMode = null;
 };
 
 window.recenterMap = function() {
-  driverMap.flyTo({ center:driverLngLat, zoom:16, pitch:45, speed:1.2 });
+  mapInteracting = false;
+  driverMap.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 });
 };
 
-// ══════════════════════════════════════════════════════════════
-//  FEATURE 4 — ARRIVAL CONFIRMATION + PIN 2.0
-// ══════════════════════════════════════════════════════════════
+// ── PIN VERIFICATION ──
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
-
   if (cu?.uid !== 'demo_driver') {
     await update(ref(db,`ride_requests/${activeRideId}`),{ arrivedPin:newPin, arrived:true }).catch(()=>{});
   }
   activeRideData.arrivedPin = newPin;
-
   document.getElementById('arrivedPinDisplay').textContent = newPin;
   document.getElementById('arrivedPinCard').classList.add('show');
   document.getElementById('ar-pin').textContent = newPin;
-
   showPinOverlay(newPin);
   showToast('📍 Marked as arrived — share PIN with rider');
 };
 
 function showPinOverlay(pin) {
   const disp = document.getElementById('pinDisplay');
-  disp.innerHTML = pin.split('').map(d=>`<div class="pin-digit">${d}</div>`).join('');
+  disp.innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
   const row = document.getElementById('pinInputRow');
-  row.innerHTML = Array.from({length:4},(_,i)=>`<input class="pin-input-digit" id="pinI${i}" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="pinDigitInput(event,${i})">`).join('');
-
-  document.getElementById('pinError').style.display='none';
+  row.innerHTML = Array.from({length:4}, (_,i) =>
+    `<input class="pin-input-digit" id="pinI${i}" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="pinDigitInput(event,${i})">`
+  ).join('');
+  document.getElementById('pinError').style.display = 'none';
   document.getElementById('pinOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('pinI0')?.focus(),200);
+  setTimeout(() => document.getElementById('pinI0')?.focus(), 200);
 }
 
-window.pinDigitInput = function(e,idx) {
+window.pinDigitInput = function(e, idx) {
   const val = e.target.value.replace(/\D/g,'');
   e.target.value = val;
   if (val && idx < 3) document.getElementById(`pinI${idx+1}`)?.focus();
 };
 
 window.verifyPin = function() {
-  const entered = [0,1,2,3].map(i=>document.getElementById(`pinI${i}`)?.value||'').join('');
+  const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
   const expected = activeRideData?.arrivedPin || activeRideData?.securityPin || '';
   if (entered === expected || entered === (activeRideData?.securityPin||'')) {
     document.getElementById('pinOverlay').classList.remove('show');
@@ -1352,21 +1366,25 @@ window.verifyPin = function() {
     document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
     showToast('✅ PIN verified — enjoy the ride!');
   } else {
-    document.getElementById('pinError').style.display='block';
-    [0,1,2,3].forEach(i=>{ const el=document.getElementById(`pinI${i}`); if(el){el.value='';el.style.borderColor='var(--red)';} });
-    setTimeout(()=>{ document.getElementById('pinError').style.display='none'; [0,1,2,3].forEach(i=>{const el=document.getElementById(`pinI${i}`);if(el)el.style.borderColor='';}) },2000);
+    document.getElementById('pinError').style.display = 'block';
+    [0,1,2,3].forEach(i => {
+      const el = document.getElementById(`pinI${i}`);
+      if (el) { el.value=''; el.style.borderColor='var(--red)'; }
+    });
+    setTimeout(() => {
+      document.getElementById('pinError').style.display = 'none';
+      [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el)el.style.borderColor=''; });
+    }, 2000);
     document.getElementById('pinI0')?.focus();
   }
 };
 
-// ══════════════════════════════════════════════════════════════
-//  FEATURE 2 — RIDER CHAT
-// ══════════════════════════════════════════════════════════════
+// ── CHAT ──
 let chatMessages = [];
 let chatUnread = 0;
 
 window.openChat = function() {
-  if (!activeRideId||!activeRideData) { showToast('No active ride'); return; }
+  if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
   document.getElementById('chatAv').textContent = ini2(activeRideData.riderName||'R');
   document.getElementById('chatRiderName').textContent = activeRideData.riderName||'Rider';
   document.getElementById('chatSheet').classList.add('show');
@@ -1375,30 +1393,30 @@ window.openChat = function() {
   listenChat();
   scrollChatBottom();
 };
-
 window.closeChat = function() {
   document.getElementById('chatSheet').classList.remove('show');
-  if (chatUnsub) { chatUnsub(); chatUnsub=null; }
+  if (chatUnsub) { chatUnsub(); chatUnsub = null; }
 };
-
 function listenChat() {
-  if (!activeRideId||cu?.uid==='demo_driver') return;
+  if (!activeRideId || cu?.uid === 'demo_driver') return;
   if (chatUnsub) chatUnsub();
-  chatUnsub = onValue(ref(db,`ride_requests/${activeRideId}/chat`), snap=>{
-    const msgs = snap.val()||{};
-    chatMessages = Object.values(msgs).sort((a,b)=>a.ts-b.ts);
+  chatUnsub = onValue(ref(db,`ride_requests/${activeRideId}/chat`), snap => {
+    const msgs = snap.val() || {};
+    chatMessages = Object.values(msgs).sort((a,b) => a.ts - b.ts);
     renderChatMessages();
     scrollChatBottom();
   });
 }
-
 function renderChatMessages() {
   const el = document.getElementById('chatMessages');
-  if (!chatMessages.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600;">Say hello to your rider 👋</div>'; return; }
-  el.innerHTML = chatMessages.map(m=>{
-    const mine = m.sender==='driver';
+  if (!chatMessages.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600;">Say hello to your rider 👋</div>';
+    return;
+  }
+  el.innerHTML = chatMessages.map(m => {
+    const mine = m.sender === 'driver';
     const time = m.ts ? new Date(m.ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '';
-    const read = mine&&m.readByRider ? '<span class="chat-read">✓✓</span>' : mine ? '✓' : '';
+    const read = mine && m.readByRider ? '<span class="chat-read">✓✓</span>' : mine ? '✓' : '';
     return `<div class="chat-msg ${mine?'mine':'theirs'}">
       <div class="chat-bubble">${escHtml(m.text)}</div>
       <div class="chat-meta">${time} ${read}</div>
@@ -1407,197 +1425,238 @@ function renderChatMessages() {
 }
 function scrollChatBottom() { const el=document.getElementById('chatMessages'); if(el) setTimeout(()=>el.scrollTop=el.scrollHeight,60); }
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
 function updateChatBadge() {
-  ['chatBadge1','chatBadge2'].forEach(id=>{
-    const el=document.getElementById(id);
+  ['chatBadge1','chatBadge2'].forEach(id => {
+    const el = document.getElementById(id);
     if (!el) return;
-    el.textContent=chatUnread;
-    el.classList.toggle('show',chatUnread>0);
+    el.textContent = chatUnread;
+    el.classList.toggle('show', chatUnread > 0);
   });
 }
-
 window.sendChatMsg = async function() {
   const inp = document.getElementById('chatInput');
   const text = inp.value.trim();
-  if (!text||!activeRideId) return;
-  inp.value='';
+  if (!text || !activeRideId) return;
+  inp.value = '';
   await _pushChatMsg(text);
 };
-
 window.sendQuickReply = async function(text) {
   if (!activeRideId) { showToast('No active ride'); return; }
   await _pushChatMsg(text);
 };
-
 async function _pushChatMsg(text) {
   const msg = { text, sender:'driver', ts:Date.now(), readByRider:false };
   if (cu?.uid !== 'demo_driver') {
-    await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
+    await push(ref(db,`ride_requests/${activeRideId}/chat`), msg).catch(()=>{});
   } else {
     chatMessages.push(msg);
     renderChatMessages();
     scrollChatBottom();
   }
 }
-
 window.chatKeydown = function(e) {
-  if (e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); window.sendChatMsg(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendChatMsg(); }
 };
 
-// ══════════════════════════════════════════════════════════════
-//  FEATURE 3 — CANCELLATION REASONS
-// ══════════════════════════════════════════════════════════════
+// ── CANCELLATION ──
 let selectedReasonText = null;
-
 window.selectCancelReason = function(el, reason) {
-  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
+  document.querySelectorAll('.cm-reason').forEach(r => r.classList.remove('selected'));
   el.classList.add('selected');
   selectedReasonText = reason;
   const btn = document.getElementById('cmConfirmBtn');
-  btn.disabled = false; btn.style.opacity='1';
+  btn.disabled = false; btn.style.opacity = '1';
 };
-
 window.closeCancelModal = function() {
   document.getElementById('cancelReasonModal').classList.remove('show');
-  cancelMode=null; pendingDeclineId=null; selectedReasonText=null;
-  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
-  document.getElementById('cmConfirmBtn').disabled=true;
-  document.getElementById('cmConfirmBtn').style.opacity='.5';
+  cancelMode = null; pendingDeclineId = null; selectedReasonText = null;
+  document.querySelectorAll('.cm-reason').forEach(r => r.classList.remove('selected'));
+  const btn = document.getElementById('cmConfirmBtn');
+  btn.disabled = true; btn.style.opacity = '.5';
 };
-
 window.openDeclineModal = function(id) {
-  cancelMode='decline'; pendingDeclineId=id;
-  document.getElementById('cm-title').textContent='Why are you declining?';
-  document.getElementById('cm-sub').textContent='Please select a reason so we can improve match quality.';
+  cancelMode = 'decline'; pendingDeclineId = id;
+  document.getElementById('cm-title').textContent = 'Why are you declining?';
+  document.getElementById('cm-sub').textContent = 'Please select a reason so we can improve match quality.';
   const btn = document.getElementById('cmConfirmBtn');
-  btn.textContent='Decline Ride'; btn.className='cm-confirm-decline';
+  btn.textContent = 'Decline Ride'; btn.className = 'cm-confirm-decline';
   document.getElementById('cancelReasonModal').classList.add('show');
 };
-
 window.openCancelActiveModal = function() {
-  cancelMode='active';
-  document.getElementById('cm-title').textContent='Why are you cancelling?';
-  document.getElementById('cm-sub').textContent='This will return the ride to the queue. Please choose a reason.';
+  cancelMode = 'active';
+  document.getElementById('cm-title').textContent = 'Why are you cancelling?';
+  document.getElementById('cm-sub').textContent = 'This will return the ride to the queue. Please choose a reason.';
   const btn = document.getElementById('cmConfirmBtn');
-  btn.textContent='Cancel Ride'; btn.className='cm-confirm-cancel';
+  btn.textContent = 'Cancel Ride'; btn.className = 'cm-confirm-cancel';
   document.getElementById('cancelReasonModal').classList.add('show');
 };
-
 window.confirmCancelAction = async function() {
   if (!selectedReasonText) return;
-  if (cancelMode==='decline') {
+  if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
     if (cu?.uid !== 'demo_driver') {
       await update(ref(db,`ride_requests/${id}`),{ declineReason:selectedReasonText }).catch(()=>{});
     }
-    const el=document.getElementById(`req-${id}`);
-    if(el){el.style.transition='.2s';el.style.opacity='0';el.style.transform='scale(0.96)';setTimeout(()=>el.remove(),200);}
-    showToast('Ride declined: '+selectedReasonText);
-  } else if (cancelMode==='active') {
+    const el = document.getElementById(`req-${id}`);
+    if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
+    showToast('Ride declined: ' + selectedReasonText);
+  } else if (cancelMode === 'active') {
     window.closeCancelModal();
     await cancelActiveRideWithReason(selectedReasonText);
   }
 };
-
 async function cancelActiveRideWithReason(reason) {
-  if (!activeRideId||!cu) return;
+  if (!activeRideId || !cu) return;
   try {
-    await update(ref(db,`ride_requests/${activeRideId}`),{status:'pending',driverId:null,driverName:null,acceptedAt:null,cancelReason:reason});
-    activeRideId=null; activeRideData=null; ridePhase='pickup';
+    await update(ref(db,`ride_requests/${activeRideId}`),{
+      status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
+    });
+    activeRideId = null; activeRideData = null; ridePhase = 'pickup';
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
-    const lbl=document.getElementById('reqLabel'); if(lbl) lbl.style.display='';
-    document.getElementById('rideReqList').style.display='';
-    if (navMode) stopNavigation();
-    showToast('Ride cancelled: '+reason);
-  } catch(e){ showToast('Error cancelling'); }
+    document.getElementById('reqLabel').style.display = '';
+    document.getElementById('rideReqList').style.display = '';
+    if (isNavigating) stopNavigation();
+    showToast('Ride cancelled: ' + reason);
+  } catch(e) { showToast('Error cancelling'); }
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────
-function ini2(n){ return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
+// ── NOTIFICATION BANNER ──
+let notifBannerTimer = null;
+function showRideNotification(rideData) {
+  const banner = document.getElementById('rideNotifBanner');
+  document.getElementById('rnbSub').textContent =
+    `${rideData.riderName||'Rider'} • R${parseFloat(rideData.fare||0).toFixed(2)} • ${(rideData.pickup||'Unknown pickup').substring(0,40)}`;
+  banner.classList.add('show');
+  playNotificationSound();
+  if (notifBannerTimer) clearTimeout(notifBannerTimer);
+  notifBannerTimer = setTimeout(() => banner.classList.remove('show'), 7000);
+}
+window.dismissNotifBanner = function() {
+  document.getElementById('rideNotifBanner').classList.remove('show');
+  if (notifBannerTimer) clearTimeout(notifBannerTimer);
+};
+
+// ── HELPERS ──
+function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
 function updateUI(u) {
-  const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'Not signed in', i=ini2(n);
-  ['sbAv','tbAv','profAv'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
-  ['sbName','profName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
-  ['sbEmail','profEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=e;});
+  const n = u?(u.displayName||'Driver'):'Guest', e = u?u.email:'Not signed in', i = ini2(n);
+  ['sbAv','tbAv','profAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
+  ['sbName','profName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
+  ['sbEmail','profEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
 }
 
-// ── PANEL TOGGLE ───────────────────────────────────────────────────────
+// ── PANEL TOGGLE ──
 window.togglePanel = function() {
-  panelExpanded=!panelExpanded;
-  const panel=document.getElementById('driverPanel');
-  panel.classList.toggle('collapsed',!panelExpanded);
-  const txt=document.getElementById('panelToggleTxt'), chev=document.getElementById('panelChevron');
-  if(txt) txt.textContent=panelExpanded?'Collapse':'Expand';
-  if(chev) chev.style.transform=panelExpanded?'rotate(180deg)':'';
-  setTimeout(()=>driverMap?.resize(),360);
+  panelExpanded = !panelExpanded;
+  const panel = document.getElementById('driverPanel');
+  panel.classList.toggle('collapsed', !panelExpanded);
+  panel.classList.remove('nav-mode'); // exit nav mode if user taps handle
+  document.getElementById('mapWrap').classList.remove('nav-active');
+  const txt = document.getElementById('panelToggleTxt'), chev = document.getElementById('panelChevron');
+  if (txt) txt.textContent = panelExpanded ? 'Collapse' : 'Expand';
+  if (chev) chev.style.transform = panelExpanded ? 'rotate(180deg)' : '';
+  setTimeout(() => driverMap?.resize(), 360);
 };
 function expandPanel() {
-  if(window.innerWidth>=900) return;
-  if(!panelExpanded){ panelExpanded=true; document.getElementById('driverPanel').classList.remove('collapsed'); const txt=document.getElementById('panelToggleTxt'),chev=document.getElementById('panelChevron'); if(txt)txt.textContent='Collapse'; if(chev)chev.style.transform='rotate(180deg)'; setTimeout(()=>driverMap?.resize(),360); }
+  if (window.innerWidth >= 900) return;
+  if (!panelExpanded) {
+    panelExpanded = true;
+    document.getElementById('driverPanel').classList.remove('collapsed');
+    const txt = document.getElementById('panelToggleTxt'), chev = document.getElementById('panelChevron');
+    if (txt) txt.textContent = 'Collapse';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    setTimeout(() => driverMap?.resize(), 360);
+  }
 }
 
-// ── ONLINE TOGGLE ──────────────────────────────────────────────────────
+// ── ONLINE TOGGLE ──
 async function goOnline() {
-  isOnline=true; onlineStartTime=Date.now(); setOnlineUI(true);
+  isOnline = true; onlineStartTime = Date.now(); setOnlineUI(true);
   localStorage.setItem('vynix_driver_status', 'online');
-  navigator.geolocation?.getCurrentPosition(pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),()=>updateDriverLocation(-24.1991,28.9934));
-  listenRideRequests(); expandPanel();
+  navigator.geolocation?.getCurrentPosition(
+    pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
+    ()  => updateDriverLocation(-24.1991, 28.9934)
+  );
+  listenRideRequests();
+  expandPanel();
   showToast('You are now Online 🟢');
 }
 async function goOffline() {
-  isOnline=false; setOnlineUI(false);
+  isOnline = false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status', 'offline');
-  if(rideRequestsUnsub){rideRequestsUnsub();rideRequestsUnsub=null;}
-  if(cu?.uid!=='demo_driver') await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
-  document.getElementById('rideReqList').innerHTML='<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+  if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub = null; }
+  if (cu?.uid !== 'demo_driver') await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
+  document.getElementById('rideReqList').innerHTML =
+    '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
   updateHoursOnline();
   showToast('You are now Offline ⚫');
 }
 window.toggleOnline = function() {
-  if(!cu){showToast('Please sign in first');return;}
-  if(activeRideId){showToast('Complete your current ride first');return;}
-  if(isOnline) goOffline(); else goOnline();
+  if (!cu) { showToast('Please sign in first'); return; }
+  if (activeRideId) { showToast('Complete your current ride first'); return; }
+  if (isOnline) goOffline(); else goOnline();
 };
 function setOnlineUI(on) {
-  ['bigToggle','bigToggleMini'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',on);});
-  const sv=document.getElementById('statusVal'); if(sv){sv.textContent=on?'Online':'Offline';sv.classList.toggle('off',!on);}
-  const sd=document.getElementById('sidebarDot'); if(sd)sd.classList.toggle('off',!on);
-  const st=document.getElementById('sidebarStatusTxt'); if(st)st.textContent=on?'Online':'Offline';
-  const sr=document.getElementById('sidebarStatusRow'); if(sr)sr.classList.toggle('off',!on);
-  const mt=document.getElementById('mobileToggle'); if(mt)mt.classList.toggle('on',on);
-  const ml=document.getElementById('mobileToggleLbl'); if(ml)ml.textContent=on?'Online':'Offline';
-  const pd=document.getElementById('pcrDot'); if(pd)pd.classList.toggle('on',on);
-  const pl=document.getElementById('pcrLabel'); if(pl)pl.textContent=on?'Online':'Offline';
+  ['bigToggle','bigToggleMini'].forEach(id => { const el=document.getElementById(id); if(el)el.classList.toggle('on',on); });
+  const sv = document.getElementById('statusVal'); if(sv){ sv.textContent=on?'Online':'Offline'; sv.classList.toggle('off',!on); }
+  const sd = document.getElementById('sidebarDot'); if(sd) sd.classList.toggle('off',!on);
+  const st = document.getElementById('sidebarStatusTxt'); if(st) st.textContent = on?'Online':'Offline';
+  const sr = document.getElementById('sidebarStatusRow'); if(sr) sr.classList.toggle('off',!on);
+  const mt = document.getElementById('mobileToggle'); if(mt) mt.classList.toggle('on',on);
+  const ml = document.getElementById('mobileToggleLbl'); if(ml) ml.textContent = on?'Online':'Offline';
+  const pd = document.getElementById('pcrDot'); if(pd) pd.classList.toggle('on',on);
+  const pl = document.getElementById('pcrLabel'); if(pl) pl.textContent = on?'Online':'Offline';
 }
 function updateHoursOnline() {
-  if(!onlineStartTime) return;
-  const hrs=((Date.now()-onlineStartTime)/3600000).toFixed(1);
-  const el=document.getElementById('stat-hrs'); if(el)el.innerHTML=hrs+'<span>h</span>';
+  if (!onlineStartTime) return;
+  const hrs = ((Date.now()-onlineStartTime)/3600000).toFixed(1);
+  const el = document.getElementById('stat-hrs'); if(el) el.innerHTML = hrs+'<span>h</span>';
 }
 
-// ── RIDE REQUESTS ──────────────────────────────────────────────────────
+// ── RIDE REQUESTS (Real-time with sound) ──
+let knownRequestIds = new Set();
 function listenRideRequests() {
-  if(!cu||cu.uid==='demo_driver') return;
-  rideRequestsUnsub = onValue(ref(db,'ride_requests'),snap=>{
-    const data=snap.val()||{};
-    const pending=Object.entries(data).filter(([,v])=>v.status==='pending');
+  if (!cu || cu.uid === 'demo_driver') return;
+  rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
+    const data = snap.val() || {};
+    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending');
+
+    // Detect genuinely NEW requests for notification
+    pending.forEach(([id, r]) => {
+      if (!knownRequestIds.has(id)) {
+        knownRequestIds.add(id);
+        // Show notification for newly appearing requests (not on first load)
+        if (knownRequestIds.size > 1 || document.getElementById('appShell').classList.contains('ready')) {
+          showRideNotification(r);
+        }
+      }
+    });
+    // Remove IDs that are no longer pending
+    [...knownRequestIds].forEach(id => {
+      if (!pending.find(([pid]) => pid === id)) knownRequestIds.delete(id);
+    });
+
     renderRideRequests(pending);
-    const cnt=pending.length;
-    const badge=document.getElementById('sb-req-count'); if(badge)badge.textContent=cnt>0?cnt:'';
-    const dot=document.getElementById('bn-map-dot'); if(dot)dot.classList.toggle('show',cnt>0);
+    const cnt = pending.length;
+    const badge = document.getElementById('sb-req-count'); if(badge) badge.textContent = cnt > 0 ? cnt : '';
+    const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', cnt > 0);
   });
 }
+
 function renderRideRequests(list) {
-  const el=document.getElementById('rideReqList');
-  const lbl=document.getElementById('reqLabel');
-  if(activeRideId){if(lbl)lbl.style.display='none';el.style.display='none';return;}
-  if(lbl)lbl.style.display='';el.style.display='';
-  if(!list.length){el.innerHTML='<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';return;}
-  el.innerHTML=list.map(([id,r])=>`
+  const el = document.getElementById('rideReqList');
+  const lbl = document.getElementById('reqLabel');
+  if (activeRideId) { if(lbl)lbl.style.display='none'; el.style.display='none'; return; }
+  if (lbl) lbl.style.display='';
+  el.style.display = '';
+  if (!list.length) {
+    el.innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';
+    return;
+  }
+  el.innerHTML = list.map(([id,r]) => `
     <div class="req-card" id="req-${id}">
       <div class="req-top">
         <div class="req-rider">
@@ -1634,109 +1693,125 @@ function renderRideRequests(list) {
   `).join('');
 }
 
-// ── ACCEPT MODAL ───────────────────────────────────────────────────────
+// ── ACCEPT MODAL ──
 window.openAcceptModal = function(id) {
-  if(!isOnline){showToast('Go online first');return;}
-  get(ref(db,`ride_requests/${id}`)).then(snap=>{
-    if(!snap.exists()||snap.val().status!=='pending'){showToast('Ride already taken');return;}
-    const r=snap.val(); pendingAcceptId=id; pendingAcceptData=r;
-    document.getElementById('am-rider').textContent=r.riderName||'Rider';
-    document.getElementById('am-type').textContent=r.rideType||'VynixGo';
-    document.getElementById('am-pickup').textContent=(r.pickup||'Current Location').substring(0,50);
-    document.getElementById('am-dest').textContent=(r.destination||'—').substring(0,50);
-    document.getElementById('am-dist').textContent=r.distKm?r.distKm.toFixed(1)+' km':'—';
-    document.getElementById('am-dur').textContent=r.tripMins?r.tripMins+' min':'—';
-    document.getElementById('am-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
+  if (!isOnline) { showToast('Go online first'); return; }
+  get(ref(db,`ride_requests/${id}`)).then(snap => {
+    if (!snap.exists() || snap.val().status !== 'pending') { showToast('Ride already taken'); return; }
+    const r = snap.val(); pendingAcceptId = id; pendingAcceptData = r;
+    document.getElementById('am-rider').textContent = r.riderName||'Rider';
+    document.getElementById('am-type').textContent = r.rideType||'VynixGo';
+    document.getElementById('am-pickup').textContent = (r.pickup||'Current Location').substring(0,50);
+    document.getElementById('am-dest').textContent = (r.destination||'—').substring(0,50);
+    document.getElementById('am-dist').textContent = r.distKm?r.distKm.toFixed(1)+' km':'—';
+    document.getElementById('am-dur').textContent = r.tripMins?r.tripMins+' min':'—';
+    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
     document.getElementById('acceptModal').classList.add('show');
   });
 };
-window.closeAcceptModal = function() { document.getElementById('acceptModal').classList.remove('show'); pendingAcceptId=null; pendingAcceptData=null; };
+window.closeAcceptModal = function() {
+  document.getElementById('acceptModal').classList.remove('show');
+  pendingAcceptId = null; pendingAcceptData = null;
+};
 window.confirmAccept = function() {
-  if(!pendingAcceptId||!cu) return;
-  const id=pendingAcceptId, r=pendingAcceptData;
-  runTransaction(ref(db,`ride_requests/${id}`),current=>{
-    if(!current||current.status!=='pending') return;
-    return{...current,status:'accepted',driverId:cu.uid,driverName:cu.displayName||'Driver',acceptedAt:Date.now()};
-  }).then(result=>{
-    if(!result.committed){showToast('Ride taken by another driver');window.closeAcceptModal();return;}
-    activeRideId=id; activeRideData=r;
+  if (!pendingAcceptId || !cu) return;
+  const id = pendingAcceptId, r = pendingAcceptData;
+  runTransaction(ref(db,`ride_requests/${id}`), current => {
+    if (!current || current.status !== 'pending') return;
+    return {...current, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver', acceptedAt:Date.now()};
+  }).then(result => {
+    if (!result.committed) { showToast('Ride taken by another driver'); window.closeAcceptModal(); return; }
+    activeRideId = id; activeRideData = r;
     window.closeAcceptModal();
     showActiveRide(r); expandPanel();
     showToast('Ride accepted! 🎉');
-  }).catch(()=>showToast('Error accepting ride'));
+  }).catch(() => showToast('Error accepting ride'));
 };
 
-// ── ACTIVE RIDE ────────────────────────────────────────────────────────
+// ── ACTIVE RIDE ──
 function resetPhaseUI() {
-  ridePhase='pickup';
+  ridePhase = 'pickup';
   document.getElementById('phase-pickup').classList.add('active');
   document.getElementById('phase-pin').classList.remove('active');
-  document.getElementById('ar-phase-label').textContent='En Route to Pickup';
+  document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
 }
 function showActiveRide(r) {
-  const card=document.getElementById('activeRideCard'); card.classList.add('show');
-  document.getElementById('ar-av').textContent=ini2(r.riderName||'R');
-  document.getElementById('ar-name').textContent=r.riderName||'Rider';
-  document.getElementById('ar-dest').textContent='→ '+(r.destination||'—').substring(0,38);
-  document.getElementById('ar-fare').textContent=`R ${parseFloat(r.fare||0).toFixed(2)}`;
-  document.getElementById('ar-pin').textContent=r.securityPin||'—';
-  document.getElementById('ar-type').textContent=r.rideType||'VynixGo';
-  document.getElementById('ar-seats').textContent=r.capacity||4;
-  document.getElementById('ar-pickup-txt').textContent=(r.pickup||'Current Location').substring(0,52);
-  document.getElementById('ar-drop-txt').textContent=(r.destination||'—').substring(0,52);
-  const lbl=document.getElementById('reqLabel'); if(lbl)lbl.style.display='none';
-  document.getElementById('rideReqList').style.display='none';
+  const card = document.getElementById('activeRideCard'); card.classList.add('show');
+  document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
+  document.getElementById('ar-name').textContent = r.riderName||'Rider';
+  document.getElementById('ar-dest').textContent = '→ '+(r.destination||'—').substring(0,38);
+  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+  document.getElementById('ar-pin').textContent = r.securityPin||'—';
+  document.getElementById('ar-type').textContent = r.rideType||'VynixGo';
+  document.getElementById('ar-seats').textContent = r.capacity||4;
+  document.getElementById('ar-pickup-txt').textContent = (r.pickup||'Current Location').substring(0,52);
+  document.getElementById('ar-drop-txt').textContent = (r.destination||'—').substring(0,52);
+  const lbl = document.getElementById('reqLabel'); if(lbl) lbl.style.display = 'none';
+  document.getElementById('rideReqList').style.display = 'none';
   resetPhaseUI();
 }
 function listenActiveRide() {
-  if(!cu||cu.uid==='demo_driver') return;
-  get(ref(db,'ride_requests')).then(snap=>{
-    const all=snap.val()||{};
-    const mine=Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
-    if(mine){const[id,r]=mine; activeRideId=id; activeRideData=r; showActiveRide(r);}
+  if (!cu || cu.uid === 'demo_driver') return;
+  get(ref(db,'ride_requests')).then(snap => {
+    const all = snap.val() || {};
+    const mine = Object.entries(all).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
+    if (mine) { const [id,r] = mine; activeRideId = id; activeRideData = r; showActiveRide(r); }
   });
 }
 window.completeRide = async function() {
-  if(!activeRideId||!cu) return;
+  if (!activeRideId || !cu) return;
   try {
-    const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
-    const fare=parseFloat(r.fare||0);
-    await push(ref(db,`drivers/${cu.uid}/trips`),{rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',pickup:r.pickup||'—',destination:r.destination||'—',distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,fare,status:'Completed',date:Date.now()});
+    const snap = await get(ref(db,`ride_requests/${activeRideId}`)); const r = snap.val()||{};
+    const fare = parseFloat(r.fare||0);
+    await push(ref(db,`drivers/${cu.uid}/trips`),{
+      rideType:r.rideType||'VynixGo', riderName:r.riderName||'Rider',
+      pickup:r.pickup||'—', destination:r.destination||'—',
+      distKm:r.distKm||0, tripMins:r.tripMins||0, capacity:r.capacity||4,
+      fare, status:'Completed', date:Date.now()
+    });
     await remove(ref(db,`ride_requests/${activeRideId}`));
-    const eRef=ref(db,`drivers/${cu.uid}/earnings`); const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
-    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
-    statsToday.rides++; statsToday.earned+=fare;
-    document.getElementById('stat-rides').textContent=statsToday.rides;
-    document.getElementById('stat-earn').textContent='R'+statsToday.earned.toFixed(0);
-    activeRideId=null; activeRideData=null;
+    const eRef = ref(db,`drivers/${cu.uid}/earnings`);
+    const eSnap = await get(eRef); const curr = eSnap.val()||{total:0,trips:0};
+    await set(eRef, { total:curr.total+fare, trips:curr.trips+1 });
+    statsToday.rides++; statsToday.earned += fare;
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+    document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
+    activeRideId = null; activeRideData = null;
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
-    const lbl=document.getElementById('reqLabel'); if(lbl)lbl.style.display='';
-    document.getElementById('rideReqList').style.display='';
-    if(navMode) stopNavigation();
+    document.getElementById('reqLabel').style.display = '';
+    document.getElementById('rideReqList').style.display = '';
+    if (isNavigating) stopNavigation();
+    // Remove route from map
+    if (driverMap.getLayer(ROUTE_LAYER_BG)) driverMap.removeLayer(ROUTE_LAYER_BG);
+    if (driverMap.getLayer(ROUTE_LAYER)) driverMap.removeLayer(ROUTE_LAYER);
+    if (driverMap.getSource(ROUTE_SOURCE)) driverMap.removeSource(ROUTE_SOURCE);
+    if (destMarker) { destMarker.remove(); destMarker = null; }
+    navRouteCoords = [];
     loadTripHistory(); loadTodayStats();
     showToast('✓ Ride completed! +R'+fare.toFixed(2));
-  } catch(e){showToast('Error completing ride');}
+  } catch(e) { showToast('Error completing ride'); console.error(e); }
 };
 
-// ── STATS & HISTORY ────────────────────────────────────────────────────
+// ── STATS & HISTORY ──
 async function loadTodayStats() {
-  if(!cu||cu.uid==='demo_driver') return;
+  if (!cu || cu.uid === 'demo_driver') return;
   try {
-    const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
-    document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
-    document.getElementById('totalTrips').textContent=d.trips;
-    document.getElementById('avgFare').textContent=d.trips?'R'+(d.total/d.trips).toFixed(0):'R0';
-    document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
-  } catch(e){}
+    const snap = await get(ref(db,`drivers/${cu.uid}/earnings`)); const d = snap.val()||{total:0,trips:0};
+    document.getElementById('totalEarnings').textContent = `R ${d.total.toFixed(2)}`;
+    document.getElementById('totalTrips').textContent = d.trips;
+    document.getElementById('avgFare').textContent = d.trips ? 'R'+(d.total/d.trips).toFixed(0) : 'R0';
+    document.getElementById('todayEarnings').textContent = 'R'+statsToday.earned.toFixed(0);
+  } catch(e) {}
 }
 function loadTripHistory() {
-  if(!cu||cu.uid==='demo_driver') return;
-  onValue(ref(db,`drivers/${cu.uid}/trips`),snap=>{
-    const list=Object.values(snap.val()||{}).reverse();
-    const hCount=document.getElementById('historyCount'); if(hCount)hCount.textContent=list.length+' trip'+(list.length!==1?'s':'')+' completed';
-    const card=t=>`
+  if (!cu || cu.uid === 'demo_driver') return;
+  onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
+    const list = Object.values(snap.val()||{}).reverse();
+    const hCount = document.getElementById('historyCount');
+    if (hCount) hCount.textContent = list.length+' trip'+(list.length!==1?'s':'')+' completed';
+    const card = t => `
       <div class="trip-card">
         <div style="flex:1;min-width:0">
           <div class="tc-type">${t.rideType||'VynixGo'}</div>
@@ -1750,51 +1825,61 @@ function loadTripHistory() {
           ${t.distKm?`<div class="tc-km">${parseFloat(t.distKm).toFixed(1)} km</div>`:''}
         </div>
       </div>`;
-    document.getElementById('earningsTripList').innerHTML=list.length?list.slice(0,5).map(card).join(''):'<div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div>';
-    document.getElementById('historyList').innerHTML=list.length?list.map(card).join(''):'<div class="empty"><div class="empty-ico">🗂️</div><p>No trips yet.</p></div>';
+    document.getElementById('earningsTripList').innerHTML = list.length
+      ? list.slice(0,5).map(card).join('')
+      : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">💰 No completed trips yet.</div>';
+    document.getElementById('historyList').innerHTML = list.length
+      ? list.map(card).join('')
+      : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600;">🗂️ No trips yet.</div>';
     loadTodayStats();
   });
 }
 
-// ── VEHICLE ────────────────────────────────────────────────────────────
+// ── VEHICLE ──
 function loadVehicleInfo() {
-  if(!cu||cu.uid==='demo_driver') return;
-  get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap=>{
-    const v=snap.val();
-    if(v){document.getElementById('vehicleSummary').textContent=`${v.car} · ${v.plate} · ${v.type}`;document.getElementById('v-car').value=v.car||'';document.getElementById('v-plate').value=v.plate||'';document.getElementById('v-type').value=v.type||'VynixGo';}
-    else{setTimeout(()=>document.getElementById('vehicleModal').classList.add('show'),700);}
+  if (!cu || cu.uid === 'demo_driver') return;
+  get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap => {
+    const v = snap.val();
+    if (v) {
+      document.getElementById('vehicleSummary').textContent = `${v.car} · ${v.plate} · ${v.type}`;
+      document.getElementById('v-car').value = v.car||'';
+      document.getElementById('v-plate').value = v.plate||'';
+      document.getElementById('v-type').value = v.type||'VynixGo';
+    } else {
+      setTimeout(() => document.getElementById('vehicleModal').classList.add('show'), 700);
+    }
   });
 }
-window.openVehicleModal = ()=>document.getElementById('vehicleModal').classList.add('show');
+window.openVehicleModal = () => document.getElementById('vehicleModal').classList.add('show');
 window.saveVehicle = async function() {
-  if(!cu) return;
-  const car=document.getElementById('v-car').value.trim();
-  const plate=document.getElementById('v-plate').value.trim().toUpperCase();
-  const type=document.getElementById('v-type').value;
-  if(!car||!plate){showToast('Please fill in all vehicle details');return;}
-  if(cu.uid!=='demo_driver') await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
-  document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
+  if (!cu) return;
+  const car = document.getElementById('v-car').value.trim();
+  const plate = document.getElementById('v-plate').value.trim().toUpperCase();
+  const type = document.getElementById('v-type').value;
+  if (!car || !plate) { showToast('Please fill in all vehicle details'); return; }
+  if (cu.uid !== 'demo_driver') await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
+  document.getElementById('vehicleSummary').textContent = `${car} · ${plate} · ${type}`;
   document.getElementById('vehicleModal').classList.remove('show');
   showToast('Vehicle details saved');
 };
 
-// ── PAGE NAV ───────────────────────────────────────────────────────────
-const PAGES=['map','earnings','history','account'];
+// ── PAGE NAV ──
+const PAGES = ['map','earnings','history','account'];
 window.switchPage = function(name) {
-  PAGES.forEach(p=>{
-    const pg=document.getElementById(p==='map'?'page-map':`page-${p}`); if(!pg) return;
-    pg.classList.toggle('show',p===name);
-    const bn=document.getElementById(`bn-${p}`); if(bn)bn.classList.toggle('act',p===name);
-    const snl=document.querySelector(`.snl[data-page="${p}"]`); if(snl)snl.classList.toggle('act',p===name);
+  PAGES.forEach(p => {
+    const pg = document.getElementById(p==='map'?'page-map':`page-${p}`); if(!pg) return;
+    pg.classList.toggle('show', p===name);
+    const bn = document.getElementById(`bn-${p}`); if(bn) bn.classList.toggle('act', p===name);
+    const snl = document.querySelector(`.snl[data-page="${p}"]`); if(snl) snl.classList.toggle('act', p===name);
   });
-  if(name==='map') setTimeout(()=>driverMap?.resize(),60);
+  if (name === 'map') setTimeout(() => driverMap?.resize(), 60);
 };
 
-// ── TOAST ──────────────────────────────────────────────────────────────
+// ── TOAST ──
 window.showToast = function(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3200);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
 };
 </script>
 </body>
