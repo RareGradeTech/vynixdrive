@@ -18,8 +18,8 @@
   --nav-h:60px;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --safe-top:env(safe-area-inset-top,0px);
-  --panel-peek:72px;
-  --panel-full:78vh;
+  --panel-peek:80px;
+  --panel-full:82vh;
 }
 [data-theme="dark"] {
   --ink:#F1F5F9; --bg:#0A0F1E; --card:#111827; --card2:#1E2637;
@@ -89,7 +89,11 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 /* ── MAP PAGE ── */
 .map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
 .map-page.show{display:block}
-.map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom) + var(--panel-peek));transition:bottom .35s cubic-bezier(.4,0,.2,1)}
+.map-wrap{
+  position:absolute;inset:0;
+  bottom:calc(var(--nav-h) + var(--safe-bottom) + var(--panel-peek));
+  transition:bottom .35s cubic-bezier(.4,0,.2,1);
+}
 .map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
@@ -108,7 +112,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   transition:transform .35s cubic-bezier(.4,0,.2,1),background .3s,border-color .3s;
 }
 .driver-panel.expanded{transform:translateY(0)}
-.driver-panel.nav-mode{transform:translateY(calc(var(--panel-full) - 52px))}
+.driver-panel.nav-mode{transform:translateY(calc(var(--panel-full) - var(--panel-peek)))}
 .panel-handle{
   display:flex;align-items:center;justify-content:center;
   padding:10px 16px 8px;flex-shrink:0;cursor:pointer;
@@ -128,11 +132,19 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .toggle-pill.on{background:var(--green)}
 .toggle-pill::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .toggle-pill.on::after{transform:translateX(26px)}
+
+/* ── PANEL SCROLL — key: overflow-y:auto with flex:1 ── */
 .panel-scroll{
-  flex:1;overflow-y:auto;
-  padding:4px 14px 120px;
-  display:flex;flex-direction:column;gap:11px;
-  -webkit-overflow-scrolling:touch;min-height:0;
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  min-height:0;
+  padding:4px 14px calc(120px + var(--safe-bottom));
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+  overscroll-behavior:contain;
 }
 .panel-scroll::-webkit-scrollbar{width:3px}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -153,12 +165,13 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .sc-val{font-size:17px;font-weight:900;color:var(--ink);line-height:1}
 .sc-val span{font-size:11px;font-weight:600;color:var(--muted)}
 
-/* ── ACTIVE RIDE CARD ── */
+/* ── ACTIVE RIDE CARD — no fixed height, scrolls with panel ── */
 .active-ride-card{
   background:linear-gradient(135deg,rgba(26,59,255,.08),rgba(74,108,255,.12));
   border:1.5px solid rgba(26,59,255,.22);
   border-radius:14px;padding:14px;
-  display:none;flex-direction:column;gap:10px;flex-shrink:0;
+  display:none;flex-direction:column;gap:10px;
+  flex-shrink:0; /* let it be as tall as needed */
 }
 [data-theme="dark"] .active-ride-card{background:linear-gradient(135deg,rgba(26,59,255,.15),rgba(74,108,255,.2));}
 .active-ride-card.show{display:flex}
@@ -176,8 +189,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-cell-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .ar-cell-val{font-size:14px;font-weight:900;color:var(--ink);line-height:1}
 .ar-route-box{background:rgba(255,255,255,.06);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px}
-.ar-rp{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink);font-weight:600}
-.ar-rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ar-rp{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--ink);font-weight:600}
+.ar-rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .ar-rp-dot.p{background:var(--green)}
 .ar-rp-dot.d{background:var(--blue2)}
 
@@ -253,23 +266,54 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 
 /* ── NAVIGATION HUD ── */
 .nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
-.nav-hud.show{display:block;pointer-events:all}
-.nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10}
+.nav-hud.show{display:block}
+
+/* Top instruction bar — always visible, pointer events on */
+.nav-instruction-bar{
+  position:absolute;top:10px;left:10px;right:10px;
+  background:rgba(15,23,42,.92);backdrop-filter:blur(12px);
+  border-radius:16px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  pointer-events:all;z-index:10;
+}
 .nav-maneuver-box{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .nav-inst-text{flex:1;min-width:0}
 .nav-dist-lbl{font-size:10px;font-weight:800;color:#94A3B8;letter-spacing:.06em;text-transform:uppercase}
 .nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:.14s}
+.nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:.14s;pointer-events:all}
 .nav-close-x:hover{background:rgba(255,255,255,.22)}
-.nav-steps-panel{position:absolute;left:0;right:0;bottom:0;height:20vh;background:var(--card);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all;transition:background .3s}
-.nav-steps-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+
+/* Collapsible steps panel */
+.nav-steps-panel{
+  position:absolute;left:0;right:0;bottom:0;
+  background:var(--card);backdrop-filter:blur(14px);
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -6px 24px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;overflow:hidden;
+  pointer-events:all;transition:height .32s cubic-bezier(.4,0,.2,1),background .3s;
+  height:220px; /* default expanded */
+}
+.nav-steps-panel.collapsed{height:54px}
+.nav-steps-header{
+  padding:12px 14px 10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;cursor:pointer;touch-action:manipulation;user-select:none;
+}
 .nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
-.nav-exit-btn{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.14s}
+.nav-steps-toggle-row{display:flex;align-items:center;gap:8px}
+.nav-steps-chevron{
+  width:26px;height:26px;border-radius:50%;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--muted);transition:transform .28s;flex-shrink:0;
+}
+.nav-steps-panel.collapsed .nav-steps-chevron{transform:rotate(180deg)}
+.nav-exit-btn{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.14s;pointer-events:all}
 .nav-exit-btn:active{background:rgba(239,68,68,.2)}
-.nav-eta-chips{display:flex;gap:6px}
+.nav-eta-chips{display:flex;gap:6px;flex-shrink:0}
 .nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
 .nav-eta-chip.highlight{background:rgba(26,59,255,.1);color:var(--blue)}
-.nav-steps-scroll{flex:1;overflow-y:auto}
+.nav-steps-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .nav-step-row{display:flex;align-items:flex-start;gap:9px;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,.04)}
 .nav-step-row:last-child{border:none}
 .nav-step-row.current-step{background:rgba(79,70,229,.07)}
@@ -279,9 +323,35 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .nav-step-body{flex:1;min-width:0}
 .nav-step-text{font-size:11px;font-weight:700;color:var(--ink);line-height:1.35}
 .nav-step-d{font-size:10px;color:var(--muted);font-weight:600;margin-top:1px}
-.map-controls{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:5;pointer-events:all}
-.map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation}
+
+/* Map controls — fully interactive during nav */
+.map-controls{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:7px;z-index:5;pointer-events:all;
+}
+.map-ctrl-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);font-size:17px;transition:.14s;touch-action:manipulation;
+  pointer-events:all;
+}
 .map-ctrl-btn:active{background:var(--bg)}
+
+/* Recenter button — shown when user has panned away */
+.recenter-btn{
+  position:absolute;right:10px;bottom:230px;z-index:10;
+  pointer-events:all;
+  background:var(--blue);color:#fff;border:none;
+  padding:8px 14px;border-radius:20px;font-size:12px;font-weight:800;
+  font-family:'Outfit',sans-serif;cursor:pointer;
+  box-shadow:0 4px 16px var(--glow);
+  display:none;align-items:center;gap:6px;
+  transition:.18s;touch-action:manipulation;
+}
+.recenter-btn.show{display:flex}
+.recenter-btn:active{transform:scale(.96)}
 
 /* ── PIN OVERLAY ── */
 .pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0}
@@ -420,6 +490,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .chat-msg.mine .chat-bubble{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;border-bottom-right-radius:4px}
 .chat-msg.theirs .chat-bubble{background:var(--card2);border:1px solid var(--border);color:var(--ink);border-bottom-left-radius:4px}
 .chat-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-weight:600}
+.chat-typing-indicator{align-self:flex-start;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:4px;display:none}
+.chat-typing-indicator.show{display:flex;align-items:center;gap:4px}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typingBounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 .quick-replies{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:7px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
 .quick-replies::-webkit-scrollbar{display:none}
 .qr-btn{white-space:nowrap;padding:8px 13px;border-radius:18px;background:rgba(26,59,255,.06);border:1px solid rgba(26,59,255,.18);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;flex-shrink:0;touch-action:manipulation}
@@ -466,9 +542,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   .modal,.cancel-modal,.chat-sheet,.pin-card{border-radius:22px !important;animation:popIn .3s cubic-bezier(.4,0,.2,1);box-shadow:0 20px 60px rgba(0,0,0,.2) !important;max-height:85vh}
   .pin-card{max-width:440px}
   @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-  .nav-steps-panel{top:20px;right:20px;bottom:auto;left:auto;width:350px;height:auto;max-height:60vh;border-radius:20px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,.15)}
+  .nav-steps-panel{left:20px;right:auto;bottom:20px;width:350px;border-radius:20px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,.15)}
   .nav-instruction-bar{top:20px;left:440px;right:auto;width:400px}
-  .map-controls{right:20px;top:auto;bottom:40px;transform:none}
+  .map-controls{right:20px;top:auto;bottom:240px;transform:none}
+  .recenter-btn{bottom:auto;top:80px;right:20px}
   .toast{bottom:40px !important}
   .ride-notif-banner{max-width:400px;top:30px}
 }
@@ -554,13 +631,21 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   <div class="chat-sheet">
     <div class="chat-header">
       <div class="chat-av" id="chatAv">?</div>
-      <div><div class="chat-rider-name" id="chatRiderName">Rider</div><div class="chat-status">🟢 Active Ride</div></div>
+      <div>
+        <div class="chat-rider-name" id="chatRiderName">Rider</div>
+        <div class="chat-status">🟢 Active Ride</div>
+      </div>
       <button class="chat-close" onclick="closeChat()">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="chat-messages" id="chatMessages">
       <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600;">Say hello to your rider 👋</div>
+    </div>
+    <div class="chat-typing-indicator" id="chatTypingIndicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
     </div>
     <div class="quick-replies">
       <button class="qr-btn" onclick="sendQuickReply(`I'm 2 min away`)">⏱ 2 min away</button>
@@ -570,7 +655,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <button class="qr-btn" onclick="sendQuickReply(`Please be ready at pickup`)">🙋 Please be ready</button>
     </div>
     <div class="chat-input-row">
-      <textarea class="chat-text-input" id="chatInput" placeholder="Message rider…" rows="1" onkeydown="chatKeydown(event)"></textarea>
+      <textarea class="chat-text-input" id="chatInput" placeholder="Message rider…" rows="1" onkeydown="chatKeydown(event)" oninput="autoResizeTextarea(this)"></textarea>
       <button class="chat-send-btn" onclick="sendChatMsg()">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
@@ -601,7 +686,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
     </div>
     <div class="tb-right">
-      <!-- Dark Mode Toggle -->
       <div class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="Toggle dark mode">
         <div class="dm-pill"></div>
         <span class="dm-icon" id="dmIcon">🌙</span>
@@ -619,6 +703,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div class="map-wrap" id="mapWrap">
       <div id="driverMap"></div>
 
+      <!-- NAV HUD — only instruction bar and steps panel have pointer-events -->
       <div class="nav-hud" id="navHud">
         <div class="nav-instruction-bar" id="navInstructionBar">
           <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
@@ -630,29 +715,40 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
+
+        <!-- Recenter button — appears after user pans -->
+        <button class="recenter-btn" id="recenterBtn" onclick="recenterMap()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          Re-centre
+        </button>
+
+        <!-- Map controls — always interactive -->
+        <div class="map-controls" id="mapControls">
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomIn()" title="Zoom in">+</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomOut()" title="Zoom out">−</button>
+        </div>
+
+        <!-- Collapsible steps panel -->
         <div class="nav-steps-panel" id="navStepsPanel">
-          <div class="nav-steps-header">
+          <div class="nav-steps-header" onclick="toggleNavSteps()">
             <div style="display:flex;align-items:center;gap:8px">
-              <button class="nav-exit-btn" onclick="stopNavigation()">✕ Exit Nav</button>
+              <button class="nav-exit-btn" onclick="event.stopPropagation();stopNavigation()">✕ Exit Nav</button>
               <span class="nav-steps-title">Turn-by-Turn</span>
             </div>
-            <div class="nav-eta-chips">
-              <span class="nav-eta-chip highlight" id="navETA">—</span>
-              <span class="nav-eta-chip" id="navDistTotal">—</span>
+            <div class="nav-steps-toggle-row">
+              <div class="nav-eta-chips">
+                <span class="nav-eta-chip highlight" id="navETA">—</span>
+                <span class="nav-eta-chip" id="navDistTotal">—</span>
+              </div>
+              <div class="nav-steps-chevron">▲</div>
             </div>
           </div>
           <div class="nav-steps-scroll" id="navStepsList"></div>
         </div>
-        <div class="map-controls" id="mapControls">
-          <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-          </button>
-          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomIn()">+</button>
-          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomOut()">−</button>
-        </div>
       </div>
     </div>
 
+    <!-- DRIVER PANEL -->
     <div class="driver-panel" id="driverPanel">
       <div class="panel-handle" onclick="togglePanel()">
         <div class="panel-drag-bar"></div>
@@ -669,7 +765,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation();toggleOnline()"></button>
       </div>
 
-      <div class="panel-scroll">
+      <div class="panel-scroll" id="panelScroll">
 
         <div class="status-hero">
           <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
@@ -682,6 +778,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
           <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
         </div>
 
+        <!-- ACTIVE RIDE CARD — all content visible, panel scrolls -->
         <div class="active-ride-card" id="activeRideCard">
           <div class="ar-header">
             <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
@@ -697,15 +794,17 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
             <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
           </div>
           <div class="ar-route-box">
-            <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt" style="font-size:12px;color:var(--muted)">—</span></div>
-            <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt" style="font-size:12px;color:var(--muted)">—</span></div>
+            <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt">—</span></div>
+            <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt">—</span></div>
           </div>
+
           <div class="arrived-pin-card" id="arrivedPinCard">
             <div class="apc-label">🔐 Share this PIN with rider</div>
             <div class="apc-pin" id="arrivedPinDisplay">—</div>
             <div class="apc-note">Rider confirms this in their app before trip starts.</div>
           </div>
 
+          <!-- Phase: pickup -->
           <div class="ride-phase active" id="phase-pickup">
             <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
@@ -719,6 +818,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
             <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
           </div>
 
+          <!-- Phase: riding -->
           <div class="ride-phase" id="phase-riding">
             <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
@@ -798,7 +898,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <div class="ar-arrow" style="color:var(--red)">›</div>
       </div>
     </div>
-    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.4 · South Africa 🇿🇦</div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.5 · South Africa 🇿🇦</div>
   </div>
 
   <!-- BOTTOM NAV -->
@@ -822,7 +922,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, set, get, push, update, remove, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, get, push, update, remove, onValue, serverTimestamp, off } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const FIREBASE_CONFIG = {
   apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -869,6 +969,10 @@ let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
 let allTrips = [], allCanceled = [];
 let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]'));
+let navStepsCollapsed = false;
+// Track if user is manually interacting with map (don't auto-recenter)
+let userIsPanning = false;
+let panningTimeout = null;
 
 // ─── DARK MODE ────────────────────────────────────────────────
 function initDarkMode() {
@@ -893,12 +997,9 @@ window.toggleDarkMode = function() {
     localStorage.setItem('vynix_dark_mode','dark');
     document.getElementById('dmIcon').textContent = '☀️';
   }
-  // Refresh map style for dark/light
   if (driverMap) {
-    const style = isDark
-      ? 'mapbox://styles/mapbox/streets-v12'
-      : 'mapbox://styles/mapbox/dark-v11';
-    driverMap.setStyle(style);
+    const newIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    driverMap.setStyle(newIsDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12');
   }
 };
 initDarkMode();
@@ -908,7 +1009,6 @@ let navSteps = [], navCurrentStep = 0, navMode = null;
 let navRouteCoords = [];
 let driverLngLat = [28.9934, -24.1991];
 let isNavigating = false;
-let mapInteracting = false;
 
 // ─── MAP ──────────────────────────────────────────────────────
 const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
@@ -988,8 +1088,15 @@ function processRideData(allData) {
       expandPanel();
     } else {
       activeRideData = r;
+      // Sync chat unread for rider messages
+      if (r.chat) {
+        const riderMsgs = Object.values(r.chat).filter(m => m.sender === 'rider' && !m.readByDriver);
+        if (riderMsgs.length > 0 && !document.getElementById('chatSheet').classList.contains('show')) {
+          chatUnread = riderMsgs.length;
+          updateChatBadge();
+        }
+      }
     }
-    // Restore phase after refresh
     if (r.arrived && ridePhase !== 'riding') {
       ridePhase = 'riding';
       document.getElementById('phase-pickup').classList.remove('active');
@@ -1012,6 +1119,7 @@ function processRideData(allData) {
       document.getElementById('reqLabel').style.display = '';
       document.getElementById('rideReqList').style.display = '';
       if (isNavigating) stopNavigation();
+      if (chatUnsub) { chatUnsub(); chatUnsub = null; }
       showToast('Active ride was concluded or canceled.');
     }
     if (isOnline) {
@@ -1045,7 +1153,6 @@ function showActiveRide(r) {
   document.getElementById('ar-seats').textContent = r.capacity || 4;
   document.getElementById('ar-pickup-txt').textContent = r.pickup || '—';
   document.getElementById('ar-drop-txt').textContent = r.destination || '—';
-  // Set phase
   if (!r.arrived) {
     ridePhase = 'pickup';
     document.getElementById('phase-pickup').classList.add('active');
@@ -1060,6 +1167,11 @@ function showActiveRide(r) {
     document.getElementById('ar-pin').textContent = r.arrivedPin || '—';
     document.getElementById('arrivedPinCard').classList.add('show');
   }
+  // Scroll panel to top so card is fully visible
+  setTimeout(() => {
+    const ps = document.getElementById('panelScroll');
+    if (ps) ps.scrollTop = 0;
+  }, 100);
 }
 
 function resetPhaseUI() {
@@ -1073,16 +1185,11 @@ function resetPhaseUI() {
 window.openAcceptModal = function(id) {
   if (!isOnline) { showToast('Go online first to accept rides'); return; }
   if (activeRideId) { showToast('You already have an active ride'); return; }
-
-  // Get fresh data from firebase
   get(ref(db, `ride_requests/${id}`)).then(snap => {
     const r = snap.val();
     if (!r) { showToast('Ride no longer available'); return; }
-    if (r.status !== 'pending') { showToast('Ride already taken'); renderRideRequests([]); return; }
-
-    pendingAcceptId = id;
-    pendingAcceptData = r;
-
+    if (r.status !== 'pending') { showToast('Ride already taken'); return; }
+    pendingAcceptId = id; pendingAcceptData = r;
     document.getElementById('am-rider').textContent = r.riderName || 'Unknown';
     document.getElementById('am-type').textContent = r.rideType || 'VynixGo';
     document.getElementById('am-pickup').textContent = (r.pickup || '—').substring(0, 40);
@@ -1090,40 +1197,28 @@ window.openAcceptModal = function(id) {
     document.getElementById('am-dist').textContent = r.distKm ? parseFloat(r.distKm).toFixed(1) + ' km' : '—';
     document.getElementById('am-dur').textContent = r.tripMins ? r.tripMins + ' min' : '—';
     document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
-
     const btn = document.getElementById('acceptConfirmBtn');
-    btn.disabled = false;
-    btn.textContent = '✓ Accept Ride';
-
+    btn.disabled = false; btn.textContent = '✓ Accept Ride';
     document.getElementById('acceptModal').classList.add('show');
   }).catch(e => { showToast('Error loading ride: ' + e.message); });
 };
 
 window.closeAcceptModal = function() {
   document.getElementById('acceptModal').classList.remove('show');
-  pendingAcceptId = null;
-  pendingAcceptData = null;
+  pendingAcceptId = null; pendingAcceptData = null;
 };
 
 window.confirmAccept = async function() {
   if (!pendingAcceptId || !cu) { showToast('No ride selected'); return; }
-
   const btn = document.getElementById('acceptConfirmBtn');
-  btn.disabled = true;
-  btn.textContent = 'Accepting…';
-
+  btn.disabled = true; btn.textContent = 'Accepting…';
   try {
-    // Re-check the ride is still pending (race condition guard)
     const snap = await get(ref(db, `ride_requests/${pendingAcceptId}`));
     const r = snap.val();
     if (!r) { showToast('Ride no longer exists'); closeAcceptModal(); return; }
     if (r.status !== 'pending') { showToast('Ride was already taken by another driver'); closeAcceptModal(); return; }
-
-    // Fetch driver vehicle info
     const vSnap = await get(ref(db, `drivers/${cu.uid}/vehicle`));
     const vehicle = vSnap.val() || {};
-
-    // Write accepted status atomically
     await update(ref(db, `ride_requests/${pendingAcceptId}`), {
       status: 'accepted',
       driverId: cu.uid,
@@ -1133,28 +1228,22 @@ window.confirmAccept = async function() {
       driverPlate: vehicle.plate || '',
       acceptedAt: Date.now()
     });
-
     activeRideId = pendingAcceptId;
     activeRideData = { ...r, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver' };
-
     closeAcceptModal();
     showActiveRide(activeRideData);
     expandPanel();
-
     document.getElementById('reqLabel').style.display = 'none';
     document.getElementById('rideReqList').style.display = 'none';
-
     showToast('🎉 Ride accepted! Navigate to pickup.');
-
-    // Stats
     statsToday.rides++;
     document.getElementById('stat-rides').textContent = statsToday.rides;
-
+    // Start listening to chat
+    listenChat();
   } catch(e) {
     console.error('Accept error:', e);
     showToast('Error accepting ride: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = '✓ Accept Ride';
+    btn.disabled = false; btn.textContent = '✓ Accept Ride';
   }
 };
 
@@ -1164,38 +1253,25 @@ window.completeRide = async function() {
   if (!confirm('Complete this ride?')) return;
   try {
     const fare = parseFloat(activeRideData.fare || 0);
-    const tripData = {
-      ...activeRideData,
-      status: 'completed',
-      completedAt: Date.now(),
-      date: Date.now(),
-      driverId: cu.uid
-    };
-    // Save to driver trips
+    const tripData = { ...activeRideData, status:'completed', completedAt:Date.now(), date:Date.now(), driverId:cu.uid };
     await push(ref(db, `drivers/${cu.uid}/trips`), tripData);
-    // Update earnings
     const earnSnap = await get(ref(db, `drivers/${cu.uid}/earnings`));
     const current = earnSnap.val() || { total:0, trips:0 };
-    await set(ref(db, `drivers/${cu.uid}/earnings`), {
-      total: (current.total||0) + fare,
-      trips: (current.trips||0) + 1
-    });
-    // Remove from active requests
+    await set(ref(db, `drivers/${cu.uid}/earnings`), { total:(current.total||0)+fare, trips:(current.trips||0)+1 });
     await remove(ref(db, `ride_requests/${activeRideId}`));
-    // Update UI stats
-    statsToday.earned += fare;
-    statsToday.rides++;
+    statsToday.earned += fare; statsToday.rides++;
     document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
     document.getElementById('stat-rides').textContent = statsToday.rides;
+    if (chatUnsub) { chatUnsub(); chatUnsub = null; }
     activeRideId = null; activeRideData = null; ridePhase = 'pickup';
+    chatMessages = []; chatUnread = 0; updateChatBadge();
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
     document.getElementById('reqLabel').style.display = '';
     document.getElementById('rideReqList').style.display = '';
     if (isNavigating) stopNavigation();
-    loadTripHistory();
-    loadTodayStats();
+    loadTripHistory(); loadTodayStats();
     showToast(`✅ Ride complete! +R${fare.toFixed(2)}`);
   } catch(e) { showToast('Error completing ride: ' + e.message); }
 };
@@ -1214,7 +1290,8 @@ function initMap() {
       try {
         const layers = driverMap.getStyle().layers;
         const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
-        if (!isDark) {
+        const curDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (!curDark) {
           driverMap.addLayer({
             id:'3d-buildings', source:'composite', 'source-layer':'building',
             filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
@@ -1224,9 +1301,22 @@ function initMap() {
       } catch(e) {}
       if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
     });
-    driverMap.on('dragstart', () => { mapInteracting = true; });
-    driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
-    driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
+
+    // ── User panning detection — don't auto-recenter while user is interacting ──
+    const onUserInteraction = () => {
+      userIsPanning = true;
+      if (isNavigating) {
+        document.getElementById('recenterBtn').classList.add('show');
+      }
+      clearTimeout(panningTimeout);
+      // Don't auto-cancel; only re-enable after user explicitly re-centres
+    };
+    driverMap.on('dragstart', onUserInteraction);
+    driverMap.on('touchstart', onUserInteraction);
+    driverMap.on('wheel', onUserInteraction);
+    driverMap.on('pitchstart', onUserInteraction);
+    driverMap.on('rotatestart', onUserInteraction);
+
     const el = document.createElement('div');
     el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
     driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
@@ -1240,7 +1330,8 @@ function initMap() {
 function updateDriverLocation(lat, lng) {
   driverLngLat = [lng, lat];
   driverMarker?.setLngLat([lng, lat]);
-  if (!mapInteracting && !isNavigating) {
+  // Only auto-follow if user hasn't panned away
+  if (!userIsPanning) {
     driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
   }
   if (isOnline && db && cu) {
@@ -1265,9 +1356,11 @@ const sToStr = s => { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60); retu
 window.startNavigation = async function(mode) {
   if (!activeRideData) { showToast('No active ride'); return; }
   navMode = mode; isNavigating = true;
+  userIsPanning = false; // reset panning state when nav starts
   document.getElementById('driverPanel').classList.add('nav-mode');
   document.getElementById('mapWrap').classList.add('nav-active');
   document.getElementById('navHud').classList.add('show');
+  document.getElementById('recenterBtn').classList.remove('show');
   document.getElementById('navInstMain').textContent = 'Fetching route…';
   document.getElementById('navManeuverBox').textContent = '⏳';
   const btnId = mode === 'pickup' ? 'btnNavPickup' : 'btnNavDest';
@@ -1303,10 +1396,11 @@ async function fetchAndRenderRoute(origin, destAddr) {
   destMarker = new mapboxgl.Marker({ element:dEl }).setLngLat(dest).addTo(driverMap);
   document.getElementById('navETA').textContent = sToStr(route.duration);
   document.getElementById('navDistTotal').textContent = mToStr(route.distance);
+  // Fit route in view (initial only — don't follow after that)
   const closeUp = navRouteCoords.slice(0, Math.max(8, Math.floor(navRouteCoords.length*.15)));
   closeUp.push(driverLngLat);
   const bounds = closeUp.reduce((b,c) => b.extend(c), new mapboxgl.LngLatBounds(closeUp[0], closeUp[0]));
-  driverMap.fitBounds(bounds, { padding:{top:100,bottom:200,left:30,right:30}, bearing:computeBearing(navRouteCoords), pitch:55, duration:1000 });
+  driverMap.fitBounds(bounds, { padding:{top:100,bottom:240,left:30,right:30}, bearing:computeBearing(navRouteCoords), pitch:55, duration:1000 });
   renderNavSteps(); updateCurrentStep();
 }
 
@@ -1353,9 +1447,16 @@ function updateCurrentStep() {
   document.getElementById('navInstMain').textContent = s.maneuver?.instruction||'Continue';
 }
 
+// Toggle collapse/expand the steps sheet
+window.toggleNavSteps = function() {
+  navStepsCollapsed = !navStepsCollapsed;
+  document.getElementById('navStepsPanel').classList.toggle('collapsed', navStepsCollapsed);
+};
+
 window.stopNavigation = function() {
-  isNavigating = false;
+  isNavigating = false; userIsPanning = false;
   document.getElementById('navHud').classList.remove('show');
+  document.getElementById('recenterBtn').classList.remove('show');
   document.getElementById('driverPanel').classList.remove('nav-mode');
   document.getElementById('mapWrap').classList.remove('nav-active');
   const bp = document.getElementById('btnNavPickup');
@@ -1363,18 +1464,23 @@ window.stopNavigation = function() {
   if (bp) { bp.classList.remove('navigating'); bp.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Pickup'; }
   if (bd) { bd.classList.remove('navigating'); bd.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Dest'; }
   driverMap?.easeTo({ center:driverLngLat, zoom:15, pitch:45, bearing:0, duration:800 });
-  navMode = null;
+  navMode = null; navStepsCollapsed = false;
+  document.getElementById('navStepsPanel').classList.remove('collapsed');
 };
 
-window.recenterMap = function() { mapInteracting = false; driverMap?.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 }); };
+// Re-centre map on driver and resume following
+window.recenterMap = function() {
+  userIsPanning = false;
+  document.getElementById('recenterBtn').classList.remove('show');
+  driverMap?.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.4 });
+};
 
 // ─── PIN VERIFICATION ─────────────────────────────────────────
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
   await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
-  activeRideData.arrivedPin = newPin;
-  activeRideData.arrived = true;
+  activeRideData.arrivedPin = newPin; activeRideData.arrived = true;
   document.getElementById('arrivedPinDisplay').textContent = newPin;
   document.getElementById('arrivedPinCard').classList.add('show');
   document.getElementById('ar-pin').textContent = newPin;
@@ -1418,58 +1524,131 @@ window.verifyPin = function() {
   }
 };
 
-// ─── CHAT ─────────────────────────────────────────────────────
+// ─── CHAT — fully real-time via Firebase ──────────────────────
 window.openChat = function() {
   if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
   document.getElementById('chatAv').textContent = ini2(activeRideData.riderName||'R');
   document.getElementById('chatRiderName').textContent = activeRideData.riderName||'Rider';
   document.getElementById('chatSheet').classList.add('show');
-  chatUnread = 0; updateChatBadge(); listenChat(); scrollChatBottom();
+  chatUnread = 0; updateChatBadge();
+  listenChat();
+  // Mark all rider messages as read
+  markChatMessagesRead();
+  setTimeout(() => document.getElementById('chatInput')?.focus(), 300);
 };
+
 window.closeChat = function() {
   document.getElementById('chatSheet').classList.remove('show');
-  if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+  // Keep chatUnsub alive so badge updates when sheet is closed
 };
+
 function listenChat() {
   if (!activeRideId || !db) return;
-  if (chatUnsub) chatUnsub();
+  if (chatUnsub) return; // Already listening
   chatUnsub = onValue(ref(db, `ride_requests/${activeRideId}/chat`), snap => {
-    const msgs = snap.val()||{};
-    chatMessages = Object.values(msgs).sort((a,b) => a.ts-b.ts);
-    renderChatMsgs(); scrollChatBottom();
+    const msgs = snap.val() || {};
+    const all = Object.entries(msgs).map(([k,v]) => ({...v, _key:k})).sort((a,b) => a.ts-b.ts);
+    const chatOpen = document.getElementById('chatSheet').classList.contains('show');
+    // Count unread rider messages
+    const unread = all.filter(m => m.sender === 'rider' && !m.readByDriver).length;
+    if (chatOpen) {
+      chatUnread = 0;
+      markChatMessagesRead();
+    } else {
+      if (unread > 0) {
+        chatUnread = unread;
+        // Show typing indicator briefly for new messages
+        showTypingIndicator();
+      }
+    }
+    chatMessages = all;
+    renderChatMsgs();
+    if (chatOpen) scrollChatBottom();
+    updateChatBadge();
   });
 }
+
+function markChatMessagesRead() {
+  if (!activeRideId || !chatMessages.length) return;
+  chatMessages.forEach(m => {
+    if (m.sender === 'rider' && !m.readByDriver && m._key) {
+      update(ref(db, `ride_requests/${activeRideId}/chat/${m._key}`), { readByDriver:true }).catch(()=>{});
+    }
+  });
+}
+
+let typingTimer = null;
+function showTypingIndicator() {
+  const el = document.getElementById('chatTypingIndicator');
+  if (!el) return;
+  el.classList.add('show');
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
 function renderChatMsgs() {
   const el = document.getElementById('chatMessages');
-  if (!chatMessages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>'; return; }
+  if (!chatMessages.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>';
+    return;
+  }
   el.innerHTML = chatMessages.map(m => {
-    const mine = m.sender==='driver';
+    const mine = m.sender === 'driver';
     const time = m.ts ? new Date(m.ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '';
+    const readIcon = mine ? (m.readByRider ? ' ✓✓' : ' ✓') : '';
     return `<div class="chat-msg ${mine?'mine':'theirs'}">
       <div class="chat-bubble">${escHtml(m.text)}</div>
-      <div class="chat-meta">${time}</div>
+      <div class="chat-meta">${time}${readIcon}</div>
     </div>`;
   }).join('');
 }
-function scrollChatBottom() { const el=document.getElementById('chatMessages'); if(el) setTimeout(()=>el.scrollTop=el.scrollHeight,60); }
+
+function scrollChatBottom() {
+  const el = document.getElementById('chatMessages');
+  if (el) setTimeout(() => el.scrollTop = el.scrollHeight, 60);
+}
+
 function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function updateChatBadge() {
   ['chatBadge1','chatBadge2'].forEach(id => {
-    const el=document.getElementById(id); if(!el) return;
-    el.textContent=chatUnread; el.classList.toggle('show',chatUnread>0);
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = chatUnread;
+    el.classList.toggle('show', chatUnread > 0);
   });
 }
+
 window.sendChatMsg = async function() {
   const inp = document.getElementById('chatInput');
   const text = inp.value.trim(); if (!text || !activeRideId) return;
-  inp.value = ''; await _pushChat(text);
+  inp.value = ''; inp.style.height = '';
+  await _pushChat(text);
 };
-window.sendQuickReply = async function(text) { if(!activeRideId){showToast('No active ride');return;} await _pushChat(text); };
+
+window.sendQuickReply = async function(text) {
+  if (!activeRideId) { showToast('No active ride'); return; }
+  await _pushChat(text);
+};
+
 async function _pushChat(text) {
-  const msg = { text, sender:'driver', ts:Date.now(), readByRider:false };
-  await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
+  if (!activeRideId) return;
+  const msg = { text, sender:'driver', ts:Date.now(), readByRider:false, readByDriver:true };
+  try {
+    await push(ref(db, `ride_requests/${activeRideId}/chat`), msg);
+    scrollChatBottom();
+  } catch(e) {
+    showToast('Failed to send message');
+  }
 }
-window.chatKeydown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendChatMsg();} };
+
+window.chatKeydown = function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendChatMsg(); }
+};
+
+window.autoResizeTextarea = function(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+};
 
 // ─── CANCELLATION ─────────────────────────────────────────────
 window.selectCancelReason = function(el, reason) {
@@ -1531,7 +1710,9 @@ async function cancelActiveRide(reason) {
     await update(ref(db,`ride_requests/${activeRideId}`), {
       status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
     });
+    if (chatUnsub) { chatUnsub(); chatUnsub = null; }
     activeRideId=null; activeRideData=null; ridePhase='pickup';
+    chatMessages=[]; chatUnread=0; updateChatBadge();
     document.getElementById('activeRideCard').classList.remove('show');
     document.getElementById('arrivedPinCard').classList.remove('show');
     resetPhaseUI();
@@ -1589,7 +1770,12 @@ window.togglePanel = function() {
   setTimeout(() => driverMap?.resize(), 380);
 };
 function expandPanel() {
-  if (!panelExpanded) { panelExpanded=true; document.getElementById('driverPanel').classList.add('expanded'); document.getElementById('pcrSub').textContent='Tap to collapse'; setTimeout(()=>driverMap?.resize(),380); }
+  if (!panelExpanded) {
+    panelExpanded=true;
+    document.getElementById('driverPanel').classList.add('expanded');
+    document.getElementById('pcrSub').textContent='Tap to collapse';
+    setTimeout(()=>driverMap?.resize(),380);
+  }
 }
 
 // ─── ONLINE TOGGLE ────────────────────────────────────────────
