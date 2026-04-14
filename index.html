@@ -18,9 +18,8 @@
   --nav-h:60px;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --safe-top:env(safe-area-inset-top,0px);
-  /* Mobile panel heights */
-  --panel-peek:72px;   /* collapsed — just the handle + status row */
-  --panel-full:78vh;   /* expanded */
+  --panel-peek:72px;
+  --panel-full:78vh;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
@@ -30,6 +29,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .init-loader.hide{opacity:0;pointer-events:none}
 .loader-spinner{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.loader-sub{font-size:12px;color:var(--muted);margin-top:8px;font-weight:500}
 
 /* ── SHELL ── */
 .shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .4s;flex-direction:column}
@@ -63,7 +63,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
-/* ── DRIVER PANEL — Mobile Bottom Sheet ── */
+/* ── DRIVER PANEL ── */
 .driver-panel{
   position:absolute;left:0;right:0;
   bottom:calc(var(--nav-h) + var(--safe-bottom));
@@ -79,8 +79,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 }
 .driver-panel.expanded{transform:translateY(0)}
 .driver-panel.nav-mode{transform:translateY(calc(var(--panel-full) - 52px))}
-
-/* Handle */
 .panel-handle{
   display:flex;align-items:center;justify-content:center;
   padding:10px 16px 8px;flex-shrink:0;cursor:pointer;
@@ -100,8 +98,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .toggle-pill.on{background:var(--green)}
 .toggle-pill::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .toggle-pill.on::after{transform:translateX(26px)}
-
-/* Panel scroll area */
 .panel-scroll{
   flex:1;overflow-y:auto;padding:4px 14px 20px;
   display:flex;flex-direction:column;gap:11px;
@@ -153,81 +149,37 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-rp-dot.p{background:var(--green)}
 .ar-rp-dot.d{background:var(--blue2)}
 
-/* ── RIDE ACTION BUTTONS — MOBILE OPTIMIZED ── */
+/* ── RIDE ACTION BUTTONS ── */
 .ar-actions-grid{display:grid;gap:8px}
 .ride-phase{display:none}
 .ride-phase.active{display:grid;gap:8px}
-
-/* Phase 1 (en route to pickup) */
 #phase-pickup.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""arrived arrived""cancel cancel"}
 #phase-pickup .btn-nav{grid-area:nav}
 #phase-pickup .btn-chat-ar{grid-area:chat}
 #phase-pickup .btn-arrived{grid-area:arrived}
 #phase-pickup .btn-cancel-active{grid-area:cancel}
-
-/* Phase 2 (trip in progress) */
 #phase-riding.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""complete complete""cancel cancel"}
 #phase-riding .btn-nav{grid-area:nav}
 #phase-riding .btn-chat-ar{grid-area:chat}
 #phase-riding .btn-complete{grid-area:complete}
 #phase-riding .btn-cancel-active{grid-area:cancel}
 
-/* Button styles — larger touch targets */
-.btn-nav{
-  padding:13px 10px;border-radius:11px;border:none;
-  background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;
-  font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  transition:.14s;touch-action:manipulation;
-  box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px;
-}
+.btn-nav{padding:13px 10px;border-radius:11px;border:none;background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:.14s;touch-action:manipulation;box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px}
 .btn-nav:active{opacity:.88;transform:scale(.98)}
 .btn-nav.navigating{background:linear-gradient(130deg,#059669,#10B981);box-shadow:0 3px 12px rgba(16,185,129,.3)}
-.btn-chat-ar{
-  padding:13px 10px;border-radius:11px;
-  background:rgba(255,255,255,.9);border:1.5px solid rgba(26,59,255,.2);
-  color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;
-  font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;
-  transition:.14s;touch-action:manipulation;position:relative;min-height:48px;
-}
+.btn-chat-ar{padding:13px 10px;border-radius:11px;background:rgba(255,255,255,.9);border:1.5px solid rgba(26,59,255,.2);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:.14s;touch-action:manipulation;position:relative;min-height:48px}
 .btn-chat-ar:active{background:rgba(255,255,255,1)}
-.chat-unread-badge{
-  position:absolute;top:-5px;right:-5px;width:16px;height:16px;
-  background:var(--red);border-radius:50%;border:2px solid #DBEAFE;
-  font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;
-}
+.chat-unread-badge{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid #DBEAFE;font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center}
 .chat-unread-badge.show{display:flex}
-.btn-arrived{
-  padding:15px;border-radius:11px;border:none;
-  background:linear-gradient(130deg,#F59E0B,#D97706);color:#fff;
-  font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
-  touch-action:manipulation;transition:.14s;
-  box-shadow:0 3px 12px rgba(245,158,11,.3);min-height:50px;
-}
+.btn-arrived{padding:15px;border-radius:11px;border:none;background:linear-gradient(130deg,#F59E0B,#D97706);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;box-shadow:0 3px 12px rgba(245,158,11,.3);min-height:50px}
 .btn-arrived:active{opacity:.88}
-.btn-complete{
-  padding:15px;border-radius:11px;border:none;
-  background:linear-gradient(130deg,var(--green),var(--green2));color:#fff;
-  font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;
-  box-shadow:0 3px 12px rgba(16,185,129,.28);touch-action:manipulation;
-  transition:.14s;min-height:50px;
-}
+.btn-complete{padding:15px;border-radius:11px;border:none;background:linear-gradient(130deg,var(--green),var(--green2));color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,.28);touch-action:manipulation;transition:.14s;min-height:50px}
 .btn-complete:active{opacity:.88}
-.btn-cancel-active{
-  padding:13px;border-radius:11px;
-  background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);
-  color:var(--red);font-size:13px;font-weight:800;cursor:pointer;
-  font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;
-  min-height:46px;
-}
+.btn-cancel-active{padding:13px;border-radius:11px;background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:.14s;min-height:46px}
 .btn-cancel-active:active{background:rgba(239,68,68,.12)}
 
 /* Arrived PIN card */
-.arrived-pin-card{
-  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
-  border:1.5px solid rgba(245,158,11,.3);border-radius:12px;
-  padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center;
-}
+.arrived-pin-card{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .arrived-pin-card.show{display:flex}
 .apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
 .apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
@@ -240,11 +192,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ride-req-list{display:flex;flex-direction:column;gap:10px}
 .no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
 .no-rides-ico{font-size:26px;margin-bottom:8px;opacity:.6}
-.req-card{
-  background:var(--card);border:1.5px solid var(--border);
-  border-radius:14px;padding:13px;
-  animation:slideIn .25s cubic-bezier(.4,0,.2,1);
-}
+.req-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;animation:slideIn .25s cubic-bezier(.4,0,.2,1)}
 @keyframes slideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 .req-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:6px}
 .req-rider{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -267,61 +215,23 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .req-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
 .req-chip{font-size:10px;font-weight:600;color:var(--muted);background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:7px}
 .req-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
-.btn-decline{
-  padding:13px;border-radius:10px;
-  background:rgba(239,68,68,.07);border:1.5px solid rgba(239,68,68,.2);
-  color:var(--red);font-size:13px;font-weight:700;cursor:pointer;
-  font-family:'Outfit',sans-serif;transition:.14s;touch-action:manipulation;min-height:48px;
-}
+.btn-decline{padding:13px;border-radius:10px;background:rgba(239,68,68,.07);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;touch-action:manipulation;min-height:48px}
 .btn-decline:active{background:rgba(239,68,68,.13)}
-.btn-accept{
-  padding:13px;border-radius:10px;border:none;
-  background:linear-gradient(130deg,var(--blue2),var(--blue));
-  color:#fff;font-size:13px;font-weight:700;cursor:pointer;
-  font-family:'Outfit',sans-serif;transition:.14s;
-  box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px;
-}
+.btn-accept{padding:13px;border-radius:10px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:.14s;box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px}
 .btn-accept:active{opacity:.88;transform:scale(.98)}
 
 /* ── NAVIGATION HUD ── */
 .nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
 .nav-hud.show{display:block;pointer-events:all}
-.nav-instruction-bar{
-  position:absolute;top:10px;left:10px;right:10px;
-  background:rgba(15,23,42,.92);backdrop-filter:blur(12px);
-  border-radius:16px;padding:12px 14px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10;
-}
-.nav-maneuver-box{
-  width:44px;height:44px;border-radius:12px;
-  background:linear-gradient(135deg,#4F46E5,#7C3AED);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;flex-shrink:0;
-}
+.nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10}
+.nav-maneuver-box{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .nav-inst-text{flex:1;min-width:0}
 .nav-dist-lbl{font-size:10px;font-weight:800;color:#94A3B8;letter-spacing:.06em;text-transform:uppercase}
 .nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-close-x{
-  width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);
-  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  color:#fff;flex-shrink:0;transition:.14s;
-}
+.nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:.14s}
 .nav-close-x:hover{background:rgba(255,255,255,.22)}
-
-/* Mobile nav steps panel — bottom strip */
-.nav-steps-panel{
-  position:absolute;left:0;right:0;bottom:0;
-  height:20vh;background:rgba(255,255,255,.97);
-  backdrop-filter:blur(14px);border-radius:20px 20px 0 0;
-  box-shadow:0 -6px 24px rgba(0,0,0,.18);
-  display:flex;flex-direction:column;overflow:hidden;
-  pointer-events:all;
-}
-.nav-steps-header{
-  padding:12px 14px 8px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-}
+.nav-steps-panel{position:absolute;left:0;right:0;bottom:0;height:20vh;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all}
+.nav-steps-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
 .nav-eta-chips{display:flex;gap:6px}
 .nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
@@ -490,33 +400,23 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .chat-send-btn:active{transform:scale(.92)}
 
 /* ── TOAST ── */
-.toast{
-  position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);
-  left:50%;transform:translateX(-50%) translateY(8px);
-  background:var(--ink);color:#fff;padding:11px 22px;
-  border-radius:28px;font-size:13px;font-weight:800;
-  opacity:0;pointer-events:none;transition:.2s;z-index:1000;
-  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;
-  box-shadow:0 6px 24px rgba(0,0,0,.2);
-}
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s;z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── RIDE NOTIF BANNER ── */
-.ride-notif-banner{
-  position:fixed;top:calc(10px + var(--safe-top));left:50%;
-  transform:translateX(-50%) translateY(-140px);
-  background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;
-  display:flex;align-items:center;gap:10px;z-index:2000;
-  box-shadow:0 12px 40px rgba(0,0,0,.35);
-  max-width:calc(100vw - 24px);width:calc(100% - 24px);
-  transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
-}
+.ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-140px);background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .4s cubic-bezier(.175,.885,.32,1.275)}
 .ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
 .rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
 .rnb-text{flex:1;min-width:0}
 .rnb-title{font-size:13px;font-weight:800}
 .rnb-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation}
+
+/* ── DEMO BANNER ── */
+.demo-banner{background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.demo-banner-ico{font-size:18px}
+.demo-banner-txt{font-size:12px;font-weight:700;color:#92400E;flex:1}
+.demo-banner-txt span{font-weight:500;opacity:.8}
 
 /* ── DRIVER MARKER ── */
 .driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
@@ -529,6 +429,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 <div class="init-loader" id="initLoader">
   <div class="loader-spinner"></div>
   <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:18px">VynixRide Driver</div>
+  <div class="loader-sub" id="loaderSub">Connecting…</div>
+  <button id="demoFallbackBtn" onclick="startDemoMode()" style="display:none;margin-top:18px;padding:12px 28px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif">Continue as Demo Driver</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -681,8 +583,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
           <button class="map-ctrl-btn" onclick="recenterMap()" title="Re-center">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
           </button>
-          <button class="map-ctrl-btn" onclick="driverMap.zoomIn()">+</button>
-          <button class="map-ctrl-btn" onclick="driverMap.zoomOut()">−</button>
+          <button class="map-ctrl-btn" onclick="driverMap&&driverMap.zoomIn()">+</button>
+          <button class="map-ctrl-btn" onclick="driverMap&&driverMap.zoomOut()">−</button>
         </div>
       </div>
     </div>
@@ -806,6 +708,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <div class="pc-av" id="profAv">?</div>
       <div><div class="pc-name" id="profName">Driver</div><div class="pc-email" id="profEmail">—</div><div class="pc-tag">🚗 VynixRide Driver</div></div>
     </div>
+    <div id="demoBannerSlot"></div>
     <div class="acc-group-title">Vehicle</div>
     <div class="acc-group">
       <div class="acc-row" onclick="openVehicleModal()">
@@ -829,7 +732,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
         <div class="ar-arrow" style="color:var(--red)">›</div>
       </div>
     </div>
-    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.2 · South Africa 🇿🇦</div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.3 · South Africa 🇿🇦</div>
   </div>
 
   <nav class="bnav">
@@ -854,7 +757,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-const app = initializeApp({
+const FIREBASE_CONFIG = {
   apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
   authDomain:"fire-b-a8878.firebaseapp.com",
   databaseURL:"https://fire-b-a8878.firebaseio.com",
@@ -862,9 +765,63 @@ const app = initializeApp({
   storageBucket:"fire-b-a8878.firebasestorage.app",
   messagingSenderId:"658673187627",
   appId:"1:658673187627:web:32699cbc33e85f4bafa36e"
-});
-const db = getDatabase(app);
-const auth = getAuth(app);
+};
+
+let app, db, auth;
+let firebaseReady = false;
+
+// ─── EXPOSE startDemoMode globally IMMEDIATELY ────────────────
+window.startDemoMode = function() {
+  document.getElementById('demoFallbackBtn').style.display = 'none';
+  localStorage.setItem('vynix_demo', 'true');
+  localStorage.removeItem('vynix_driver_status');
+  initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
+};
+
+// ─── INIT FIREBASE WITH TIMEOUT ───────────────────────────────
+let authResolved = false;
+
+function tryInitFirebase() {
+  try {
+    app = initializeApp(FIREBASE_CONFIG);
+    db = getDatabase(app);
+    auth = getAuth(app);
+    firebaseReady = true;
+
+    document.getElementById('loaderSub').textContent = 'Checking auth…';
+
+    // Hard timeout — if auth doesn't resolve in 6s, offer demo
+    const authTimeout = setTimeout(() => {
+      if (!authResolved) {
+        document.getElementById('loaderSub').textContent = 'Taking longer than expected…';
+        document.getElementById('demoFallbackBtn').style.display = 'block';
+      }
+    }, 6000);
+
+    onAuthStateChanged(auth, user => {
+      authResolved = true;
+      clearTimeout(authTimeout);
+      const isDemo = localStorage.getItem('vynix_demo') === 'true';
+      if (user) {
+        localStorage.removeItem('vynix_demo');
+        initApp(user);
+      } else if (isDemo) {
+        initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
+      } else {
+        // No auth, no demo — show demo button instead of redirecting
+        document.getElementById('loaderSub').textContent = 'Not signed in';
+        document.getElementById('demoFallbackBtn').style.display = 'block';
+      }
+    });
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    document.getElementById('loaderSub').textContent = 'Connection failed';
+    document.getElementById('demoFallbackBtn').style.display = 'block';
+  }
+}
+
+// Small delay to let DOM fully paint first
+setTimeout(tryInitFirebase, 100);
 
 // ─── STATE ───────────────────────────────────────────────────
 let cu = null, isOnline = false;
@@ -880,11 +837,12 @@ let selectedReasonText = null;
 let chatMessages = [], chatUnread = 0;
 let knownRequestIds = new Set();
 let currentHistoryTab = 'all';
+let allTrips = [], allCanceled = [];
 
 // ─── NAV STATE ───────────────────────────────────────────────
 let navSteps = [], navCurrentStep = 0, navMode = null;
 let navRouteCoords = [];
-let driverLngLat = [28.9934, -24.1991];
+let driverLngLat = [28.9934, -24.1991]; // Pretoria default
 let isNavigating = false;
 let mapInteracting = false;
 
@@ -894,7 +852,7 @@ mapboxgl.accessToken = TK;
 let driverMap, driverMarker, destMarker = null;
 const ROUTE_SRC = 'nav-route', ROUTE_L = 'nav-route-l', ROUTE_LBG = 'nav-route-lbg';
 
-// ─── AUDIO (Safely lazy-loaded to prevent blocking) ──────────
+// ─── AUDIO ────────────────────────────────────────────────────
 let audioCtx = null;
 function playNotif() {
   try {
@@ -909,45 +867,34 @@ function playNotif() {
       gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .28);
       osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + .3);
     });
-  } catch(e) { console.error("Audio Context Error", e); }
+  } catch(e) {}
 }
-
-function resumeAudio() { 
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); 
-}
+function resumeAudio() { if (audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
 document.addEventListener('click', resumeAudio, { once:true });
 document.addEventListener('touchstart', resumeAudio, { once:true });
 
-// ─── SAFETY FALLBACK ──────────────────────────────────────────
-setTimeout(() => {
-  const loader = document.getElementById('initLoader');
-  if (!loader.classList.contains('hide')) {
-    loader.classList.add('hide');
-    document.getElementById('appShell').classList.add('ready');
-    showToast('Offline Mode / Initialization Delayed');
-  }
-}, 5000);
-
-// ─── AUTH ─────────────────────────────────────────────────────
-onAuthStateChanged(auth, user => {
-  const isDemo = localStorage.getItem('vynix_demo') === 'true';
-  if (user) initApp(user);
-  else if (isDemo) initApp({ uid:'demo_driver', displayName:'Demo Driver', email:'demo@vynixride.com' });
-  else window.location.href = 'login.html';
-});
-
+// ─── APP INIT ─────────────────────────────────────────────────
 function initApp(userData) {
   document.getElementById('initLoader').classList.add('hide');
   document.getElementById('appShell').classList.add('ready');
   cu = userData;
   updateUI(cu);
+
+  // Show demo banner if in demo mode
+  if (cu.uid === 'demo_driver') {
+    const slot = document.getElementById('demoBannerSlot');
+    if (slot) slot.innerHTML = `<div class="demo-banner"><div class="demo-banner-ico">🧪</div><div class="demo-banner-txt">Demo Mode <span>— Firebase features disabled. Sign in for full functionality.</span></div></div>`;
+    document.getElementById('vehicleSummary').textContent = 'Demo Toyota Corolla · ABC 123 GP · VynixGo';
+  }
+
   loadTodayStats();
   loadTripHistory();
   if (!driverMap) initMap();
   watchLocation();
   listenActiveRide();
-  loadVehicleInfo();
-  // Restore online/offline status from localStorage
+  if (cu.uid !== 'demo_driver') loadVehicleInfo();
+
+  // Restore status
   if (localStorage.getItem('vynix_driver_status') === 'online') goOnline();
   else goOffline();
 }
@@ -956,35 +903,45 @@ window.doSignOut = () => {
   if (isOnline) goOffline();
   localStorage.removeItem('vynix_driver_status');
   localStorage.removeItem('vynix_demo');
-  if (cu?.uid === 'demo_driver') window.location.href = 'login.html';
-  else signOut(auth).then(() => { window.location.href = 'login.html'; });
+  if (!auth || cu?.uid === 'demo_driver') {
+    window.location.reload();
+  } else {
+    signOut(auth).catch(()=>{}).finally(() => window.location.reload());
+  }
 };
 
-// ─── MAP ──────────────────────────────────────────────────────
+// ─── MAP INIT ─────────────────────────────────────────────────
 function initMap() {
-  driverMap = new mapboxgl.Map({
-    container:'driverMap', style:'mapbox://styles/mapbox/streets-v12',
-    center:driverLngLat, zoom:15, pitch:45, bearing:0, attributionControl:false
-  });
-  driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
-  driverMap.on('style.load', () => {
-    const layers = driverMap.getStyle().layers;
-    const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
-    driverMap.addLayer({
-      id:'3d-buildings', source:'composite', 'source-layer':'building',
-      filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
-      paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6}
-    }, labelId);
-    if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
-  });
-  driverMap.on('dragstart', () => { mapInteracting = true; });
-  driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
-  driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
+  try {
+    driverMap = new mapboxgl.Map({
+      container:'driverMap', style:'mapbox://styles/mapbox/streets-v12',
+      center:driverLngLat, zoom:14, pitch:45, bearing:0, attributionControl:false
+    });
+    driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
+    driverMap.on('style.load', () => {
+      try {
+        const layers = driverMap.getStyle().layers;
+        const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
+        driverMap.addLayer({
+          id:'3d-buildings', source:'composite', 'source-layer':'building',
+          filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15,
+          paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6}
+        }, labelId);
+      } catch(e) {}
+      if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
+    });
+    driverMap.on('dragstart', () => { mapInteracting = true; });
+    driverMap.on('dragend', () => { setTimeout(() => mapInteracting = false, 3000); });
+    driverMap.on('zoomend', () => { setTimeout(() => mapInteracting = false, 2000); });
 
-  const el = document.createElement('div');
-  el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
-  driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
-  setTimeout(() => driverMap.resize(), 150);
+    const el = document.createElement('div');
+    el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
+    driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
+    setTimeout(() => driverMap.resize(), 200);
+  } catch(e) {
+    console.error('Map init error:', e);
+    document.getElementById('driverMap').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);font-size:13px;font-weight:600"><div style="font-size:32px">🗺️</div><div>Map unavailable</div></div>';
+  }
 }
 
 function updateDriverLocation(lat, lng) {
@@ -993,15 +950,16 @@ function updateDriverLocation(lat, lng) {
   if (!mapInteracting && !isNavigating) {
     driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
   }
-  if (cu?.uid !== 'demo_driver' && isOnline) {
+  if (cu?.uid !== 'demo_driver' && isOnline && db) {
     set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now() }).catch(()=>{});
   }
 }
+
 function watchLocation() {
   if (!navigator.geolocation) return;
   navigator.geolocation.watchPosition(
     pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
-    ()=>{}, { enableHighAccuracy:true, maximumAge:3000 }
+    () => {}, { enableHighAccuracy:true, maximumAge:3000 }
   );
 }
 
@@ -1069,6 +1027,7 @@ function computeBearing(coords) {
 }
 
 function drawRoute(coords) {
+  if (!driverMap) return;
   if (driverMap.getLayer(ROUTE_LBG)) driverMap.removeLayer(ROUTE_LBG);
   if (driverMap.getLayer(ROUTE_L)) driverMap.removeLayer(ROUTE_L);
   if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
@@ -1090,6 +1049,7 @@ function renderNavSteps() {
   const rows = list.querySelectorAll('.nav-step-row');
   rows[navCurrentStep]?.scrollIntoView({ block:'center', behavior:'smooth' });
 }
+
 function updateCurrentStep() {
   if (!navSteps.length) return;
   const s = navSteps[navCurrentStep];
@@ -1097,6 +1057,7 @@ function updateCurrentStep() {
   document.getElementById('navDistLbl').textContent = 'IN '+mToStr(s.distance||0);
   document.getElementById('navInstMain').textContent = s.maneuver?.instruction||'Continue';
 }
+
 window.stopNavigation = function() {
   isNavigating = false;
   document.getElementById('navHud').classList.remove('show');
@@ -1109,13 +1070,14 @@ window.stopNavigation = function() {
   driverMap?.easeTo({ center:driverLngLat, zoom:15, pitch:45, bearing:0, duration:800 });
   navMode = null;
 };
-window.recenterMap = function() { mapInteracting = false; driverMap.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 }); };
+
+window.recenterMap = function() { mapInteracting = false; driverMap?.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.2 }); };
 
 // ─── PIN VERIFICATION ──────────────────────────────────────────
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
   const newPin = Math.floor(1000 + Math.random() * 9000).toString();
-  if (cu?.uid !== 'demo_driver') {
+  if (cu?.uid !== 'demo_driver' && db) {
     await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
   }
   activeRideData.arrivedPin = newPin;
@@ -1125,6 +1087,7 @@ window.driverArrived = async function() {
   showPinOverlay(newPin);
   showToast('📍 Marked arrived — share PIN with rider');
 };
+
 function showPinOverlay(pin) {
   document.getElementById('pinDisplay').innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
   document.getElementById('pinInputRow').innerHTML = Array.from({length:4},(_,i) =>
@@ -1134,10 +1097,12 @@ function showPinOverlay(pin) {
   document.getElementById('pinOverlay').classList.add('show');
   setTimeout(() => document.getElementById('pinI0')?.focus(), 200);
 }
+
 window.pinDigitInput = function(e, idx) {
   const val = e.target.value.replace(/\D/g,''); e.target.value = val;
   if (val && idx < 3) document.getElementById(`pinI${idx+1}`)?.focus();
 };
+
 window.verifyPin = function() {
   const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
   const expected = activeRideData?.arrivedPin || activeRideData?.securityPin || '';
@@ -1171,8 +1136,9 @@ window.closeChat = function() {
   document.getElementById('chatSheet').classList.remove('show');
   if (chatUnsub) { chatUnsub(); chatUnsub = null; }
 };
+
 function listenChat() {
-  if (!activeRideId || cu?.uid === 'demo_driver') return;
+  if (!activeRideId || cu?.uid === 'demo_driver' || !db) return;
   if (chatUnsub) chatUnsub();
   chatUnsub = onValue(ref(db, `ride_requests/${activeRideId}/chat`), snap => {
     const msgs = snap.val()||{};
@@ -1180,6 +1146,7 @@ function listenChat() {
     renderChatMsgs(); scrollChatBottom();
   });
 }
+
 function renderChatMsgs() {
   const el = document.getElementById('chatMessages');
   if (!chatMessages.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>'; return; }
@@ -1208,12 +1175,12 @@ window.sendChatMsg = async function() {
 window.sendQuickReply = async function(text) { if(!activeRideId){showToast('No active ride');return;} await _pushChat(text); };
 async function _pushChat(text) {
   const msg = { text, sender:'driver', ts:Date.now(), readByRider:false };
-  if (cu?.uid !== 'demo_driver') await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
+  if (cu?.uid !== 'demo_driver' && db) await push(ref(db,`ride_requests/${activeRideId}/chat`),msg).catch(()=>{});
   else { chatMessages.push(msg); renderChatMsgs(); scrollChatBottom(); }
 }
 window.chatKeydown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendChatMsg();} };
 
-// ─── CANCELLATION — stores canceled rides in Firebase & localStorage ───
+// ─── CANCELLATION ─────────────────────────────────────────────
 window.selectCancelReason = function(el, reason) {
   document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
   el.classList.add('selected'); selectedReasonText = reason;
@@ -1244,7 +1211,7 @@ window.confirmCancelAction = async function() {
   if (cancelMode === 'decline') {
     const id = pendingDeclineId;
     window.closeCancelModal();
-    if (cu?.uid !== 'demo_driver') {
+    if (cu?.uid !== 'demo_driver' && db) {
       try {
         const snap = await get(ref(db,`ride_requests/${id}`));
         const rData = snap.val()||{};
@@ -1265,16 +1232,11 @@ window.confirmCancelAction = async function() {
 async function cancelActiveRide(reason) {
   if (!activeRideId || !cu) return;
   try {
-    const snap = await get(ref(db,`ride_requests/${activeRideId}`));
-    const rData = snap.val()||{};
-    if (cu?.uid !== 'demo_driver') {
+    if (cu?.uid !== 'demo_driver' && db) {
+      const snap = await get(ref(db,`ride_requests/${activeRideId}`));
+      const rData = snap.val()||{};
       await push(ref(db,`drivers/${cu.uid}/canceled_rides`), {
-        ...rData,
-        canceledAt: Date.now(),
-        cancelReason: reason,
-        canceledBy: 'driver',
-        type: 'active_canceled',
-        originalRideId: activeRideId
+        ...rData, canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId
       });
       await update(ref(db,`ride_requests/${activeRideId}`), {
         status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason
@@ -1310,9 +1272,9 @@ window.dismissNotifBanner = function() {
 function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
 function updateUI(u) {
   const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'', i=ini2(n);
-  ['tbAv','profAv','sbAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
-  ['profName','sbName'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=n; });
-  ['profEmail','sbEmail'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=e; });
+  ['tbAv','profAv'].forEach(id => { const el=document.getElementById(id); if(el)el.textContent=i; });
+  const pn=document.getElementById('profName'); if(pn) pn.textContent=n;
+  const pe=document.getElementById('profEmail'); if(pe) pe.textContent=e;
 }
 
 // ─── PANEL TOGGLE ─────────────────────────────────────────────
@@ -1343,7 +1305,7 @@ async function goOffline() {
   isOnline=false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status','offline');
   if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub=null; }
-  if (cu?.uid !== 'demo_driver') await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
+  if (cu?.uid !== 'demo_driver' && db) await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
   document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
   updateHoursOnline(); showToast('You are now Offline ⚫');
 }
@@ -1366,14 +1328,22 @@ function updateHoursOnline() {
   const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
 }
 
-// ─── RIDE REQUESTS (ACTIVE ONLY — excludes canceled) ──────────
+// ─── RIDE REQUESTS ────────────────────────────────────────────
 function listenRideRequests() {
-  if (!cu || cu.uid==='demo_driver') return;
+  if (!cu || cu.uid==='demo_driver' || !db) {
+    // Demo mode: show a sample ride request
+    if (cu?.uid === 'demo_driver') {
+      renderRideRequests([['demo-ride-1', {
+        riderName:'Thabo Nkosi', rideType:'VynixGo', fare:85.50,
+        pickup:'123 Paul Kruger St, Pretoria CBD', destination:'Menlyn Mall, Pretoria',
+        distKm:12.4, tripMins:22, capacity:4, securityPin:'7391'
+      }]]);
+    }
+    return;
+  }
   rideRequestsUnsub = onValue(ref(db,'ride_requests'), snap => {
     const data = snap.val()||{};
-    const pending = Object.entries(data).filter(([,v]) =>
-      v.status === 'pending' && !v.canceledAt
-    );
+    const pending = Object.entries(data).filter(([,v]) => v.status === 'pending' && !v.canceledAt);
     pending.forEach(([id,r]) => {
       if (!knownRequestIds.has(id)) {
         knownRequestIds.add(id);
@@ -1411,7 +1381,7 @@ function renderRideRequests(list) {
         <div class="req-point"><div class="rp-icon drop"><div class="rp-dot drop"></div></div><div><div class="rp-lbl">Destination</div><div class="rp-addr">${(r.destination||'—').substring(0,55)}</div></div></div>
       </div>
       <div class="req-meta">
-        <span class="req-chip">📍 ${r.distKm?r.distKm.toFixed(1)+' km':'—'}</span>
+        <span class="req-chip">📍 ${r.distKm?parseFloat(r.distKm).toFixed(1)+' km':'—'}</span>
         <span class="req-chip">⏱ ${r.tripMins?r.tripMins+' min':'—'}</span>
         <span class="req-chip">👤 ${r.capacity||4} seats</span>
         <span class="req-chip">💳 Paid</span>
@@ -1427,6 +1397,23 @@ function renderRideRequests(list) {
 // ─── ACCEPT MODAL ─────────────────────────────────────────────
 window.openAcceptModal = function(id) {
   if (!isOnline){showToast('Go online first');return;}
+
+  // Demo mode
+  if (cu?.uid === 'demo_driver') {
+    const demoRide = { riderName:'Thabo Nkosi', rideType:'VynixGo', fare:85.50, pickup:'123 Paul Kruger St, Pretoria CBD', destination:'Menlyn Mall, Pretoria', distKm:12.4, tripMins:22, capacity:4, securityPin:'7391' };
+    pendingAcceptId = id; pendingAcceptData = demoRide;
+    document.getElementById('am-rider').textContent=demoRide.riderName;
+    document.getElementById('am-type').textContent=demoRide.rideType;
+    document.getElementById('am-pickup').textContent=demoRide.pickup.substring(0,48);
+    document.getElementById('am-dest').textContent=demoRide.destination.substring(0,48);
+    document.getElementById('am-dist').textContent=demoRide.distKm.toFixed(1)+' km';
+    document.getElementById('am-dur').textContent=demoRide.tripMins+' min';
+    document.getElementById('am-fare').textContent='R 85.50';
+    document.getElementById('acceptModal').classList.add('show');
+    return;
+  }
+
+  if (!db) return;
   get(ref(db,`ride_requests/${id}`)).then(snap => {
     if (!snap.exists()||snap.val().status!=='pending'){showToast('Ride already taken');return;}
     const r=snap.val(); pendingAcceptId=id; pendingAcceptData=r;
@@ -1443,6 +1430,16 @@ window.openAcceptModal = function(id) {
 window.closeAcceptModal = function() { document.getElementById('acceptModal').classList.remove('show'); pendingAcceptId=null; pendingAcceptData=null; };
 window.confirmAccept = function() {
   if (!pendingAcceptId||!cu) return;
+
+  // Demo mode
+  if (cu.uid === 'demo_driver') {
+    const r = pendingAcceptData;
+    activeRideId = pendingAcceptId; activeRideData = r;
+    window.closeAcceptModal(); showActiveRide(r); expandPanel(); showToast('Ride accepted! 🎉');
+    return;
+  }
+
+  if (!db) return;
   const id=pendingAcceptId, r=pendingAcceptData;
   runTransaction(ref(db,`ride_requests/${id}`), cur => {
     if (!cur||cur.status!=='pending') return;
@@ -1477,7 +1474,7 @@ function showActiveRide(r) {
   resetPhaseUI();
 }
 function listenActiveRide() {
-  if (!cu||cu.uid==='demo_driver') return;
+  if (!cu||cu.uid==='demo_driver'||!db) return;
   get(ref(db,'ride_requests')).then(snap => {
     const all=snap.val()||{};
     const mine=Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
@@ -1487,18 +1484,22 @@ function listenActiveRide() {
 window.completeRide = async function() {
   if (!activeRideId||!cu) return;
   try {
-    const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
-    const fare=parseFloat(r.fare||0);
-    await push(ref(db,`drivers/${cu.uid}/trips`),{
-      rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
-      pickup:r.pickup||'—',destination:r.destination||'—',
-      distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
-      fare,status:'Completed',date:Date.now()
-    });
-    await remove(ref(db,`ride_requests/${activeRideId}`));
-    const eRef=ref(db,`drivers/${cu.uid}/earnings`);
-    const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
-    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
+    const fare = parseFloat(activeRideData?.fare||0);
+
+    if (cu.uid !== 'demo_driver' && db) {
+      const snap=await get(ref(db,`ride_requests/${activeRideId}`)); const r=snap.val()||{};
+      await push(ref(db,`drivers/${cu.uid}/trips`),{
+        rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',
+        pickup:r.pickup||'—',destination:r.destination||'—',
+        distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,
+        fare,status:'Completed',date:Date.now()
+      });
+      await remove(ref(db,`ride_requests/${activeRideId}`));
+      const eRef=ref(db,`drivers/${cu.uid}/earnings`);
+      const eSnap=await get(eRef); const curr=eSnap.val()||{total:0,trips:0};
+      await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
+    }
+
     statsToday.rides++; statsToday.earned+=fare;
     document.getElementById('stat-rides').textContent=statsToday.rides;
     document.getElementById('stat-earn').textContent='R'+statsToday.earned.toFixed(0);
@@ -1509,18 +1510,25 @@ window.completeRide = async function() {
     document.getElementById('reqLabel').style.display='';
     document.getElementById('rideReqList').style.display='';
     if (isNavigating) stopNavigation();
-    [ROUTE_LBG,ROUTE_L].forEach(l => { if(driverMap.getLayer(l))driverMap.removeLayer(l); });
-    if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+    if (driverMap) {
+      [ROUTE_LBG,ROUTE_L].forEach(l => { try{if(driverMap.getLayer(l))driverMap.removeLayer(l);}catch(e){} });
+      try{if(driverMap.getSource(ROUTE_SRC))driverMap.removeSource(ROUTE_SRC);}catch(e){}
+    }
     if (destMarker){destMarker.remove();destMarker=null;}
     navRouteCoords=[];
-    loadTripHistory(); loadTodayStats();
+    if (cu.uid==='demo_driver') {
+      // In demo mode, show a fake request again after completing
+      setTimeout(()=>listenRideRequests(), 1000);
+    } else {
+      loadTripHistory(); loadTodayStats();
+    }
     showToast('✓ Ride completed! +R'+fare.toFixed(2));
-  } catch(e){showToast('Error completing ride');}
+  } catch(e){ console.error(e); showToast('Error completing ride'); }
 };
 
 // ─── STATS ────────────────────────────────────────────────────
 async function loadTodayStats() {
-  if (!cu||cu.uid==='demo_driver') return;
+  if (!cu||cu.uid==='demo_driver'||!db) return;
   try {
     const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
     document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
@@ -1529,27 +1537,21 @@ async function loadTodayStats() {
     document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
   } catch(e){}
 }
-function updateHoursOnline() {
-  if (!onlineStartTime) return;
-  const hrs=((Date.now()-onlineStartTime)/3600000).toFixed(1);
-  const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
-}
 
-// ─── TRIP HISTORY (active + canceled, tabs) ───────────────────
-let allTrips = [], allCanceled = [];
+// ─── TRIP HISTORY ─────────────────────────────────────────────
 function loadTripHistory() {
-  if (!cu||cu.uid==='demo_driver') return;
+  if (!cu||cu.uid==='demo_driver'||!db) return;
   onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
     allTrips = Object.values(snap.val()||{}).reverse();
     get(ref(db,`drivers/${cu.uid}/canceled_rides`)).then(csnap => {
       allCanceled = Object.values(csnap.val()||{}).reverse();
       renderHistoryLists();
-    });
+    }).catch(()=>renderHistoryLists());
     loadTodayStats();
   });
 }
+
 function renderHistoryLists() {
-  const total = allTrips.length + allCanceled.length;
   const hCount=document.getElementById('historyCount');
   if(hCount) hCount.textContent=`${allTrips.length} completed · ${allCanceled.length} canceled`;
 
@@ -1599,7 +1601,7 @@ window.showHistoryTab = function(tab) {
 
 // ─── VEHICLE ──────────────────────────────────────────────────
 function loadVehicleInfo() {
-  if (!cu||cu.uid==='demo_driver') return;
+  if (!cu||cu.uid==='demo_driver'||!db) return;
   get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap => {
     const v=snap.val();
     if (v) {
@@ -1608,7 +1610,7 @@ function loadVehicleInfo() {
       document.getElementById('v-plate').value=v.plate||'';
       document.getElementById('v-type').value=v.type||'VynixGo';
     } else { setTimeout(()=>document.getElementById('vehicleModal').classList.add('show'),700); }
-  });
+  }).catch(()=>{});
 }
 window.openVehicleModal = ()=>document.getElementById('vehicleModal').classList.add('show');
 window.saveVehicle = async function() {
@@ -1617,7 +1619,7 @@ window.saveVehicle = async function() {
   const plate=document.getElementById('v-plate').value.trim().toUpperCase();
   const type=document.getElementById('v-type').value;
   if (!car||!plate){showToast('Please fill in all vehicle details');return;}
-  if (cu.uid!=='demo_driver') await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
+  if (cu.uid!=='demo_driver'&&db) await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type}).catch(()=>{});
   document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
   document.getElementById('vehicleModal').classList.remove('show');
   showToast('Vehicle details saved');
