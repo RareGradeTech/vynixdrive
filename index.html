@@ -390,6 +390,122 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
 .driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
 @keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
+
+/* --- DESKTOP RESPONSIVENESS --- */
+@media (min-width: 800px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+  }
+  .topbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .bnav {
+    grid-column: 1;
+    grid-row: 2;
+    position: static;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 30px;
+    gap: 30px;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+  }
+  .bni {
+    width: 100%;
+    min-width: auto;
+  }
+  .map-page, .page {
+    grid-column: 2;
+    grid-row: 2;
+    padding-bottom: 20px;
+  }
+  .page {
+    align-items: center; 
+    padding-top: 40px;
+  }
+  .page > * {
+    width: 100%;
+    max-width: 800px; 
+  }
+  
+  /* Map adjustments */
+  .map-wrap, .map-wrap.nav-active {
+    bottom: 0 !important;
+  }
+  .driver-panel {
+    top: 20px;
+    left: 20px;
+    bottom: 20px;
+    width: 400px;
+    height: auto !important;
+    transform: none !important;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+  }
+  .panel-handle { display: none; }
+  .panel-peek-row { padding-top: 20px; }
+  
+  /* Modals Center */
+  .mbg, .vehicle-mbg, .cancel-modal-bg, .chat-sheet-bg, .pin-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+  .modal, .cancel-modal, .chat-sheet, .pin-card {
+    border-radius: 22px !important;
+    animation: popIn .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2) !important;
+    max-height: 85vh;
+  }
+  .pin-card {
+    max-width: 440px;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  /* Navigation UI Desktop Restructure */
+  .nav-steps-panel {
+    top: 20px;
+    right: 20px;
+    bottom: auto;
+    left: auto;
+    width: 350px;
+    height: auto;
+    max-height: 60vh;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  }
+  .nav-instruction-bar {
+    top: 20px;
+    left: 440px; 
+    right: auto;
+    width: 400px;
+  }
+  .map-controls {
+    right: 20px;
+    top: auto;
+    bottom: 40px;
+    transform: none;
+  }
+  .toast { 
+    bottom: 40px !important; 
+  }
+  .ride-notif-banner {
+    max-width: 400px;
+    top: 30px;
+  }
+}
 </style>
 </head>
 <body>
