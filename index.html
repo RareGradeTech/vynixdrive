@@ -18,10 +18,9 @@
   --nav-h:60px;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --safe-top:env(safe-area-inset-top,0px);
-  /* Panel heights - NEVER covers full map */
-  --panel-peek:88px;        /* only peeking handle + status strip */
-  --panel-mid:56vh;         /* default rest state — map still visible */
-  --panel-full:80vh;        /* fully expanded but still ~20% map visible */
+  --panel-peek:88px;
+  --panel-mid:56vh;
+  --panel-full:80vh;
   --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
   --ease-smooth:cubic-bezier(0.4,0,0.2,1);
   --ease-out:cubic-bezier(0,0,0.2,1);
@@ -37,7 +36,6 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
 
-/* ── LOADER ── */
 .init-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s var(--ease-smooth)}
 .init-loader.hide{opacity:0;pointer-events:none}
 .loader-spinner{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
@@ -47,7 +45,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .5s var(--ease-smooth);flex-direction:column}
 .shell.ready{opacity:1}
 
-/* ── TOPBAR ── */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;padding-top:calc(10px + var(--safe-top));
@@ -72,15 +69,14 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .online-toggle.on .ot-lbl{color:var(--green2)}
 @keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
 
-.dm-toggle{display:flex;align-items:center;gap:7px;background:var(--card2);border:1.5px solid var(--border);border-radius:30px;padding:5px 10px 5px 6px;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;transition:background .3s,border-color .3s,transform .2s var(--ease-spring)}
+/* Dark mode toggle — no icons, just the pill */
+.dm-toggle{display:flex;align-items:center;background:var(--card2);border:1.5px solid var(--border);border-radius:30px;padding:5px 8px;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;transition:background .3s,border-color .3s,transform .2s var(--ease-spring)}
 .dm-toggle:active{transform:scale(.94)}
 .dm-pill{width:42px;height:24px;border-radius:12px;background:var(--border);position:relative;transition:background .35s var(--ease-smooth);flex-shrink:0}
 [data-theme="dark"] .dm-pill{background:linear-gradient(135deg,#4A6CFF,#7C3AED)}
 .dm-pill::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .35s var(--ease-spring);box-shadow:0 2px 6px rgba(0,0,0,.2)}
 [data-theme="dark"] .dm-pill::after{transform:translateX(18px)}
-.dm-icon{font-size:13px;line-height:1;transition:transform .3s var(--ease-spring)}
 
-/* ── MAP PAGE ── */
 .map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
 .map-page.show{display:block}
 .map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom));transition:bottom .38s var(--ease-smooth)}
@@ -88,7 +84,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .map-wrap.nav-fullscreen{bottom:calc(var(--nav-h) + var(--safe-bottom)) !important}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
-/* ── DRIVER PANEL — KEY FIX: never covers full map ── */
+/* PANEL — clamped so it never covers full screen, always collapsible */
 .driver-panel{
   position:absolute;left:0;right:0;
   bottom:calc(var(--nav-h) + var(--safe-bottom));
@@ -98,17 +94,16 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   box-shadow:0 -8px 40px rgba(0,0,0,.12);
   border-top:1px solid var(--border);
   z-index:50;display:flex;flex-direction:column;overflow:hidden;
-  /* Default: mid position = map still visible above */
   transform:translateY(calc(var(--panel-full) - var(--panel-mid)));
   transition:transform .4s var(--ease-smooth),background .3s,border-color .3s,box-shadow .3s;
   will-change:transform;
 }
 .driver-panel.peek{transform:translateY(calc(var(--panel-full) - var(--panel-peek)))}
 .driver-panel.mid{transform:translateY(calc(var(--panel-full) - var(--panel-mid)))}
-.driver-panel.expanded{transform:translateY(0)}
+/* expanded: leave at least 100px of map visible above the panel */
+.driver-panel.expanded{transform:translateY(var(--panel-expanded-offset, 100px))}
 .driver-panel.nav-hidden{transform:translateY(calc(var(--panel-full) + 30px)) !important;pointer-events:none}
 
-/* drag indicator */
 .panel-handle{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;flex-shrink:0;cursor:pointer;touch-action:none}
 .panel-drag-bar{width:40px;height:4px;background:var(--border);border-radius:4px;transition:background .2s,width .2s var(--ease-spring)}
 .driver-panel.expanded .panel-drag-bar{width:56px;background:var(--blue2)}
@@ -125,7 +120,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .toggle-pill.on::after{transform:translateX(26px)}
 .toggle-pill:active{transform:scale(0.93)}
 
-/* show-panel btn */
 .show-panel-btn{position:absolute;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(60px);z-index:55;background:var(--card);color:var(--ink);border:1.5px solid var(--border);border-radius:24px;padding:9px 20px;font-size:13px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;touch-action:manipulation;transition:transform .4s var(--ease-spring),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
 .show-panel-btn.visible{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all}
 .show-panel-btn:active{transform:translateX(-50%) scale(.94) !important}
@@ -134,10 +128,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .panel-scroll::-webkit-scrollbar{width:3px}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-/* panel state hint */
-.panel-state-hint{text-align:center;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0 6px;opacity:.7;transition:opacity .3s}
-
-/* ── PANEL CONTENT ── */
 .status-hero{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;flex-shrink:0;transition:background .3s,border-color .3s}
 .sh-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
 .sh-val{font-size:17px;font-weight:900;color:var(--green);transition:color .3s}
@@ -173,7 +163,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-rp-dot.p{background:var(--green)}
 .ar-rp-dot.d{background:var(--blue2)}
 
-/* ride actions */
 .ar-actions-grid{display:grid;gap:8px}
 .ride-phase{display:none}
 .ride-phase.active{display:grid;gap:8px}
@@ -188,7 +177,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 #phase-riding .btn-complete{grid-area:complete}
 #phase-riding .btn-cancel-active{grid-area:cancel}
 
-/* buttons */
 .btn-nav{padding:13px 10px;border-radius:11px;border:none;background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .18s var(--ease-spring),opacity .18s,box-shadow .18s;touch-action:manipulation;box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px}
 .btn-nav:active{transform:scale(.95);opacity:.88}
 .btn-nav.navigating{background:linear-gradient(130deg,#059669,#10B981);box-shadow:0 3px 12px rgba(16,185,129,.3)}
@@ -204,14 +192,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-cancel-active{padding:13px;border-radius:11px;background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:transform .18s var(--ease-spring),background .18s;min-height:46px}
 .btn-cancel-active:active{background:rgba(239,68,68,.14);transform:scale(.97)}
 
-/* arrived pin */
 .arrived-pin-card{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.18));border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center;animation:cardSlideIn .4s var(--ease-spring)}
 .arrived-pin-card.show{display:flex}
 .apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
 .apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
 .apc-note{font-size:11px;font-weight:500;color:var(--muted)}
 
-/* requests */
 .req-section-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:6px}
 .ride-req-list{display:flex;flex-direction:column;gap:10px}
 .no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
@@ -246,7 +232,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .btn-accept:active{transform:scale(.95);opacity:.88}
 .btn-accept:disabled{opacity:.5;pointer-events:none}
 
-/* ── NAVIGATION HUD ── */
 .nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
 .nav-hud.show{display:block}
 .nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.93);backdrop-filter:blur(14px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10;animation:navBarIn .4s var(--ease-spring)}
@@ -291,7 +276,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 @keyframes fadeInScale{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
 .recenter-btn:active{transform:scale(.93)}
 
-/* ── PIN OVERLAY ── */
 .pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0;transition:opacity .3s}
 .pin-overlay.show{display:flex}
 .pin-card{background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .38s var(--ease-spring);box-shadow:0 -8px 40px rgba(0,0,0,.25);position:relative}
@@ -317,7 +301,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .pin-arrived-note{font-size:11px;font-weight:500;color:var(--muted);line-height:1.5}
 
-/* ── PAGES ── */
 .page{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px;-webkit-overflow-scrolling:touch;transition:opacity .3s var(--ease-smooth),transform .3s var(--ease-smooth)}
 .page.show{display:flex;animation:pageIn .32s var(--ease-smooth)}
 @keyframes pageIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
@@ -325,7 +308,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ph-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
 .section-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;flex-shrink:0}
 
-/* earnings */
 .earn-hero{background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6);border-radius:18px;padding:20px;position:relative;overflow:hidden;flex-shrink:0}
 .earn-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07)}
 .eh-lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:3px}
@@ -347,7 +329,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .tc-fare.canceled{color:var(--red)}
 .tc-km{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px}
 
-/* ── ACCOUNT / PROFILE ── */
 .prof-card{background:linear-gradient(135deg,rgba(26,59,255,.07),rgba(74,108,255,.12));border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
 .prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(26,59,255,.06)}
 .pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow);transition:transform .3s var(--ease-spring)}
@@ -356,7 +337,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .pc-email{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
 .pc-tag{font-size:9px;font-weight:800;background:rgba(16,185,129,.12);color:var(--green2);padding:3px 8px;border-radius:7px;margin-top:7px;display:inline-block;text-transform:uppercase;letter-spacing:.05em}
 
-/* EDITABLE PROFILE SECTION */
 .edit-profile-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;flex-shrink:0;transition:background .3s,border-color .3s}
 .ep-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
 .ep-title{font-size:13px;font-weight:800;color:var(--ink)}
@@ -388,7 +368,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-arrow{color:var(--muted);font-size:16px;transition:transform .2s var(--ease-smooth)}
 .acc-row:active .ar-arrow{transform:translateX(3px)}
 
-/* ── BOTTOM NAV ── */
 .bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));background:var(--card);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:flex-start;padding-top:8px;z-index:100;transition:background .3s,border-color .3s}
 .bni{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:color .22s var(--ease-smooth),transform .22s var(--ease-spring);padding:4px 14px;position:relative;touch-action:manipulation;min-width:60px;user-select:none}
 .bni.act{color:var(--blue)}
@@ -397,11 +376,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .bni:active{transform:scale(.9)}
 .bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--card);display:none;animation:badgePop .3s var(--ease-spring)}
 .bni-dot.show{display:block}
-/* active indicator bar */
 .bni::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%) scaleX(0);width:24px;height:3px;border-radius:3px;background:var(--blue);transition:transform .28s var(--ease-spring)}
 .bni.act::after{transform:translateX(-50%) scaleX(1)}
 
-/* ── CANCEL MODAL ── */
 .cancel-modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;transition:opacity .3s}
 .cancel-modal-bg.show{display:flex}
 .cancel-modal{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .32s var(--ease-spring);transition:background .3s}
@@ -424,7 +401,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .cm-confirm:disabled{opacity:.5}
 .cm-confirm:not(:disabled):active{transform:scale(.96)}
 
-/* ── ACCEPT MODAL ── */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .mbg.show{display:flex}
 .modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .32s var(--ease-spring);border:1px solid var(--border);border-bottom:none;transition:background .3s}
@@ -440,7 +416,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .mok:not(:disabled):active{transform:scale(.95)}
 .mok:disabled{opacity:.6;pointer-events:none}
 
-/* ── VEHICLE MODAL ── */
 .vehicle-mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 .vehicle-mbg.show{display:flex}
 .t-input{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--ink);outline:none;transition:border-color .22s,background .22s,transform .2s var(--ease-spring)}
@@ -449,7 +424,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .slabel{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;display:block}
 .input-wrap{margin-bottom:14px}
 
-/* ── CHAT SHEET ── */
 .chat-sheet-bg{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
 .chat-sheet-bg.show{display:flex}
 .chat-sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .32s var(--ease-spring);box-shadow:0 -4px 30px rgba(0,0,0,.15);transition:background .3s}
@@ -484,11 +458,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s var(--ease-spring),opacity .18s;box-shadow:0 3px 10px var(--glow);flex-shrink:0;touch-action:manipulation}
 .chat-send-btn:active{transform:scale(.88)}
 
-/* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:var(--bg);padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .28s var(--ease-smooth),transform .32s var(--ease-spring);z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 28px rgba(0,0,0,.25)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── NOTIF BANNER ── */
 .ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .42s var(--ease-spring)}
 .ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
 .rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
@@ -499,16 +471,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation;transition:transform .18s var(--ease-spring)}
 .rnb-btn:active{transform:scale(.92)}
 
-/* ── DRIVER MARKER ── */
 .driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
 .driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
 @keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
 
-/* ── SWIPE PAGES CONTAINER ── */
-.pages-swipe-container{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column}
-.pages-swipe-container .page{position:absolute;inset:0;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px}
-
-/* ── DESKTOP ── */
 @media (min-width: 800px) {
   .shell{display:grid;grid-template-columns:80px 1fr;grid-template-rows:auto 1fr;height:100vh}
   .topbar{grid-column:1 / -1;grid-row:1;padding-left:24px;padding-right:24px}
@@ -675,9 +641,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
     </div>
     <div class="tb-right">
+      <!-- Dark mode toggle: pill only, no icons -->
       <div class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="Toggle dark mode">
         <div class="dm-pill"></div>
-        <span class="dm-icon" id="dmIcon">🌙</span>
       </div>
       <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
         <div class="ot-dot"></div>
@@ -738,7 +704,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       Ride Details
     </button>
 
-    <!-- DRIVER PANEL — fixed to show map above it -->
+    <!-- DRIVER PANEL -->
     <div class="driver-panel mid" id="driverPanel">
       <div class="panel-handle" id="panelHandle">
         <div class="panel-drag-bar"></div>
@@ -868,7 +834,6 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
       </div>
     </div>
 
-    <!-- EDITABLE PROFILE -->
     <div class="edit-profile-card" id="editProfileCard">
       <div class="ep-header">
         <div class="ep-title">Personal Details</div>
@@ -995,15 +960,11 @@ let allTrips = [], allCanceled = [];
 let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]'));
 let navStepsCollapsed = false;
 let userIsPanning = false;
-let panningTimeout = null;
 let panelHiddenForNav = false;
 
 // Panel drag state
-let panelState = 'mid'; // 'peek' | 'mid' | 'expanded'
+let panelState = 'mid';
 let dragStartY = 0, dragStartTranslate = 0, isDragging = false, currentTranslate = 0;
-
-// Swipe state (for nav tabs)
-let swipeStartX = 0, swipeStartY = 0, swipeTracking = false;
 
 // ─── DARK MODE ────────────────────────────────────────────────
 function initDarkMode() {
@@ -1011,10 +972,8 @@ function initDarkMode() {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (saved === 'dark' || (saved === null && prefersDark)) {
     document.documentElement.setAttribute('data-theme','dark');
-    document.getElementById('dmIcon').textContent = '☀️';
   } else {
     document.documentElement.removeAttribute('data-theme');
-    document.getElementById('dmIcon').textContent = '🌙';
   }
 }
 window.toggleDarkMode = function() {
@@ -1022,11 +981,9 @@ window.toggleDarkMode = function() {
   if (isDark) {
     document.documentElement.removeAttribute('data-theme');
     localStorage.setItem('vynix_dark_mode','light');
-    document.getElementById('dmIcon').textContent = '🌙';
   } else {
     document.documentElement.setAttribute('data-theme','dark');
     localStorage.setItem('vynix_dark_mode','dark');
-    document.getElementById('dmIcon').textContent = '☀️';
   }
   if (driverMap) {
     const newIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1083,6 +1040,8 @@ function initApp(userData) {
   listenToDatabase();
   initPanelDrag();
   initSwipeNav();
+  computePanelExpandedOffset();
+  window.addEventListener('resize', computePanelExpandedOffset);
   if (localStorage.getItem('vynix_driver_status') === 'online') {
     goOnline();
   } else {
@@ -1096,19 +1055,46 @@ window.doSignOut = () => {
   signOut(auth).catch(()=>{}).finally(() => { window.location.href = 'login.html'; });
 };
 
+// ─── PANEL EXPANDED OFFSET ─────────────────────────────────────
+// Ensures expanded state always leaves at least 100px of map visible
+// (topbar height + 100px minimum map gap)
+function computePanelExpandedOffset() {
+  const topbar = document.getElementById('mainTopbar');
+  const topbarH = topbar ? topbar.offsetHeight : 56;
+  const minMapVisible = 100; // px of map always visible above panel
+  const offset = topbarH + minMapVisible;
+  document.documentElement.style.setProperty('--panel-expanded-offset', offset + 'px');
+}
+
 // ─── SWIPE GESTURE FOR BOTTOM NAV ────────────────────────────
+// Enhanced: ignores swipes that originate on the map or map overlays
 const PAGE_ORDER = ['map', 'earnings', 'history', 'account'];
+
+function isMapInteractionTarget(el) {
+  // Returns true if the touch started on the map canvas or its overlays
+  if (!el) return false;
+  const mapWrap = document.getElementById('mapWrap');
+  if (!mapWrap) return false;
+  // Check if touch target is inside the map wrap (map canvas, controls, hud etc.)
+  if (mapWrap.contains(el)) return true;
+  // Also check mapbox canvas directly
+  if (el.classList && el.classList.contains('mapboxgl-canvas')) return true;
+  if (el.closest && el.closest('.mapboxgl-canvas-container')) return true;
+  return false;
+}
 
 function initSwipeNav() {
   const shell = document.getElementById('appShell');
   let swipeStartX = 0, swipeStartY = 0, swipeActive = false, didSwipe = false;
-  const SWIPE_THRESHOLD = 60;
-  const ANGLE_THRESHOLD = 35; // degrees from horizontal
+  let swipeTouchTarget = null;
+  const SWIPE_THRESHOLD = 65;
+  const ANGLE_THRESHOLD = 30; // degrees from horizontal — stricter to avoid false triggers
 
   function onTouchStart(e) {
     const t = e.touches[0];
     swipeStartX = t.clientX;
     swipeStartY = t.clientY;
+    swipeTouchTarget = e.target;
     swipeActive = true;
     didSwipe = false;
   }
@@ -1118,23 +1104,36 @@ function initSwipeNav() {
     const t = e.touches[0];
     const dx = t.clientX - swipeStartX;
     const dy = t.clientY - swipeStartY;
-    // Only horizontal swipes (angle check)
+    // Cancel if more vertical than our threshold allows
     if (Math.abs(dy) > Math.abs(dx) * Math.tan(ANGLE_THRESHOLD * Math.PI / 180)) {
       swipeActive = false; return;
     }
-    if (Math.abs(dx) > 8) didSwipe = true;
+    // Cancel early if started on map
+    if (isMapInteractionTarget(swipeTouchTarget)) { swipeActive = false; return; }
+    if (Math.abs(dx) > 10) didSwipe = true;
   }
 
   function onTouchEnd(e) {
     if (!swipeActive || !didSwipe) { swipeActive = false; return; }
+
+    // Final guard: if touch started on map, abort
+    if (isMapInteractionTarget(swipeTouchTarget)) { swipeActive = false; return; }
+
     const t = e.changedTouches[0];
     const dx = t.clientX - swipeStartX;
     if (Math.abs(dx) < SWIPE_THRESHOLD) { swipeActive = false; return; }
-    // Don't swipe if a sheet/modal is open or panel is being dragged or map is active
+
+    // Don't swipe if a sheet/modal is open or panel is being dragged
     if (document.getElementById('chatSheet').classList.contains('show')) { swipeActive = false; return; }
     if (document.getElementById('cancelReasonModal').classList.contains('show')) { swipeActive = false; return; }
     if (document.getElementById('acceptModal').classList.contains('show')) { swipeActive = false; return; }
     if (isDragging) { swipeActive = false; return; }
+
+    // Don't swipe if touch started inside the panel scroll area
+    const panelScroll = document.getElementById('panelScroll');
+    if (panelScroll && swipeTouchTarget && panelScroll.contains(swipeTouchTarget)) {
+      swipeActive = false; return;
+    }
 
     const currentPage = PAGE_ORDER.find(p => {
       const el = document.getElementById(p === 'map' ? 'page-map' : `page-${p}`);
@@ -1257,15 +1256,21 @@ function resetPhaseUI() {
 }
 
 // ─── PANEL STATE MACHINE ─────────────────────────────────────
-// States: 'peek' (just handle), 'mid' (half), 'expanded' (full, map barely visible)
+// States: 'peek' | 'mid' | 'expanded'
+// 'expanded' uses --panel-expanded-offset so map is ALWAYS visible above it
 function setPanelState(state, smooth = true) {
   panelState = state;
   const panel = document.getElementById('driverPanel');
-  panel.style.transition = smooth ? '' : 'none';
+  if (!smooth) panel.style.transition = 'none';
+  else panel.style.transition = '';
   panel.classList.remove('peek','mid','expanded','nav-hidden');
   panel.classList.add(state);
   const subEl = document.getElementById('pcrSub');
-  if (subEl) subEl.textContent = state === 'expanded' ? 'Swipe down to collapse' : 'Swipe up to expand';
+  if (subEl) {
+    if (state === 'expanded') subEl.textContent = 'Swipe down to collapse';
+    else if (state === 'peek') subEl.textContent = 'Swipe up to expand';
+    else subEl.textContent = 'Swipe up to expand';
+  }
   setTimeout(() => driverMap?.resize(), 420);
 }
 
@@ -1274,29 +1279,46 @@ function initPanelDrag() {
   const panel = document.getElementById('driverPanel');
   const handle = document.getElementById('panelHandle');
   const scroll = document.getElementById('panelScroll');
+  const peekRow = panel.querySelector('.panel-peek-row');
 
-  function getCSSTranslateY() {
-    const computed = window.getComputedStyle(panel);
-    const matrix = new DOMMatrix(computed.transform);
+  function getComputedTranslateY() {
+    const matrix = new DOMMatrix(window.getComputedStyle(panel).transform);
     return matrix.m42;
+  }
+
+  function getPanelFullPx() {
+    // --panel-full is a vh value; compute actual px
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--panel-full').trim();
+    if (raw.endsWith('vh')) return (parseFloat(raw) / 100) * window.innerHeight;
+    return parseFloat(raw) || window.innerHeight * 0.8;
+  }
+
+  function getExpandedOffsetPx() {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--panel-expanded-offset').trim();
+    return parseFloat(raw) || 100;
   }
 
   function startDrag(clientY) {
     if (panel.classList.contains('nav-hidden')) return;
     isDragging = true;
     dragStartY = clientY;
-    dragStartTranslate = getCSSTranslateY();
+    dragStartTranslate = getComputedTranslateY();
     panel.style.transition = 'none';
+    currentTranslate = dragStartTranslate;
   }
 
   function moveDrag(clientY) {
     if (!isDragging) return;
-    if (panelState === 'expanded' && scroll.scrollTop > 0) { isDragging = false; panel.style.transition=''; return; }
+    // If expanded and scroll content is scrolled down, don't drag
+    if (panelState === 'expanded' && scroll.scrollTop > 2) {
+      isDragging = false; panel.style.transition = ''; return;
+    }
     const delta = clientY - dragStartY;
-    const PANEL_FULL = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-full')) / 100 * window.innerHeight;
-    const PEEK = PANEL_FULL - 88;
+    const PANEL_FULL = getPanelFullPx();
+    const MIN_T = getExpandedOffsetPx(); // never go above this (leaves map visible)
+    const MAX_T = PANEL_FULL - 60; // never go below peek-ish
     let t = dragStartTranslate + delta;
-    t = Math.max(0, Math.min(PEEK, t));
+    t = Math.max(MIN_T, Math.min(MAX_T, t));
     currentTranslate = t;
     panel.style.transform = `translateY(${t}px)`;
   }
@@ -1307,15 +1329,16 @@ function initPanelDrag() {
     panel.style.transition = '';
     panel.style.transform = '';
 
-    const PANEL_FULL = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-full')) / 100 * window.innerHeight;
-    const PEEK_T = PANEL_FULL - 88;
-    const MID_T = PANEL_FULL * (1 - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-mid')) / 100);
-
-    // Snap: if translate < 30% of full -> expanded; if 30-70% -> mid; else -> peek
+    const PANEL_FULL = getPanelFullPx();
     const ratio = currentTranslate / PANEL_FULL;
-    if (ratio < 0.25) {
+
+    // Snap zones:
+    // ratio < 0.2  → expanded (but clamped — never covers map)
+    // 0.2–0.65    → mid
+    // > 0.65      → peek
+    if (ratio < 0.20) {
       setPanelState('expanded');
-    } else if (ratio < 0.6) {
+    } else if (ratio < 0.65) {
       setPanelState('mid');
     } else {
       setPanelState('peek');
@@ -1323,27 +1346,16 @@ function initPanelDrag() {
   }
 
   // Touch on handle
-  handle.addEventListener('touchstart', (e) => {
-    startDrag(e.touches[0].clientY);
-  }, { passive:true });
-  handle.addEventListener('touchmove', (e) => {
-    moveDrag(e.touches[0].clientY);
-    if (isDragging && e.cancelable) e.preventDefault();
-  }, { passive:false });
+  handle.addEventListener('touchstart', e => startDrag(e.touches[0].clientY), { passive:true });
+  handle.addEventListener('touchmove', e => { moveDrag(e.touches[0].clientY); if (isDragging && e.cancelable) e.preventDefault(); }, { passive:false });
   handle.addEventListener('touchend', endDrag);
 
-  // Also allow drag from peek row
-  const peekRow = panel.querySelector('.panel-peek-row');
-  peekRow.addEventListener('touchstart', (e) => {
-    if (panelState !== 'expanded') startDrag(e.touches[0].clientY);
-  }, { passive:true });
-  peekRow.addEventListener('touchmove', (e) => {
-    moveDrag(e.touches[0].clientY);
-    if (isDragging && e.cancelable) e.preventDefault();
-  }, { passive:false });
+  // Touch on peek row
+  peekRow.addEventListener('touchstart', e => { if (panelState !== 'expanded') startDrag(e.touches[0].clientY); }, { passive:true });
+  peekRow.addEventListener('touchmove', e => { moveDrag(e.touches[0].clientY); if (isDragging && e.cancelable) e.preventDefault(); }, { passive:false });
   peekRow.addEventListener('touchend', endDrag);
 
-  // Tap handle to toggle
+  // Tap handle to toggle between mid and expanded — NOT to top
   handle.addEventListener('click', () => {
     if (isDragging) return;
     if (panelState === 'expanded') setPanelState('mid');
@@ -1459,13 +1471,18 @@ function initMap() {
       if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
     });
 
-    const onUserInteraction = () => {
+    driverMap.on('dragstart', () => {
       userIsPanning = true;
       if (isNavigating) document.getElementById('recenterBtn').classList.add('show');
-    };
-    driverMap.on('dragstart', onUserInteraction);
-    driverMap.on('touchstart', onUserInteraction);
-    driverMap.on('wheel', onUserInteraction);
+    });
+    driverMap.on('touchstart', () => {
+      userIsPanning = true;
+      if (isNavigating) document.getElementById('recenterBtn').classList.add('show');
+    });
+    driverMap.on('wheel', () => {
+      userIsPanning = true;
+      if (isNavigating) document.getElementById('recenterBtn').classList.add('show');
+    });
 
     const el = document.createElement('div');
     el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
@@ -1851,9 +1868,8 @@ window.dismissNotifBanner = function() {
   if(notifTimer) clearTimeout(notifTimer);
 };
 
-// ─── PROFILE EDIT — persist to Firebase & localStorage ───────
+// ─── PROFILE ─────────────────────────────────────────────────
 function loadProfileDetails() {
-  // Try localStorage first (instant), then Firebase
   const cached = JSON.parse(localStorage.getItem('vynix_profile') || 'null');
   if (cached) applyProfileData(cached);
   if (!cu || !db) return;
@@ -1863,7 +1879,6 @@ function loadProfileDetails() {
       localStorage.setItem('vynix_profile', JSON.stringify(data));
       applyProfileData(data);
     } else if (cu) {
-      // Seed from auth
       const seed = { name: cu.displayName || 'Driver', phone: '', idnum: '', city: '' };
       applyProfileData(seed);
     }
@@ -1880,7 +1895,6 @@ function applyProfileData(data) {
   document.getElementById('ep-idnum-input').value = data.idnum || '';
   document.getElementById('ep-city-val').textContent = data.city || 'Not set';
   document.getElementById('ep-city-input').value = data.city || '';
-  // Update top profile card too
   document.getElementById('profName').textContent = name;
   document.getElementById('profEmail').textContent = cu?.email || '—';
   const i = ini2(name);
@@ -1902,16 +1916,13 @@ window.saveProfileDetails = async function() {
     idnum: document.getElementById('ep-idnum-input').value.trim(),
     city: document.getElementById('ep-city-input').value.trim(),
   };
-  // Exit edit mode immediately (optimistic)
   document.getElementById('epBody').classList.remove('edit-mode');
   document.getElementById('epSaveBtn').style.display = 'none';
   document.getElementById('epEditBtn').style.display = '';
   applyProfileData(data);
   localStorage.setItem('vynix_profile', JSON.stringify(data));
-  // Save to Firebase
   try {
     await set(ref(db, `drivers/${cu.uid}/profile`), data);
-    // Also update Firebase Auth display name
     if (data.name && auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName: data.name }).catch(()=>{});
     }
@@ -1928,7 +1939,6 @@ function updateUI(u) {
   ['tbAv','profAv'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
   const pn=document.getElementById('profName'); if(pn) pn.textContent=n;
   const pe=document.getElementById('profEmail'); if(pe) pe.textContent=e;
-  // seed ep
   document.getElementById('ep-name-val').textContent = n;
   document.getElementById('ep-name-input').value = n;
 }
