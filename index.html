@@ -16,12 +16,17 @@
   --green:#10B981; --green2:#059669;
   --red:#EF4444; --orange:#F59E0B;
   --glow:rgba(0,68,255,.2);
+  
   --nav-h:60px;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --safe-top:env(safe-area-inset-top,0px);
-  --panel-peek:88px;
-  --panel-mid:56vh;
-  --panel-full:92vh; /* Increased for full expansion */
+  
+  /* Panel Metrics */
+  --top-gap: 120px; /* The gap left at the top when fully expanded */
+  --panel-full: calc(100dvh - var(--nav-h) - var(--safe-bottom) - var(--top-gap));
+  --panel-mid: 55dvh;
+  --panel-peek: 88px;
+  
   --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
   --ease-smooth:cubic-bezier(0.4,0,0.2,1);
   --ease-out:cubic-bezier(0,0,0.2,1);
@@ -84,7 +89,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .map-wrap.nav-fullscreen{bottom:calc(var(--nav-h) + var(--safe-bottom)) !important}
 #driverMap{position:absolute;inset:0;width:100%;height:100%}
 
-/* PANEL */
+/* ─── BOTTOM SHEET PANEL ─── */
 .driver-panel{
   position:absolute;left:0;right:0;
   bottom:calc(var(--nav-h) + var(--safe-bottom));
@@ -98,9 +103,10 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   transition:transform .4s var(--ease-smooth),background .3s,border-color .3s,box-shadow .3s;
   will-change:transform;
 }
+/* Mathematical Transforms */
 .driver-panel.peek{transform:translateY(calc(var(--panel-full) - var(--panel-peek)))}
 .driver-panel.mid{transform:translateY(calc(var(--panel-full) - var(--panel-mid)))}
-.driver-panel.expanded{transform:translateY(var(--panel-expanded-offset, 20px))}
+.driver-panel.expanded{transform:translateY(0)} /* Fully up to its max height */
 .driver-panel.nav-hidden{transform:translateY(calc(var(--panel-full) + 30px)) !important;pointer-events:none}
 
 .panel-handle{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;flex-shrink:0;cursor:pointer;touch-action:none}
@@ -123,7 +129,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .show-panel-btn.visible{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all}
 .show-panel-btn:active{transform:translateX(-50%) scale(.94) !important}
 
-.panel-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0;padding:4px 14px calc(120px + var(--safe-bottom));display:flex;flex-direction:column;gap:11px;overscroll-behavior:contain}
+.panel-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0;padding:4px 14px calc(24px + var(--safe-bottom));display:flex;flex-direction:column;gap:11px;overscroll-behavior:contain}
 .panel-scroll::-webkit-scrollbar{width:3px}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
@@ -1026,8 +1032,6 @@ function initApp(userData) {
   listenToDatabase();
   initPanelDrag();
   initSwipeNav();
-  computePanelExpandedOffset();
-  window.addEventListener('resize', computePanelExpandedOffset);
   if (localStorage.getItem('vynix_driver_status') === 'online') {
     goOnline();
   } else {
@@ -1041,15 +1045,6 @@ window.doSignOut = () => {
   signOut(auth).catch(()=>{}).finally(() => { window.location.href = 'login.html'; });
 };
 
-// ─── PANEL EXPANDED OFFSET ─────────────────────────────────────
-// Ensures expanded state allows the panel to go almost all the way up
-function computePanelExpandedOffset() {
-  const topbar = document.getElementById('mainTopbar');
-  const topbarH = topbar ? topbar.offsetHeight : 56;
-  const minMapVisible = 20; // Reduced to let panel fully expand visually
-  const offset = topbarH + minMapVisible;
-  document.documentElement.style.setProperty('--panel-expanded-offset', offset + 'px');
-}
 
 // ─── SWIPE GESTURE FOR BOTTOM NAV ────────────────────────────
 const PAGE_ORDER = ['map', 'earnings', 'history', 'account'];
@@ -1259,17 +1254,6 @@ function initPanelDrag() {
     return matrix.m42;
   }
 
-  function getPanelFullPx() {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue('--panel-full').trim();
-    if (raw.endsWith('vh')) return (parseFloat(raw) / 100) * window.innerHeight;
-    return parseFloat(raw) || window.innerHeight * 0.92;
-  }
-
-  function getExpandedOffsetPx() {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue('--panel-expanded-offset').trim();
-    return parseFloat(raw) || 20;
-  }
-
   function startDrag(clientY) {
     if (panel.classList.contains('nav-hidden')) return;
     isDragging = true;
@@ -1281,16 +1265,20 @@ function initPanelDrag() {
 
   function moveDrag(clientY) {
     if (!isDragging) return;
-    // Important Fix: Ensure scroll works properly when expanded without accidental dragging
+    
+    // Prevent dragging the panel down when the user is trying to scroll the content inside it
     if (panelState === 'expanded' && scroll.scrollTop > 2) {
-      isDragging = false; panel.style.transition = ''; return;
+      isDragging = false; 
+      panel.style.transition = ''; 
+      return;
     }
+    
     const delta = clientY - dragStartY;
-    const PANEL_FULL = getPanelFullPx();
-    const MIN_T = getExpandedOffsetPx(); 
-    const MAX_T = PANEL_FULL - 60; 
+    const panelHeight = panel.getBoundingClientRect().height;
+    const peekT = panelHeight - 88; // 88px is the peek height
+    
     let t = dragStartTranslate + delta;
-    t = Math.max(MIN_T, Math.min(MAX_T, t));
+    t = Math.max(0, Math.min(peekT, t)); // 0 is fully expanded (touching the top gap), peekT is minimum visible
     currentTranslate = t;
     panel.style.transform = `translateY(${t}px)`;
   }
@@ -1301,12 +1289,15 @@ function initPanelDrag() {
     panel.style.transition = '';
     panel.style.transform = '';
 
-    const PANEL_FULL = getPanelFullPx();
-    const ratio = currentTranslate / PANEL_FULL;
-
-    if (ratio < 0.20) {
+    const panelHeight = panel.getBoundingClientRect().height;
+    const midT = panelHeight - (window.innerHeight * 0.55); // 55vh roughly
+    const peekT = panelHeight - 88;
+    
+    const t = currentTranslate;
+    
+    if (t < midT / 2) {
       setPanelState('expanded');
-    } else if (ratio < 0.65) {
+    } else if (t < (midT + peekT) / 2) {
       setPanelState('mid');
     } else {
       setPanelState('peek');
@@ -1425,7 +1416,6 @@ function initMap() {
     });
     driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
     
-    // Color map based on Blue & White theme dynamically
     driverMap.on('style.load', () => {
       try {
         const curDark = document.documentElement.getAttribute('data-theme') === 'dark';
