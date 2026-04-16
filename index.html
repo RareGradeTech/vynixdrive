@@ -22,7 +22,7 @@
   --safe-top:env(safe-area-inset-top,0px);
   
   /* Panel Metrics */
-  --top-gap: 120px; /* The gap left at the top when fully expanded */
+  --top-gap: 120px;
   --panel-full: calc(100dvh - var(--nav-h) - var(--safe-bottom) - var(--top-gap));
   --panel-mid: 55dvh;
   --panel-peek: 88px;
@@ -1387,7 +1387,10 @@ window.completeRide = async function() {
     const earnSnap = await get(ref(db, `drivers/${cu.uid}/earnings`));
     const current = earnSnap.val() || { total:0, trips:0 };
     await set(ref(db, `drivers/${cu.uid}/earnings`), { total:(current.total||0)+fare, trips:(current.trips||0)+1 });
-    await remove(ref(db, `ride_requests/${activeRideId}`));
+    
+    // FIX: Broadcast completion instead of deleting the request, so the rider app catches it for the rating modal
+    await update(ref(db, `ride_requests/${activeRideId}`), { status: 'completed', completedAt: Date.now() });
+    
     statsToday.earned += fare; statsToday.rides++;
     document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
     document.getElementById('stat-rides').textContent = statsToday.rides;
@@ -1788,7 +1791,10 @@ async function cancelActiveRide(reason) {
   try {
     const snap = await get(ref(db,`ride_requests/${activeRideId}`));
     await push(ref(db,`drivers/${cu.uid}/canceled_rides`), { ...(snap.val()||{}), canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId });
-    await update(ref(db,`ride_requests/${activeRideId}`), { status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason });
+    
+    // FIX: Set to 'canceled_by_driver' explicitly so rider app catches it properly
+    await update(ref(db,`ride_requests/${activeRideId}`), { status:'canceled_by_driver', canceledAt: Date.now(), cancelReason:reason, driverId:null, driverName:null, acceptedAt:null });
+    
     if(chatUnsub){chatUnsub();chatUnsub=null;}
     activeRideId=null; activeRideData=null; ridePhase='pickup';
     chatMessages=[]; chatUnread=0; updateChatBadge();
