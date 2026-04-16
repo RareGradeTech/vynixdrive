@@ -64,7 +64,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .tb-name{font-size:14px;font-weight:800;color:var(--ink)}
 .tb-badge{font-size:8px;font-weight:700;background:rgba(16,185,129,.12);color:var(--green2);padding:2px 6px;border-radius:6px;margin-left:3px}
 .tb-right{display:flex;align-items:center;gap:8px}
-.tb-av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;cursor:pointer;transition:transform .2s var(--ease-spring),background .3s}
+.tb-av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;cursor:pointer;transition:transform .2s var(--ease-spring),background .3s;background-size:cover;background-position:center;}
 .tb-av:active{transform:scale(0.9)}
 .online-toggle{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:20px;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);touch-action:manipulation;user-select:none;transition:background .3s var(--ease-smooth),border-color .3s var(--ease-smooth),transform .2s var(--ease-spring)}
 .online-toggle.on{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.35)}
@@ -154,7 +154,7 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 .ar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pdot 1.5s ease-in-out infinite}
 .ar-fare-big{font-size:20px;font-weight:900;color:var(--ink)}
 .ar-rider-row{display:flex;align-items:center;gap:10px}
-.ar-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.ar-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;background-size:cover;background-position:center;}
 .ar-name{font-size:15px;font-weight:800;color:var(--ink)}
 .ar-dest-txt{font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
 .ar-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
@@ -336,8 +336,12 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
 
 .prof-card{background:linear-gradient(135deg,rgba(0,68,255,.07),rgba(51,102,255,.12));border:1px solid rgba(0,68,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
 .prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(0,68,255,.06)}
-.pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow);transition:transform .3s var(--ease-spring)}
+
+/* Updated Avatar to be clickable */
+.pc-av{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow);transition:transform .3s var(--ease-spring);cursor:pointer;position:relative;background-size:cover;background-position:center;border:2px solid rgba(255,255,255,0.4);}
 .pc-av:active{transform:scale(.92)}
+.pc-av::after{content:'📸';position:absolute;bottom:-6px;right:-6px;background:var(--card);border:1.5px solid var(--border);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+
 .pc-name{font-size:17px;font-weight:900;color:var(--ink)}
 .pc-email{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
 .pc-tag{font-size:9px;font-weight:800;background:rgba(16,185,129,.12);color:var(--green2);padding:3px 8px;border-radius:7px;margin-top:7px;display:inline-block;text-transform:uppercase;letter-spacing:.05em}
@@ -508,6 +512,9 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
   .toast{bottom:40px !important}
   .ride-notif-banner{max-width:400px;top:30px}
 }
+
+/* Avatar Upload Input (Hidden) */
+#avatarUpload { display: none; }
 </style>
 </head>
 <body>
@@ -819,7 +826,8 @@ html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background
     <div><div class="ph">Account</div></div>
 
     <div class="prof-card">
-      <div class="pc-av" id="profAv">?</div>
+      <input type="file" id="avatarUpload" accept="image/*" onchange="handleAvatarUpload(event)">
+      <div class="pc-av" id="profAv" onclick="document.getElementById('avatarUpload').click()">?</div>
       <div>
         <div class="pc-name" id="profName">Driver</div>
         <div class="pc-email" id="profEmail">—</div>
@@ -917,6 +925,8 @@ const FIREBASE_CONFIG = {
 };
 
 let app, db, auth;
+const CLOUDINARY_CLOUD = 'dqkujefxj';
+const CLOUDINARY_PRESET = 'banter_box';
 
 function tryInitFirebase() {
   try {
@@ -1154,11 +1164,6 @@ function processRideData(allData) {
       document.getElementById('phase-pickup').classList.remove('active');
       document.getElementById('phase-riding').classList.add('active');
       document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
-      if (r.arrivedPin) {
-        document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin;
-        document.getElementById('ar-pin').textContent = r.arrivedPin;
-        document.getElementById('arrivedPinCard').classList.add('show');
-      }
     }
     document.getElementById('reqLabel').style.display = 'none';
     document.getElementById('rideReqList').style.display = 'none';
@@ -1196,7 +1201,7 @@ function showActiveRide(r) {
   document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
   document.getElementById('ar-name').textContent = r.riderName || 'Rider';
   document.getElementById('ar-dest').textContent = (r.destination||'—').substring(0,40);
-  document.getElementById('ar-pin').textContent = r.securityPin || r.arrivedPin || '—';
+  document.getElementById('ar-pin').textContent = r.securityPin || '—';
   document.getElementById('ar-type').textContent = r.rideType || 'VynixGo';
   document.getElementById('ar-seats').textContent = r.capacity || 4;
   document.getElementById('ar-pickup-txt').textContent = r.pickup || '—';
@@ -1211,9 +1216,7 @@ function showActiveRide(r) {
     document.getElementById('phase-pickup').classList.remove('active');
     document.getElementById('phase-riding').classList.add('active');
     document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
-    document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin || '—';
-    document.getElementById('ar-pin').textContent = r.arrivedPin || '—';
-    document.getElementById('arrivedPinCard').classList.add('show');
+    document.getElementById('ar-pin').textContent = r.securityPin || '—';
   }
   setTimeout(() => { const ps = document.getElementById('panelScroll'); if(ps) ps.scrollTop = 0; }, 100);
 }
@@ -1353,12 +1356,21 @@ window.confirmAccept = async function() {
     const r = snap.val();
     if (!r) { showToast('Ride no longer exists'); closeAcceptModal(); return; }
     if (r.status !== 'pending') { showToast('Ride already taken'); closeAcceptModal(); return; }
+    
+    // Fetch both driver vehicle and driver profile for the avatar
     const vSnap = await get(ref(db, `drivers/${cu.uid}/vehicle`));
     const vehicle = vSnap.val() || {};
+    
+    const pSnap = await get(ref(db, `drivers/${cu.uid}/profile`));
+    const profile = pSnap.val() || {};
+
     await update(ref(db, `ride_requests/${pendingAcceptId}`), {
       status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver',
-      driverEmail:cu.email||'', driverVehicle:vehicle.car||'', driverPlate:vehicle.plate||'', acceptedAt:Date.now()
+      driverEmail:cu.email||'', driverVehicle:vehicle.car||'', driverPlate:vehicle.plate||'',
+      driverAv: profile.avatarUrl || '', // Pass avatar securely
+      acceptedAt:Date.now()
     });
+    
     activeRideId = pendingAcceptId;
     activeRideData = { ...r, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver' };
     closeAcceptModal();
@@ -1388,7 +1400,6 @@ window.completeRide = async function() {
     const current = earnSnap.val() || { total:0, trips:0 };
     await set(ref(db, `drivers/${cu.uid}/earnings`), { total:(current.total||0)+fare, trips:(current.trips||0)+1 });
     
-    // FIX: Broadcast completion instead of deleting the request, so the rider app catches it for the rating modal
     await update(ref(db, `ride_requests/${activeRideId}`), { status: 'completed', completedAt: Date.now() });
     
     statsToday.earned += fare; statsToday.rides++;
@@ -1614,17 +1625,17 @@ window.recenterMap = function() {
 // ─── PIN VERIFICATION ─────────────────────────────────────────
 window.driverArrived = async function() {
   if (!activeRideId || !activeRideData) return;
-  const newPin = Math.floor(1000 + Math.random() * 9000).toString();
-  await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
-  activeRideData.arrivedPin = newPin; activeRideData.arrived = true;
-  document.getElementById('arrivedPinDisplay').textContent = newPin;
-  document.getElementById('arrivedPinCard').classList.add('show');
-  document.getElementById('ar-pin').textContent = newPin;
-  showPinOverlay(newPin);
-  showToast('📍 Marked arrived — share PIN with rider');
+  // Use the PIN generated by the Rider App
+  const ridePin = activeRideData.securityPin;
+  if(!ridePin) { showToast('Error: No security PIN attached to this ride.'); return; }
+  
+  await update(ref(db, `ride_requests/${activeRideId}`), { arrived:true }).catch(()=>{});
+  activeRideData.arrived = true;
+  document.getElementById('ar-pin').textContent = ridePin;
+  showPinOverlay();
+  showToast('📍 Marked arrived — ask rider for PIN');
 };
-function showPinOverlay(pin) {
-  document.getElementById('pinDisplay').innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
+function showPinOverlay() {
   document.getElementById('pinInputRow').innerHTML = Array.from({length:4},(_,i) =>
     `<input class="pin-input-digit" id="pinI${i}" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="pinDigitInput(event,${i})">`
   ).join('');
@@ -1641,7 +1652,9 @@ window.pinDigitInput = function(e, idx) {
 };
 window.verifyPin = function() {
   const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
-  const expected = activeRideData?.arrivedPin || '';
+  // Validate against the secure pin from the rider request
+  const expected = activeRideData?.securityPin || '';
+  
   if (entered === expected) {
     document.getElementById('pinOverlay').classList.remove('show');
     ridePhase = 'riding';
@@ -1791,10 +1804,7 @@ async function cancelActiveRide(reason) {
   try {
     const snap = await get(ref(db,`ride_requests/${activeRideId}`));
     await push(ref(db,`drivers/${cu.uid}/canceled_rides`), { ...(snap.val()||{}), canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId });
-    
-    // FIX: Set to 'canceled_by_driver' explicitly so rider app catches it properly
     await update(ref(db,`ride_requests/${activeRideId}`), { status:'canceled_by_driver', canceledAt: Date.now(), cancelReason:reason, driverId:null, driverName:null, acceptedAt:null });
-    
     if(chatUnsub){chatUnsub();chatUnsub=null;}
     activeRideId=null; activeRideData=null; ridePhase='pickup';
     chatMessages=[]; chatUnread=0; updateChatBadge();
@@ -1833,6 +1843,49 @@ window.dismissNotifBanner = function() {
   if(notifTimer) clearTimeout(notifTimer);
 };
 
+// ─── AVATAR UPLOAD ───────────────────────────────────────────
+window.handleAvatarUpload = async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  
+  showToast('Uploading image...');
+
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    const imageUrl = data.secure_url;
+    
+    // Save to Firebase profile
+    if (cu && db) {
+       await update(ref(db, `drivers/${cu.uid}/profile`), { avatarUrl: imageUrl });
+       
+       // Update UI elements
+       document.getElementById('profAv').style.backgroundImage = `url(${imageUrl})`;
+       document.getElementById('profAv').textContent = '';
+       document.getElementById('tbAv').style.backgroundImage = `url(${imageUrl})`;
+       document.getElementById('tbAv').textContent = '';
+
+       // If currently online, update the active drivers node as well
+       if (isOnline) {
+          update(ref(db, `active_drivers/${cu.uid}`), { avatarUrl: imageUrl }).catch(()=>{});
+       }
+
+       showToast('✅ Profile picture updated!');
+    }
+  } catch(error) {
+    showToast('Failed to upload image. Please try again.');
+  }
+};
+
 // ─── PROFILE ─────────────────────────────────────────────────
 function loadProfileDetails() {
   const cached = JSON.parse(localStorage.getItem('vynix_profile') || 'null');
@@ -1862,9 +1915,19 @@ function applyProfileData(data) {
   document.getElementById('ep-city-input').value = data.city || '';
   document.getElementById('profName').textContent = name;
   document.getElementById('profEmail').textContent = cu?.email || '—';
-  const i = ini2(name);
-  document.getElementById('profAv').textContent = i;
-  document.getElementById('tbAv').textContent = i;
+  
+  if (data.avatarUrl) {
+      document.getElementById('profAv').style.backgroundImage = `url(${data.avatarUrl})`;
+      document.getElementById('profAv').textContent = '';
+      document.getElementById('tbAv').style.backgroundImage = `url(${data.avatarUrl})`;
+      document.getElementById('tbAv').textContent = '';
+  } else {
+      const i = ini2(name);
+      document.getElementById('profAv').textContent = i;
+      document.getElementById('tbAv').textContent = i;
+      document.getElementById('profAv').style.backgroundImage = '';
+      document.getElementById('tbAv').style.backgroundImage = '';
+  }
 }
 
 window.startEditProfile = function() {
@@ -1875,7 +1938,9 @@ window.startEditProfile = function() {
 };
 
 window.saveProfileDetails = async function() {
+  const currentData = JSON.parse(localStorage.getItem('vynix_profile') || '{}');
   const data = {
+    ...currentData,
     name: document.getElementById('ep-name-input').value.trim() || cu?.displayName || 'Driver',
     phone: document.getElementById('ep-phone-input').value.trim(),
     idnum: document.getElementById('ep-idnum-input').value.trim(),
@@ -1887,7 +1952,7 @@ window.saveProfileDetails = async function() {
   applyProfileData(data);
   localStorage.setItem('vynix_profile', JSON.stringify(data));
   try {
-    await set(ref(db, `drivers/${cu.uid}/profile`), data);
+    await update(ref(db, `drivers/${cu.uid}/profile`), data);
     if (data.name && auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName: data.name }).catch(()=>{});
     }
@@ -1912,13 +1977,30 @@ function updateUI(u) {
 async function goOnline() {
   isOnline=true; onlineStartTime=Date.now(); setOnlineUI(true);
   localStorage.setItem('vynix_driver_status','online');
+  
+  // Pass avatar URL when going online so rider app can read it from active_drivers directly if needed
+  const cachedProfile = JSON.parse(localStorage.getItem('vynix_profile') || '{}');
+  const avatarUrl = cachedProfile.avatarUrl || '';
+
   navigator.geolocation?.getCurrentPosition(
-    pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),
-    ()=>updateDriverLocation(-24.1991,28.9934)
+    pos=>{
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      driverLngLat = [lng, lat];
+      driverMarker?.setLngLat([lng, lat]);
+      if (!userIsPanning) driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
+      if (cu && db) {
+        set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now(), avatarUrl }).catch(()=>{});
+      }
+    },
+    ()=>{
+      updateDriverLocation(-24.1991,28.9934)
+    }
   );
   get(ref(db,'ride_requests')).then(s=>processRideData(s.val()||{}));
   setPanelState('mid'); showToast('You are now Online 🟢');
 }
+
 async function goOffline() {
   isOnline=false; setOnlineUI(false);
   localStorage.setItem('vynix_driver_status','offline');
